@@ -49,10 +49,12 @@ public class Graph {
     
     public List<Switch> getSwitches(String min, String max) {
     	List<Switch> sws = new ArrayList<Switch>();
-    	int xMin = Integer.valueOf(min.substring(0, 1));
-    	int yMin = Integer.valueOf(min.substring(1, 2));
-    	int xMax = Integer.valueOf(max.substring(0, 1));
-    	int yMax = Integer.valueOf(max.substring(1, 2));
+		String[] Min = min.split("\\.");
+		int xMin = Integer.valueOf(Min[0]);
+		int yMin = Integer.valueOf(Min[1]);
+		String[] Max = max.split("\\.");
+		int xMax = Integer.valueOf(Max[0]);
+		int yMax = Integer.valueOf(Max[1]);
         for(int x = xMin; x <= xMax; x++) {
         	for(int y = yMin; y <= yMax; y++) {
         		sws.add(this.getSwitch(x+""+y));

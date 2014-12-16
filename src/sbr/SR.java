@@ -43,6 +43,7 @@ public class SR {
 
 	public SR(File fileName) {
 		graph = new Graph(fileName);
+		System.err.println(graph);
 		// this.routwFailLinks = graph.getroutwFailLinks();
 		// graph.PrintFailRouters();
 		segments = new ArrayList<>();
@@ -74,7 +75,7 @@ public class SR {
 		String[] Min = min.split("\\.");
 		int xMin = Integer.valueOf(Min[0]);
 		int yMin = Integer.valueOf(Min[1]);
-		String[] Max = min.split("\\.");
+		String[] Max = max.split("\\.");
 		int xMax = Integer.valueOf(Max[0]);
 		int yMax = Integer.valueOf(Max[1]);
 		for (int x = xMin; x <= xMax; x++) {

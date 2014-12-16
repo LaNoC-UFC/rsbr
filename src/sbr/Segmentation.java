@@ -15,7 +15,7 @@ public class Segmentation {
 		}
 		else
 		{
-			file = "./Input.txt";
+			file = "./Input4.txt";
 			//file = "8x8.1";
 		}
 		

@@ -262,7 +262,7 @@ public boolean Reaches(Switch destino)
 		String[] Min = min.split("\\.");
 		int xMin = Integer.valueOf(Min[0]);
 		int yMin = Integer.valueOf(Min[1]);
-		String[] Max = min.split("\\.");
+		String[] Max = max.split("\\.");
 		int xMax = Integer.valueOf(Max[0]);
 		int yMax = Integer.valueOf(Max[1]);
 		String[] xy = nome.split("\\.");
