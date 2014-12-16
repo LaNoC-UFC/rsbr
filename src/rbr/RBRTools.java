@@ -927,7 +927,7 @@ public class RBRTools {
 		upRight = Integer.toString(Math.max(
 				Integer.parseInt(r1.getUpRight().substring(0, 1)),
 				Integer.parseInt(r2.getUpRight().substring(0, 1))))
-				+ Integer.toString(Math.max(
+				+ "." + Integer.toString(Math.max(
 						Integer.parseInt(r1.getUpRight().substring(1, 2)),
 						Integer.parseInt(r2.getUpRight().substring(1, 2))));
 
@@ -941,7 +941,7 @@ public class RBRTools {
 		downLeft = Integer.toString(Math.min(
 				Integer.parseInt(r1.getDownLeft().substring(0, 1)),
 				Integer.parseInt(r2.getDownLeft().substring(0, 1))))
-				+ Integer.toString(Math.min(
+				+ "." + Integer.toString(Math.min(
 						Integer.parseInt(r1.getDownLeft().substring(1, 2)),
 						Integer.parseInt(r2.getDownLeft().substring(1, 2))));
 

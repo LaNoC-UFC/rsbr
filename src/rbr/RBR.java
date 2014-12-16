@@ -28,7 +28,7 @@ public class RBR
         }
         else //Without arguments
         {
-        	topologyFile = "./inputs/SC_5x5_12%_Origin.txt";
+        	topologyFile = "Input4.txt";
             merge = "nmerge";
             reachability = 1.0;
             restrictionFile = "Restriction.txt";
