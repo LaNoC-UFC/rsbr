@@ -60,9 +60,9 @@ public class SR {
 	public void computeSegments() {
 		int Nx = (int) Math.sqrt(graph.getSwitches().size()) - 1;
 		int Ny = Nx;
-		String max = Nx + "" + Ny;
+		String max = Nx + "." + Ny;
 		for (int i = Ny - 1; i >= 0; i--) {
-			String min = 0 + "" + i;
+			String min = 0 + "." + i;
 			System.err.println("#Min: " + min + " #Max: " + max);
 			computeSegments(min, max);
 		}
@@ -71,13 +71,15 @@ public class SR {
 	private void computeSegments(String min, String max) {
 
 		// fill not visiteds' list
-		int xMin = Integer.valueOf(min.substring(0, 1));
-		int yMin = Integer.valueOf(min.substring(1, 2));
-		int xMax = Integer.valueOf(max.substring(0, 1));
-		int yMax = Integer.valueOf(max.substring(1, 2));
+		String[] Min = min.split("\\.");
+		int xMin = Integer.valueOf(Min[0]);
+		int yMin = Integer.valueOf(Min[1]);
+		String[] Max = min.split("\\.");
+		int xMax = Integer.valueOf(Max[0]);
+		int yMax = Integer.valueOf(Max[1]);
 		for (int x = xMin; x <= xMax; x++) {
 			for (int y = yMax; y >= yMin; y--) {
-				Switch sw = graph.getSwitch(x + "" + y);
+				Switch sw = graph.getSwitch(x + "." + y);
 				if (!sw.isVisited() && !nVisiteds.contains(sw))
 					nVisiteds.add(sw);
 			}
@@ -91,8 +93,8 @@ public class SR {
 		boolean first = (yMin + 1 == yMax);
 		boolean pair = ((yMin + 1) % 2 == 0);
 		Switch sw;
-		Switch left = graph.getSwitch(xMin + "" + (yMin + 1));
-		Switch right = graph.getSwitch(xMax + "" + (yMin + 1));
+		Switch left = graph.getSwitch(xMin + "." + (yMin + 1));
+		Switch right = graph.getSwitch(xMax + "." + (yMin + 1));
 		if (first || (left.isVisited() && right.isVisited())) {
 			if (pair)
 				sw = left;

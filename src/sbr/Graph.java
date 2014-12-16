@@ -179,7 +179,7 @@ public class Graph {
             
             for(int i = 0; i < lines.length; i++) {
             	for(int j = 0; j <= columns.length; j++) {
-            		String vertice = i + "" + j;
+            		String vertice = i + "." + j;
             		this.addSwitch(vertice);
             		
             	}
@@ -189,8 +189,8 @@ public class Graph {
             	String [] line = lines[i].split(" ");
             	for(int j = 0; j < line.length; j++) {
             		if(line[j].charAt(0) == '0') { //there is a link
-                		Switch starting = this.getSwitch("" + j + (columns.length - i));
-                		Switch ending = this.getSwitch("" + (j+1) + (columns.length - i));
+                		Switch starting = this.getSwitch(j + "." + (columns.length - i));
+                		Switch ending = this.getSwitch((j+1) + "." + (columns.length - i));
                 		this.addLink(starting, ending, ports[2]);
                 		this.addLink(ending, starting, ports[3]);            			
             		}
@@ -201,8 +201,8 @@ public class Graph {
             	String [] column = columns[i].split(" ");
             	for(int j = 0; j < column.length; j++) {
             		if(column[j].charAt(0) == '0') { //there is a link
-                		Switch starting = this.getSwitch(j + "" + (columns.length - i));
-                		Switch ending = this.getSwitch(j + "" + (columns.length - 1 - i));
+                		Switch starting = this.getSwitch(j + "." + (columns.length - i));
+                		Switch ending = this.getSwitch(j + "." + (columns.length - 1 - i));
                 		this.addLink(starting, ending, ports[1]);
                 		this.addLink(ending, starting, ports[0]);    			
             		}
