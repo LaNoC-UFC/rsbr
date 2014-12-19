@@ -92,7 +92,7 @@ public class Vertice implements Comparable<Vertice>
         return outOp;
     }
     
-    public Aresta getLink(Vertice destino) 
+    public Aresta getAresta(Vertice destino) 
     {
 	    for(Aresta v : adj)
 	    	if(v.getDestino().getNome().equals(destino.getNome()))             
@@ -102,7 +102,7 @@ public class Vertice implements Comparable<Vertice>
 		
 	}
     
-    public ArrayList<Aresta> getLinks() 
+    public ArrayList<Aresta> getArestas() 
     {
 		return adj;
 	}

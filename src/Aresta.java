@@ -155,6 +155,12 @@ public class Aresta
     	this.weight++;
     }
     
+    public void decremWeight()
+    {
+    	if(this.weight!=0)
+    		this.weight--;
+    }
+    
     public double getWeight() 
     {
     	return this.weight;

@@ -164,5 +164,21 @@ public class Graph
         }
         return r;
     }
+    
+    public ArrayList<Vertice> getVertices(String min, String max) 
+    {
+    	ArrayList<Vertice> sws = new ArrayList<Vertice>();
+    	int xMin = Integer.valueOf(min.substring(0, 1));
+    	int yMin = Integer.valueOf(min.substring(1, 2));
+    	int xMax = Integer.valueOf(max.substring(0, 1));
+    	int yMax = Integer.valueOf(max.substring(1, 2));
+        for(int x = xMin; x <= xMax; x++)
+        	for(int y = yMin; y <= yMax; y++)
+        		sws.add(this.getVertice(x+""+y));
+
+        if(sws.size() == 0) sws = null;
+        return sws;
+        
+    }
 
 }
