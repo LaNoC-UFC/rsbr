@@ -1,6 +1,7 @@
 package sbr;
 
-public class Link {
+public class Link 
+{
 	private boolean visited;
 	private boolean tvisited;
 	private Segment seg;
@@ -11,7 +12,8 @@ public class Link {
     private String cor;
 
 
-	public Link() {
+	public Link() 
+	{
         this.cor = null;
         this.starting = null;
         this.ending = null;
