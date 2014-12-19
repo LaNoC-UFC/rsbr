@@ -100,8 +100,8 @@ public class Region implements Comparable<Region> {
 		ArrayList<String> result = new ArrayList<String>();
 		for (int x = xmin; x <= xmax; x++)
 			for (int y = ymin; y <= ymax; y++)
-				if (this.dst.contains(x + "" + y))
-					result.add(x + "" + y);
+				if (this.dst.contains(x + "." + y))
+					result.add(x + "." + y);
 		if (result.size() == 0)
 			result = null;
 		return result;
@@ -123,19 +123,19 @@ public class Region implements Comparable<Region> {
 	}
 
 	public int getXmax() {
-		return Integer.parseInt(this.getUpRight().substring(0, 1));
+		return Integer.parseInt(this.getUpRight().split("\\.")[0]);
 	}
 
 	public int getYmax() {
-		return Integer.parseInt(this.getUpRight().substring(1, 2));
+		return Integer.parseInt(this.getUpRight().split("\\.")[1]);
 	}
 
 	public int getXmin() {
-		return Integer.parseInt(this.getDownLeft().substring(0, 1));
+		return Integer.parseInt(this.getDownLeft().split("\\.")[0]);
 	}
 
 	public int getYmin() {
-		return Integer.parseInt(this.getDownLeft().substring(1, 2));
+		return Integer.parseInt(this.getDownLeft().split("\\.")[1]);
 	}
 
 	public String toString() {
@@ -145,14 +145,17 @@ public class Region implements Comparable<Region> {
 	}
 
 	public boolean contains(String router) {
-		int x = Integer.parseInt(router.substring(0, 1));
-		int y = Integer.parseInt(router.substring(1, 2));
+		String[] xy = router.split("\\.");
+		int x = Integer.parseInt(xy[0]);
+		int y = Integer.parseInt(xy[1]);
 
-		int minX = Integer.parseInt(this.getDownLeft().substring(0, 1));
-		int minY = Integer.parseInt(this.getDownLeft().substring(1, 2));
-		int maxX = Integer.parseInt(this.getUpRight().substring(0, 1));
-		int maxY = Integer.parseInt(this.getUpRight().substring(1, 2));
-
+		String[] Min = this.getDownLeft().split("\\.");
+		int minX = Integer.valueOf(Min[0]);
+		int minY = Integer.valueOf(Min[1]);
+		String[] Max = this.getUpRight().split("\\.");
+		int maxX = Integer.valueOf(Max[0]);
+		int maxY = Integer.valueOf(Max[1]);
+		
 		if (minX <= x && x <= maxX && minY <= y && y <= maxY)
 			return true;
 		return false;

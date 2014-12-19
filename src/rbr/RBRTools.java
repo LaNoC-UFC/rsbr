@@ -52,37 +52,37 @@ public class RBRTools {
 	public void makeStats(double[] hopCount, float[] Regions, double ard,
 			double[] linkWeight) {
 		try {
-			
+
 			FileWriter ardfs = new FileWriter(new File("ard"));
 			FileWriter lwMeanfs = new FileWriter(new File("lw-Mean"));
 			FileWriter lwStdfs = new FileWriter(new File("lw-Std"));
 			FileWriter regionMaxfs = new FileWriter(new File("region-max"));
-			//FileWriter hcMeanfs = new FileWriter(new File("hc-mean"));
-			//FileWriter hcMinfs = new FileWriter(new File("hc-min"));
-			//FileWriter hcMaxfs = new FileWriter(new File("hc-max"));
-			//FileWriter regionMeanfs = new FileWriter(new File("region-mean"));
-			//FileWriter regionMinfs = new FileWriter(new File("region-min"));
-			
+			// FileWriter hcMeanfs = new FileWriter(new File("hc-mean"));
+			// FileWriter hcMinfs = new FileWriter(new File("hc-min"));
+			// FileWriter hcMaxfs = new FileWriter(new File("hc-max"));
+			// FileWriter regionMeanfs = new FileWriter(new
+			// File("region-mean"));
+			// FileWriter regionMinfs = new FileWriter(new File("region-min"));
 
 			ardfs.write("" + ard);
 			lwMeanfs.write("" + linkWeight[0]);
 			lwStdfs.write("" + linkWeight[1]);
 			regionMaxfs.write("" + Regions[0]);
-			//regionMinfs.write("" + Regions[1]);
-			//regionMeanfs.write("" + Regions[2]);
-			//hcMaxfs.write("" + hopCount[0]);
-			//hcMinfs.write("" + hopCount[1]);
-			//hcMeanfs.write("" + hopCount[2]);
+			// regionMinfs.write("" + Regions[1]);
+			// regionMeanfs.write("" + Regions[2]);
+			// hcMaxfs.write("" + hopCount[0]);
+			// hcMinfs.write("" + hopCount[1]);
+			// hcMeanfs.write("" + hopCount[2]);
 
 			ardfs.close();
 			lwMeanfs.close();
 			lwStdfs.close();
 			regionMaxfs.close();
-			//regionMinfs.close();
-			//regionMeanfs.close();
-			//hcMaxfs.close();
-			//hcMinfs.close();
-			//hcMeanfs.close();
+			// regionMinfs.close();
+			// regionMeanfs.close();
+			// hcMaxfs.close();
+			// hcMinfs.close();
+			// hcMeanfs.close();
 		} catch (IOException ex) {
 			Logger.getLogger(RBRTools.class.getName()).log(Level.SEVERE, null,
 					ex);
@@ -172,20 +172,29 @@ public class RBRTools {
 	public void doRoutingTable(float[] stats, Graph graph) {
 		String routingTableFile = "Table_package.vhd";
 		File routingTable = new File(routingTableFile);
+		// TODO Solve to non-square nocs
+		int nBits = (int) Math.ceil(Math.log(Math.sqrt(graph.vertices.size()))/Math.log(2));
 
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
-			bw.append("library IEEE;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n"
-					+ "use work.HermesPackage.all;\n\npackage TablePackage is\n\nconstant NREG : "
-					+ "integer := "
-					+ (int) stats[0]
-					+ ";\nconstant MEMORY_SIZE : integer := NREG;\n\ntype memory is "
-					+ "array (0 to MEMORY_SIZE-1) of reg26;\ntype tables is array (0 to NROT-1) "
-					+ "of memory;\n\nconstant TAB: tables :=(");
+			bw.append("library IEEE;\n" +
+					"use ieee.std_logic_1164.all;\n" +
+					"use ieee.numeric_std.all;\n" +
+					"use work.HermesPackage.all;\n\n" +
+					"package TablePackage is\n\n" +
+					"constant NREG : integer := " + (int) stats[0] + ";\n" +
+					"constant MEMORY_SIZE : integer := NREG;\n" +
+					"constant NBITS : integer := " + nBits + ";\n" +
+					"constant CELL_SIZE : integer := 2*NPORT+4*NBITS;\n\n" +
+					"subtype cell is std_logic_vector(CELL_SIZE-1 downto 0);\n" +
+					"type memory is array (0 to MEMORY_SIZE-1) of cell;\n" + 
+					"type tables is array (0 to NROT-1) of memory;\n\n" + 
+					"constant TAB: tables :=(");
 
 			for (Router router : graph.getVertices()) {
-				router.PrintRegions(stats, bw);
-				if(graph.getVertices().indexOf(router)!=graph.getVertices().size()-1)
+				router.PrintRegions(stats, bw, nBits);
+				if (graph.getVertices().indexOf(router) != graph.getVertices()
+						.size() - 1)
 					bw.append(",");
 			}
 
@@ -517,10 +526,13 @@ public class RBRTools {
 
 				if (strgs != null) {
 					String[] extrems = getExtrems(strgs);
-					int xmin = Integer.parseInt(extrems[0].substring(0, 1));
-					int ymin = Integer.parseInt(extrems[0].substring(1, 2));
-					int xmax = Integer.parseInt(extrems[1].substring(0, 1));
-					int ymax = Integer.parseInt(extrems[1].substring(1, 2));
+
+					String[] Min = extrems[0].split("\\.");
+					int xmin = Integer.valueOf(Min[0]);
+					int ymin = Integer.valueOf(Min[1]);
+					String[] Max = extrems[1].split("\\.");
+					int xmax = Integer.valueOf(Max[0]);
+					int ymax = Integer.valueOf(Max[1]);
 
 					ArrayList<String> dests = reg
 							.getDst(xmin, ymin, xmax, ymax);
@@ -568,8 +580,8 @@ public class RBRTools {
 
 		if (left && down && !up && !right) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x > xmax)
 					dstTemp1.add(dst);
 				else if (y > ymax)
@@ -577,8 +589,8 @@ public class RBRTools {
 			}
 		} else if (left && up && !right && !down) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x > xmax)
 					dstTemp1.add(dst);
 				else if (y < ymin)
@@ -586,8 +598,8 @@ public class RBRTools {
 			}
 		} else if (right && up && !left && !down) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x < xmin)
 					dstTemp1.add(dst);
 				else if (y < ymin)
@@ -595,8 +607,8 @@ public class RBRTools {
 			}
 		} else if (right && down && !left && !up) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x < xmin)
 					dstTemp1.add(dst);
 				else if (y > ymax)
@@ -604,7 +616,7 @@ public class RBRTools {
 			}
 		} else if (up && down && !right && !left) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
 				if (x < xmin)
 					dstTemp1.add(dst);
 				else if (x > xmax)
@@ -612,7 +624,7 @@ public class RBRTools {
 			}
 		} else if (left && right && !up && !down) {
 			for (String dst : reg.getDst()) {
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (y < ymin)
 					dstTemp1.add(dst);
 				else if (y > ymax)
@@ -620,8 +632,8 @@ public class RBRTools {
 			}
 		} else if (left && !up && !down && !right) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x > xmax)
 					dstTemp1.add(dst);
 				else if (y > ymax)
@@ -631,8 +643,8 @@ public class RBRTools {
 			}
 		} else if (right && !left && !down && !up) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x < xmin)
 					dstTemp1.add(dst);
 				else if (y > ymax)
@@ -642,8 +654,8 @@ public class RBRTools {
 			}
 		} else if (down && !up && !left && !right) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (y > ymax)
 					dstTemp1.add(dst);
 				else if (x < xmin)
@@ -653,8 +665,8 @@ public class RBRTools {
 			}
 		} else if (up && !down && !left && !right) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (y < ymin)
 					dstTemp1.add(dst);
 				else if (x < xmin)
@@ -664,8 +676,8 @@ public class RBRTools {
 			}
 		} else if (!up && !down && !left && !right) {
 			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.substring(0, 1));
-				int y = Integer.parseInt(dst.substring(1, 2));
+				int x = Integer.parseInt(dst.split("\\.")[0]);
+				int y = Integer.parseInt(dst.split("\\.")[1]);
 				if (x < xmin)
 					dstTemp1.add(dst);
 				else if (x > xmax)
@@ -709,23 +721,24 @@ public class RBRTools {
 
 	// [0] - DownLeft [1]- UpRight
 	private static String[] getExtrems(ArrayList<String> dsts) {
-		String Xs = "";
-		String Ys = "";
 		String[] xtrems = new String[2];
 
+		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
+		int xMax = 0, yMax = 0;
+
 		for (String s : dsts) {
-			Xs = Xs.concat(Character.toString(s.charAt(0)));
-			Ys = Ys.concat(Character.toString(s.charAt(1)));
+			String[] xy = s.split("\\.");
+			int x = Integer.valueOf(xy[0]);
+			int y = Integer.valueOf(xy[1]);
+
+			xMin = (xMin < x) ? xMin : x;
+			yMin = (yMin < y) ? yMin : y;
+			xMax = (xMax > x) ? xMax : x;
+			yMax = (yMax > y) ? yMax : y;
 		}
-		char[] X = Xs.toCharArray();
-		char[] Y = Ys.toCharArray();
 
-		Arrays.sort(X);
-		Arrays.sort(Y);
-
-		xtrems[1] = String.valueOf(X[X.length - 1])
-				+ String.valueOf(Y[Y.length - 1]);
-		xtrems[0] = String.valueOf(X[0]) + String.valueOf(Y[0]);
+		xtrems[1] = xMax + "." + yMax;
+		xtrems[0] = xMin + "." + yMin;
 
 		return xtrems;
 
@@ -737,13 +750,13 @@ public class RBRTools {
 		String[] strgsXtrems = getExtrems(strgs);
 		int sides = 0;
 
-		if (Integer.parseInt(strgsXtrems[0].substring(0, 1)) == reg.getXmin())
+		if (Integer.parseInt(strgsXtrems[0].split("\\.")[0]) == reg.getXmin())
 			sides++;
-		if (Integer.parseInt(strgsXtrems[0].substring(1, 2)) == reg.getYmin())
+		if (Integer.parseInt(strgsXtrems[0].split("\\.")[1]) == reg.getYmin())
 			sides++;
-		if (Integer.parseInt(strgsXtrems[1].substring(0, 1)) == reg.getXmax())
+		if (Integer.parseInt(strgsXtrems[1].split("\\.")[0]) == reg.getXmax())
 			sides++;
-		if (Integer.parseInt(strgsXtrems[1].substring(1, 2)) == reg.getYmax())
+		if (Integer.parseInt(strgsXtrems[1].split("\\.")[1]) == reg.getYmax())
 			sides++;
 
 		return sides;
@@ -752,13 +765,16 @@ public class RBRTools {
 
 	// Delete routers inside of box defined by extremes
 	private void deleteFromRegion(String[] extrems, Region reg) {
-		int xmin = Integer.parseInt(extrems[0].substring(0, 1));
-		int ymin = Integer.parseInt(extrems[0].substring(1, 2));
-		int xmax = Integer.parseInt(extrems[1].substring(0, 1));
-		int ymax = Integer.parseInt(extrems[1].substring(1, 2));
+
+		String[] Min = extrems[0].split("\\.");
+		int xmin = Integer.valueOf(Min[0]);
+		int ymin = Integer.valueOf(Min[1]);
+		String[] Max = extrems[1].split("\\.");
+		int xmax = Integer.valueOf(Max[0]);
+		int ymax = Integer.valueOf(Max[1]);
 		for (int i = xmin; i <= xmax; i++) {
 			for (int j = ymin; j <= ymax; j++) {
-				String dst = i + "" + j;
+				String dst = i + "." + j;
 				reg.getDst().remove(dst);
 			}
 		}
@@ -771,7 +787,7 @@ public class RBRTools {
 		int ymin = reg.getYmin(), ymax = reg.getYmax();
 		for (int x = xmin; x <= xmax; x++) {
 			for (int y = ymin; y <= ymax; y++) {
-				String dest = x + "" + y;
+				String dest = x + "." + y;
 				if (!reg.getDst().contains(dest)) {
 					strg.add(dest);
 				}
@@ -788,10 +804,12 @@ public class RBRTools {
 			String op) {
 		ArrayList<Region> result = new ArrayList<Region>();
 		String[] extrems = getExtrems(dsts);
-		int Xmin = Integer.parseInt(extrems[0].substring(0, 1));
-		int Ymin = Integer.parseInt(extrems[0].substring(1, 2));
-		int Xmax = Integer.parseInt(extrems[1].substring(0, 1));
-		int Ymax = Integer.parseInt(extrems[1].substring(1, 2));
+		String[] Min = extrems[0].split("\\.");
+		int Xmin = Integer.valueOf(Min[0]);
+		int Ymin = Integer.valueOf(Min[1]);
+		String[] Max = extrems[1].split("\\.");
+		int Xmax = Integer.valueOf(Max[0]);
+		int Ymax = Integer.valueOf(Max[1]);
 
 		while (!dsts.isEmpty()) {
 			int Lmin = Ymin, Cmax = Xmax;
@@ -801,13 +819,13 @@ public class RBRTools {
 			for (int line = Lmax; line >= Lmin; line--) {
 				for (int col = Cmin; col <= Cmax; col++) {
 					if (first) {
-						if (dsts.contains(col + "" + line)) {
+						if (dsts.contains(col + "." + line)) {
 							Cmin = col;
 							Lmax = line;
 							first = false;
 						}
 					} else {
-						if (!dsts.contains(col + "" + line)) { // if stranger
+						if (!dsts.contains(col + "." + line)) { // if stranger
 							if (line == Lmax) { // first line
 								Cmax = col - 1;
 							} else if (col > (Cmax - Cmin) / 2 && col > Cmin) {
@@ -841,7 +859,7 @@ public class RBRTools {
 		ArrayList<String> dst = new ArrayList<String>();
 		for (int x = xmin; x <= xmax; x++)
 			for (int y = ymin; y <= ymax; y++)
-				dst.add(x + "" + y);
+				dst.add(x + "." + y);
 
 		return (new Region(ip, dst, op));
 	}
@@ -925,11 +943,12 @@ public class RBRTools {
 		String upRight;
 
 		upRight = Integer.toString(Math.max(
-				Integer.parseInt(r1.getUpRight().substring(0, 1)),
-				Integer.parseInt(r2.getUpRight().substring(0, 1))))
-				+ "." + Integer.toString(Math.max(
-						Integer.parseInt(r1.getUpRight().substring(1, 2)),
-						Integer.parseInt(r2.getUpRight().substring(1, 2))));
+				Integer.parseInt(r1.getUpRight().split("\\.")[0]),
+				Integer.parseInt(r2.getUpRight().split("\\.")[0])))
+				+ "."
+				+ Integer.toString(Math.max(
+						Integer.parseInt(r1.getUpRight().split("\\.")[1]),
+						Integer.parseInt(r2.getUpRight().split("\\.")[1])));
 
 		return upRight;
 	}
@@ -939,11 +958,12 @@ public class RBRTools {
 		String downLeft;
 
 		downLeft = Integer.toString(Math.min(
-				Integer.parseInt(r1.getDownLeft().substring(0, 1)),
-				Integer.parseInt(r2.getDownLeft().substring(0, 1))))
-				+ "." + Integer.toString(Math.min(
-						Integer.parseInt(r1.getDownLeft().substring(1, 2)),
-						Integer.parseInt(r2.getDownLeft().substring(1, 2))));
+				Integer.parseInt(r1.getDownLeft().split("\\.")[0]),
+				Integer.parseInt(r2.getDownLeft().split("\\.")[0])))
+				+ "."
+				+ Integer.toString(Math.min(
+						Integer.parseInt(r1.getDownLeft().split("\\.")[1]),
+						Integer.parseInt(r2.getDownLeft().split("\\.")[1])));
 
 		return downLeft;
 	}
@@ -986,15 +1006,15 @@ public class RBRTools {
 	public boolean AreNeighbours(Region r1, Region r2) {
 		boolean areNeighbours = false;
 
-		int Xmax1 = Integer.parseInt(r1.getUpRight().substring(0, 1));
-		int Xmax2 = Integer.parseInt(r2.getUpRight().substring(0, 1));
-		int Ymax1 = Integer.parseInt(r1.getUpRight().substring(1, 2));
-		int Ymax2 = Integer.parseInt(r2.getUpRight().substring(1, 2));
+		int Xmax1 = Integer.parseInt(r1.getUpRight().split("\\.")[0]);
+		int Xmax2 = Integer.parseInt(r2.getUpRight().split("\\.")[0]);
+		int Ymax1 = Integer.parseInt(r1.getUpRight().split("\\.")[1]);
+		int Ymax2 = Integer.parseInt(r2.getUpRight().split("\\.")[1]);
 
-		int Xmin1 = Integer.parseInt(r1.getDownLeft().substring(0, 1));
-		int Xmin2 = Integer.parseInt(r2.getDownLeft().substring(0, 1));
-		int Ymin1 = Integer.parseInt(r1.getDownLeft().substring(1, 2));
-		int Ymin2 = Integer.parseInt(r2.getDownLeft().substring(1, 2));
+		int Xmin1 = Integer.parseInt(r1.getDownLeft().split("\\.")[0]);
+		int Xmin2 = Integer.parseInt(r2.getDownLeft().split("\\.")[0]);
+		int Ymin1 = Integer.parseInt(r1.getDownLeft().split("\\.")[1]);
+		int Ymin2 = Integer.parseInt(r2.getDownLeft().split("\\.")[1]);
 
 		if (Xmax1 > Xmax2) {
 			if (Xmin1 == Xmax2 + 1)
@@ -1021,14 +1041,14 @@ public class RBRTools {
 	// Check if regions form a box
 	public boolean FormBox(Region r1, Region r2) {
 
-		if ((Integer.parseInt(r1.getUpRight().substring(0, 1)) == Integer
-				.parseInt(r2.getUpRight().substring(0, 1)) && Integer
-				.parseInt(r1.getDownLeft().substring(0, 1)) == Integer
-				.parseInt(r2.getDownLeft().substring(0, 1)))
-				|| (Integer.parseInt(r1.getUpRight().substring(1, 2)) == Integer
-						.parseInt(r2.getUpRight().substring(1, 2)) && Integer
-						.parseInt(r1.getDownLeft().substring(1, 2)) == Integer
-						.parseInt(r2.getDownLeft().substring(1, 2)))) {
+		if ((Integer.parseInt(r1.getUpRight().split("\\.")[0]) == Integer
+				.parseInt(r2.getUpRight().split("\\.")[0]) && Integer
+				.parseInt(r1.getDownLeft().split("\\.")[0]) == Integer
+				.parseInt(r2.getDownLeft().split("\\.")[0]))
+				|| (Integer.parseInt(r1.getUpRight().split("\\.")[1]) == Integer
+						.parseInt(r2.getUpRight().split("\\.")[1]) && Integer
+						.parseInt(r1.getDownLeft().split("\\.")[1]) == Integer
+						.parseInt(r2.getDownLeft().split("\\.")[1]))) {
 			return true;
 		}
 

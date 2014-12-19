@@ -28,8 +28,8 @@ public class RBR
         }
         else //Without arguments
         {
-        	topologyFile = "Input4.txt";
-            merge = "nmerge";
+        	topologyFile = "Input11.txt";
+            merge = "merge";
             reachability = 1.0;
             restrictionFile = "Restriction.txt";
         }
@@ -43,7 +43,7 @@ public class RBR
         Graph graph = new Graph(topology);
         ArrayList<ArrayList<Router>> paths;
         ArrayList<ArrayList<Router>> simplePaths;
-        //System.err.println(graph); 
+        System.err.println(graph); 
          
          tools.setRestricitions(restrictionFile);
          
