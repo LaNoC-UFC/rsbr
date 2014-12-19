@@ -438,13 +438,8 @@ public class RBRTools {
 						String dest = dst.getNome();
 						for (Vertice sw : path) {
 							if (path.indexOf(sw) != path.size() - 1) {
-								String op = sw.getAresta(
-										path.get(path.indexOf(sw) + 1))
-										.getCor();
-								String ip = (path.indexOf(sw) == 0) ? "I"
-										: sw.getAresta(
-												path.get(path.indexOf(sw) - 1))
-												.getCor();
+								String op = sw.getAresta(path.get(path.indexOf(sw) + 1)).getCor();
+								String ip = (path.indexOf(sw) == 0) ? "I" : sw.getAresta(path.get(path.indexOf(sw) - 1)).getCor();
 								sw.addRP(ip, dest, op);
 								// Need to change to just make RP for
 								// simplePaths
@@ -460,6 +455,75 @@ public class RBRTools {
 		}
 
 		return allPaths;
+	}
+	
+	/*
+	 * Nova versão da busca de pacotes.
+	 */
+	public ArrayList<Path> pathComputation(Graph graph) {
+		ArrayList<Path> allPaths = new ArrayList<Path>();
+		ArrayList<Path> lastPaths = new ArrayList<Path>();
+		ArrayList<String> pairs = new ArrayList<String>();
+		// N = 1 hop
+		for(Vertice src : graph.getVertices()) {
+			for(Aresta e : src.getAdj()) {
+				Vertice dst = e.getDestino();
+				Path p = new Path();
+				p.add(src);
+				p.add(dst);
+				lastPaths.add(p);
+				pairs.add(src.getNome()+":"+dst.getNome());
+			}
+		}
+		// N > 1 hop
+		while(pairs.size() < graph.getVertices().size()*(graph.getVertices().size()-1)) { // pares cadastrados menor que numero de fluxos
+			ArrayList<Path> aux = new ArrayList<Path>();
+			System.out.println("Tamanho anterior: " + lastPaths.get(0).size());
+			for(Path p : lastPaths) {
+				Vertice src = p.dst(); // fonte atual
+				Vertice pre = p.get(p.size()-2); // predecessor 
+				String inColor = src.getAresta(pre).getCor(); // porta de entrada
+				for(Aresta e : src.getAdj()) {
+					Vertice dst = e.getDestino();
+					if(dst == pre) // esta voltando
+						continue; 
+					if (restrictions.get(src.getNome()+":"+inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
+						continue;
+					if(pairs.contains(p.src().getNome()+":"+dst.getNome())) // nao eh minimo
+						continue;
+					Path q = new Path(p);
+					q.add(dst);
+					aux.add(q);
+				}
+			}
+			allPaths.addAll(lastPaths);
+			lastPaths = aux;
+			for(Path p : lastPaths) {
+				String pair = p.src().getNome()+":"+p.dst().getNome();
+				if (!pairs.contains(pair))
+					pairs.add(pair); // util contar o numero de paths entre cada par?				
+			}
+		}
+		allPaths.addAll(lastPaths);
+		return allPaths;
+	}
+	
+	
+	public void addRoutingOptions(ArrayList<Path> paths, Graph graph) {
+		for (Path path : paths) {
+			String dest = path.dst().getNome();
+			for (Vertice sw : path) {
+				if (path.indexOf(sw) != path.size() - 1) {
+					String op = sw.getAresta(path.get(path.indexOf(sw) + 1)).getCor();
+					String ip = (path.indexOf(sw) == 0) ? "I" : sw.getAresta(path.get(path.indexOf(sw) - 1)).getCor();
+					sw.addRP(ip, dest, op);
+				}
+			}
+		}		
+		for (Vertice atual : graph.getVertices()) {
+			packOutputPort(atual);
+			// packInputPort(atual);
+		}
 	}
 
 	// Do output combinations

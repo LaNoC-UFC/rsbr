@@ -15,6 +15,10 @@ public class Path implements Iterable<Vertice>, Comparable<Path>
 		itself = new ArrayList<Vertice>();
 	}
 	
+	public Path(Path p) {
+		itself = new ArrayList<Vertice>(p.itself);
+	}
+	
 	public Path(ArrayList<Vertice> path) {
 		itself = path;
 	}
