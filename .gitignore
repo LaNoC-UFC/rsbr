@@ -3,4 +3,9 @@ target/
 *~
 *.jar
 *.txt
+ard
+lw-Mean
+lw-Std
+region-Max
+*.vhd
 

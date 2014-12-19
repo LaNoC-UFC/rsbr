@@ -30,7 +30,7 @@ public class RBR
         }
         else //Without arguments
         {
-        	topologyFile = "4x4.txt";
+        	topologyFile = "Input11.txt";
             merge = "merge";
             reachability = 1.0;
             restrictionFile = "Restriction.txt";
@@ -51,7 +51,10 @@ public class RBR
          
          //Compute paths and make the routing options
          System.out.println("Paths Computation");
-         paths = tools.pathsComputation(graph);
+         //paths = tools.pathsComputation(graph);
+         paths = tools.pathComputation(graph); tools.addRoutingOptions(paths, graph);
+         
+         System.out.println(paths.size());
 
          System.out.println("Regions Computation");
          tools.regionsComput(graph);
