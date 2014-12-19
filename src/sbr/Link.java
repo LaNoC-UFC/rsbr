@@ -8,7 +8,7 @@ public class Link
 	private int snet;
     protected Switch starting;
     protected Switch ending;
-    private int peso;
+    private int peso = 1;
     private String cor;
 
 

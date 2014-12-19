@@ -45,13 +45,13 @@ public class Switch {//implements Comparable<Switch>{
     }
 	
     //Ordem Alfabética
-    public static String groupStr(String input)
+    /*public static String groupStr(String input)
     {
         char[] ip1  = input.toCharArray();
         Arrays.sort(ip1);
         
         return String.valueOf(ip1);
-    }
+    }*/
         
     
     private String IntToBitsString(int a, int size)
@@ -93,7 +93,7 @@ public class Switch {//implements Comparable<Switch>{
     
                    
     //Dirá se o vértice é alcançavel dependendo das restrições do algoritmo roteamento
-public boolean Reaches(Switch destino) 
+/*public boolean Reaches(Switch destino) 
 {
     boolean reaches = true;
     if(this.pai == null) return true;
@@ -107,7 +107,7 @@ public boolean Reaches(Switch destino)
     }
         
     return reaches;
-}
+}*/
 	
 	public Link getLink(Switch destino) {
 	    for(Link v : adj) {
