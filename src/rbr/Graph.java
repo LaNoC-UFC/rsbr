@@ -39,7 +39,7 @@ public class Graph
             
             for(int i = 0; i < lines.length; i++) {
             	for(int j = 0; j <= columns.length; j++) {
-            		String vertice = i + "" + j;
+            		String vertice = i + "." + j;
             		this.addVertice(vertice);
             		
             	}
@@ -49,8 +49,8 @@ public class Graph
             	String [] line = lines[i].split(" ");
             	for(int j = 0; j < line.length; j++) {
             		if(line[j].charAt(0) == '0') { //there is a link
-                		Router starting = this.getVertice("" + j + (columns.length - i));
-                		Router ending = this.getVertice("" + (j+1) + (columns.length - i));
+                		Router starting = this.getVertice(j + "." + (columns.length - i));
+                		Router ending = this.getVertice((j+1) + "." + (columns.length - i));
                 		this.addAresta(starting, ending, ports[2]);
                 		this.addAresta(ending, starting, ports[3]);            			
             		}
@@ -61,8 +61,8 @@ public class Graph
             	String [] column = columns[i].split(" ");
             	for(int j = 0; j < column.length; j++) {
             		if(column[j].charAt(0) == '0') { //there is a link
-                		Router starting = this.getVertice(j + "" + (columns.length - i));
-                		Router ending = this.getVertice(j + "" + (columns.length - 1 - i));
+                		Router starting = this.getVertice(j + "." + (columns.length - i));
+                		Router ending = this.getVertice(j + "." + (columns.length - 1 - i));
                 		this.addAresta(starting, ending, ports[1]);
                 		this.addAresta(ending, starting, ports[0]);    			
             		}

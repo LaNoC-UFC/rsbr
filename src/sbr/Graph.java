@@ -49,10 +49,12 @@ public class Graph {
     
     public List<Switch> getSwitches(String min, String max) {
     	List<Switch> sws = new ArrayList<Switch>();
-    	int xMin = Integer.valueOf(min.substring(0, 1));
-    	int yMin = Integer.valueOf(min.substring(1, 2));
-    	int xMax = Integer.valueOf(max.substring(0, 1));
-    	int yMax = Integer.valueOf(max.substring(1, 2));
+		String[] Min = min.split("\\.");
+		int xMin = Integer.valueOf(Min[0]);
+		int yMin = Integer.valueOf(Min[1]);
+		String[] Max = max.split("\\.");
+		int xMax = Integer.valueOf(Max[0]);
+		int yMax = Integer.valueOf(Max[1]);
         for(int x = xMin; x <= xMax; x++) {
         	for(int y = yMin; y <= yMax; y++) {
         		sws.add(this.getSwitch(x+""+y));
@@ -179,7 +181,7 @@ public class Graph {
             
             for(int i = 0; i < lines.length; i++) {
             	for(int j = 0; j <= columns.length; j++) {
-            		String vertice = i + "" + j;
+            		String vertice = i + "." + j;
             		this.addSwitch(vertice);
             		
             	}
@@ -189,8 +191,8 @@ public class Graph {
             	String [] line = lines[i].split(" ");
             	for(int j = 0; j < line.length; j++) {
             		if(line[j].charAt(0) == '0') { //there is a link
-                		Switch starting = this.getSwitch("" + j + (columns.length - i));
-                		Switch ending = this.getSwitch("" + (j+1) + (columns.length - i));
+                		Switch starting = this.getSwitch(j + "." + (columns.length - i));
+                		Switch ending = this.getSwitch((j+1) + "." + (columns.length - i));
                 		this.addLink(starting, ending, ports[2]);
                 		this.addLink(ending, starting, ports[3]);            			
             		}
@@ -201,8 +203,8 @@ public class Graph {
             	String [] column = columns[i].split(" ");
             	for(int j = 0; j < column.length; j++) {
             		if(column[j].charAt(0) == '0') { //there is a link
-                		Switch starting = this.getSwitch(j + "" + (columns.length - i));
-                		Switch ending = this.getSwitch(j + "" + (columns.length - 1 - i));
+                		Switch starting = this.getSwitch(j + "." + (columns.length - i));
+                		Switch ending = this.getSwitch(j + "." + (columns.length - 1 - i));
                 		this.addLink(starting, ending, ports[1]);
                 		this.addLink(ending, starting, ports[0]);    			
             		}
