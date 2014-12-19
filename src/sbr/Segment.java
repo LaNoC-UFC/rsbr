@@ -1,10 +1,11 @@
 package sbr;
 
+import util.*;
 import java.util.ArrayList;
 
 public class Segment {
-	private ArrayList<Link> links;
-	private ArrayList<Switch> switches;
+	private ArrayList<Aresta> links;
+	private ArrayList<Vertice> switches;
 	private int sn;
 	
 	public Segment() {
@@ -57,22 +58,22 @@ public class Segment {
 		//return (sbnt == sn);
 	}
 	
-	public void add(Link ln) {
+	public void add(Aresta ln) {
 		links.add(ln);
 		ln.setSegment(this);
 	}
 
-	public void add(Switch sw) {
+	public void add(Vertice sw) {
 		switches.add(sw);
 		sw.setSegment(this);
 	}
 
-	public void remove(Link ln) {
+	public void remove(Aresta ln) {
 		ln.setSegment(null);
 		links.remove(ln);
 	}
 
-	public void remove(Switch sw) {
+	public void remove(Vertice sw) {
 		sw.setSegment(null);
 		/*@RM*/		
 		//Remove the last occurrence instead of the first 
@@ -106,12 +107,12 @@ public class Segment {
 		return r;
 	}
 
-	public ArrayList<Switch> getSwitchs()
+	public ArrayList<Vertice> getSwitchs()
 	{
 		return this.switches;
 	}
 	
-	public ArrayList<Link> getLinks()
+	public ArrayList<Aresta> getLinks()
 	{
 		return this.links;
 	}

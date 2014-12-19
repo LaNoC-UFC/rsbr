@@ -1,34 +1,32 @@
+package util;
 
-package rbr;
-
-
+import java.util.ArrayList;
 import java.io.File;
 import java.io.FileReader;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 public class Graph 
 {
-    static private String[] ports = {"N","S","E","W"};
-    List<Router> vertices;
-    List<Link> links;
+	static private String[] ports = {"N","S","E","W"};
+    ArrayList<Vertice> vertices;
+    ArrayList<Aresta> arestas;
     
     public Graph() 
     {
         vertices = new ArrayList<>();
-        links = new ArrayList<>();
+        arestas = new ArrayList<>();
     }
     
-    //Make Graph from topology file
     public Graph(File topology)
     {
         vertices = new ArrayList<>();
-        links = new ArrayList<>();
+        arestas = new ArrayList<>();
              
-        try {
+        try 
+        {
             Scanner sc = new Scanner(new FileReader(topology));
             
             String[] lines = null, columns = null;
@@ -45,24 +43,30 @@ public class Graph
             	}
             }
             
-            for(int i = 0; i < lines.length; i++) {
+            for(int i = 0; i < lines.length; i++) 
+            {
             	String [] line = lines[i].split(" ");
-            	for(int j = 0; j < line.length; j++) {
-            		if(line[j].charAt(0) == '0') { //there is a link
-                		Router starting = this.getVertice(j + "." + (columns.length - i));
-                		Router ending = this.getVertice((j+1) + "." + (columns.length - i));
+            	for(int j = 0; j < line.length; j++) 
+            	{
+            		if(line[j].charAt(0) == '0') //there is a link 
+            		{ 
+                		Vertice starting = this.getVertice(j + "." + (columns.length - i));
+                		Vertice ending = this.getVertice((j+1) + "." + (columns.length - i));
                 		this.addAresta(starting, ending, ports[2]);
                 		this.addAresta(ending, starting, ports[3]);            			
             		}
             	}
             }
 
-            for(int i = 0; i < columns.length; i++) {
+            for(int i = 0; i < columns.length; i++) 
+            {
             	String [] column = columns[i].split(" ");
-            	for(int j = 0; j < column.length; j++) {
-            		if(column[j].charAt(0) == '0') { //there is a link
-                		Router starting = this.getVertice(j + "." + (columns.length - i));
-                		Router ending = this.getVertice(j + "." + (columns.length - 1 - i));
+            	for(int j = 0; j < column.length; j++) 
+            	{
+            		if(column[j].charAt(0) == '0') //there is a link 
+            		{ 
+            			Vertice starting = this.getVertice(j + "." + (columns.length - i));
+            			Vertice ending = this.getVertice(j + "." + (columns.length - 1 - i));
                 		this.addAresta(starting, ending, ports[1]);
                 		this.addAresta(ending, starting, ports[0]);    			
             		}
@@ -80,13 +84,15 @@ public class Graph
     public void setGraph() 
     {
     	//Dijkstra
-        for(Router v : this.vertices) 
+        for(Vertice v : this.vertices) 
         {
            v.setPai(null);
            v.setVisitado(false);
            v.setDistancia(Integer.MAX_VALUE);
         }
     }
+    
+    
     
     public int contem(String vertice) 
     {
@@ -101,60 +107,82 @@ public class Graph
         }       
         return -1;
     }
-        
-    public List<Router> getVertices() 
+    
+    public ArrayList<Vertice> getVertices() 
     {
         
         return this.vertices;
         
     }
     
-    public List<Link> getLinks()
+    public ArrayList<Aresta> getArestas()
     {
-    	return this.links;
+    	return this.arestas;
     }
     
-    public Router getVertice(String nomeVertice) {
-        Router vertice  = null;
+    public Vertice getVertice(String nomeVertice) 
+    {
+    	Vertice vertice  = null;
         
-        for(Router v : this.vertices) {
+        for(Vertice v : this.vertices) 
+        {
             if(v.getNome().equals(nomeVertice))
                 vertice = v;
         }
         
-        if(vertice == null) {
-            System.out.println("Vertice: " + nomeVertice + " nÃ£o encontrado");
+        if(vertice == null) 
+        {
+            System.out.println("Vertice: " + nomeVertice + " não encontrado");
             return null;
         }
         
         return vertice;
    }
-
-    Router addVertice(String nome) {
-        Router v = new Router(nome);
+    
+    private void addVertice(String nome) 
+    {
+        Vertice v = new Vertice(nome);
         vertices.add(v);
-        return v;
     }
 
-    Link addAresta(Router origem, Router destino, String cor) {
-        Link e = new Link(origem, destino, cor);
+    private void addAresta(Vertice origem, Vertice destino, String cor) 
+    {
+        Aresta e = new Aresta(origem, destino, cor);
         origem.addAdj(e);
-        links.add(e);
-        return e;
+        arestas.add(e);
     }
-
-    @Override
-    public String toString() {
+    
+    public String toString() 
+    {
         String r = "";
         System.out.println("Graph:");
-        for (Router u : vertices) {
+        for (Vertice u : vertices) 
+        {
             r += u.getNome() + " -> ";
-            for (Link e : u.getAdj()) {
-                Router v = e.getDestino();
+            for (Aresta e : u.getAdj()) 
+            {
+            	Vertice v = e.getDestino();
                 r += v.getNome() + e.getCor() + ", ";
             }
             r += "\n";
         }
         return r;
     }
+    
+    public ArrayList<Vertice> getVertices(String min, String max) 
+    {
+    	ArrayList<Vertice> sws = new ArrayList<Vertice>();
+    	int xMin = Integer.valueOf(min.substring(0, 1));
+    	int yMin = Integer.valueOf(min.substring(1, 2));
+    	int xMax = Integer.valueOf(max.substring(0, 1));
+    	int yMax = Integer.valueOf(max.substring(1, 2));
+        for(int x = xMin; x <= xMax; x++)
+        	for(int y = yMin; y <= yMax; y++)
+        		sws.add(this.getVertice(x+""+y));
+
+        if(sws.size() == 0) sws = null;
+        return sws;
+        
+    }
+
 }
