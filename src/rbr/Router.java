@@ -143,7 +143,7 @@ public class Router implements Comparable<Router>
     }
     
     //Print the regions at a file
-    public void PrintRegions(float[] stats,BufferedWriter bw)
+    public void PrintRegions(float[] stats,BufferedWriter bw, int nBits)
     {              
     	int maxRegion = (int)stats[0];    	
     	try 
@@ -155,14 +155,13 @@ public class Router implements Comparable<Router>
         
     		for(int a=0;a<this.Regions.size(); a++)
     		{            
-    			int Xmin = Integer.parseInt(Character.toString(this.Regions.get(a).getDownLeft().charAt(0)));                        
-    			int Ymin = Integer.parseInt(Character.toString(this.Regions.get(a).getDownLeft().charAt(1)));            
-    			int Xmax = Integer.parseInt(Character.toString(this.Regions.get(a).getUpRight().charAt(0)));            
-    			int Ymax = Integer.parseInt(Character.toString(this.Regions.get(a).getUpRight().charAt(1)));            
-                                
+    			int Xmin = Integer.parseInt(this.Regions.get(a).getDownLeft().split("\\.")[0]);                        
+    			int Ymin = Integer.parseInt(this.Regions.get(a).getDownLeft().split("\\.")[1]);            
+    			int Xmax = Integer.parseInt(this.Regions.get(a).getUpRight().split("\\.")[0]);            
+    			int Ymax = Integer.parseInt(this.Regions.get(a).getUpRight().split("\\.")[1]);
             
     			//Write on file
-    			String outLine = "(\""+GetBitsPort(this.Regions.get(a).getIp())+IntToBitsString(Xmin, 4)+IntToBitsString(Ymin, 4)+IntToBitsString(Xmax, 4)+IntToBitsString(Ymax, 4)+GetBitsPort(this.Regions.get(a).getOp())+"\")";                    
+    			String outLine = "(\""+GetBitsPort(this.Regions.get(a).getIp())+IntToBitsString(Xmin, nBits)+IntToBitsString(Ymin, nBits)+IntToBitsString(Xmax, nBits)+IntToBitsString(Ymax, nBits)+GetBitsPort(this.Regions.get(a).getOp())+"\")";                    
             
     			bw.append(outLine);
 
@@ -181,7 +180,7 @@ public class Router implements Comparable<Router>
     			while(a<maxRegion)
     			{
     				a++;
-    				String outLine = "(\""+IntToBitsString(0,26)+"\")";
+    				String outLine = "(\""+IntToBitsString(0,4*nBits+10)+"\")";
     				bw.append(outLine);
               
     				if(a<maxRegion)

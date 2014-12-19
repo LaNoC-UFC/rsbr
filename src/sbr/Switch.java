@@ -259,12 +259,15 @@ public boolean Reaches(Switch destino)
 	}
 	
 	public boolean isIn(String min, String max) {
-    	int xMin = Integer.valueOf(min.substring(0, 1));
-    	int yMin = Integer.valueOf(min.substring(1, 2));
-    	int xMax = Integer.valueOf(max.substring(0, 1));
-    	int yMax = Integer.valueOf(max.substring(1, 2));
-    	int x = Integer.valueOf(nome.substring(0, 1));
-    	int y = Integer.valueOf(nome.substring(1, 2));
+		String[] Min = min.split("\\.");
+		int xMin = Integer.valueOf(Min[0]);
+		int yMin = Integer.valueOf(Min[1]);
+		String[] Max = max.split("\\.");
+		int xMax = Integer.valueOf(Max[0]);
+		int yMax = Integer.valueOf(Max[1]);
+		String[] xy = nome.split("\\.");
+    	int x = Integer.valueOf(xy[0]);
+    	int y = Integer.valueOf(xy[1]);
     	return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
 	}
 	
