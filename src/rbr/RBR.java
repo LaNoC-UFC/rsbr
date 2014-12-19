@@ -1,6 +1,8 @@
 
 package rbr;
 
+import util.*;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -28,7 +30,7 @@ public class RBR
         }
         else //Without arguments
         {
-        	topologyFile = "Input11.txt";
+        	topologyFile = "4x4.txt";
             merge = "merge";
             reachability = 1.0;
             restrictionFile = "Restriction.txt";
@@ -41,8 +43,8 @@ public class RBR
         RBRTools tools = new RBRTools();
         //Make graph
         Graph graph = new Graph(topology);
-        ArrayList<ArrayList<Router>> paths;
-        ArrayList<ArrayList<Router>> simplePaths;
+        ArrayList<ArrayList<Vertice>> paths;
+        ArrayList<ArrayList<Vertice>> simplePaths;
         System.err.println(graph); 
          
          tools.setRestricitions(restrictionFile);
@@ -63,7 +65,7 @@ public class RBR
          if(merge.equals("merge"))
          {
         	 System.out.println("Merge");
-        	 for(Router vertice : graph.getVertices())
+        	 for(Vertice vertice : graph.getVertices())
         	 {
         		 tools.Merge(graph, vertice, reachability);
         	 }

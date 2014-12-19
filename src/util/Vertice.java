@@ -1,3 +1,7 @@
+package util;
+
+import rbr.Region;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -5,7 +9,6 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import rbr.Router;
 
 
 
@@ -26,9 +29,9 @@ public class Vertice implements Comparable<Vertice>
 	private ArrayList<rbr.RoutingPath> routingPaths = new ArrayList<>();
     private ArrayList<rbr.RoutingPath> combinedOutputs = new ArrayList<>();
     private String nome;
-    private ArrayList<Aresta> adj;    
-    ArrayList<rbr.Region> Regions = new ArrayList<>();
-	ArrayList<Vertice> preds = new ArrayList<>();
+    public ArrayList<Aresta> adj;    
+    public ArrayList<rbr.Region> Regions = new ArrayList<>();
+	public ArrayList<Vertice> preds = new ArrayList<>();
 	
 	
 	public Vertice(String name) 
@@ -267,12 +270,14 @@ public class Vertice implements Comparable<Vertice>
 	
 	public boolean isIn(String min, String max) 
 	{
-    	int xMin = Integer.valueOf(min.substring(0, 1));
-    	int yMin = Integer.valueOf(min.substring(1, 2));
-    	int xMax = Integer.valueOf(max.substring(0, 1));
-    	int yMax = Integer.valueOf(max.substring(1, 2));
-    	int x = Integer.valueOf(nome.substring(0, 1));
-    	int y = Integer.valueOf(nome.substring(1, 2));
+    	int xMin = Integer.valueOf(min.split("\\.")[0]);
+    	int yMin = Integer.valueOf(min.split("\\.")[1]);
+    	int xMax = Integer.valueOf(max.split("\\.")[0]);
+    	int yMax = Integer.valueOf(max.split("\\.")[1]);
+    	
+    	int x = Integer.valueOf(nome.split("\\.")[0]);
+    	int y = Integer.valueOf(nome.split("\\.")[1]);
+    	
     	return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
 	}
 	
@@ -320,6 +325,16 @@ public class Vertice implements Comparable<Vertice>
 		}
 		return neighbors;
 	}
+	
+	public ArrayList<Region> getRegions() 
+	{
+        return Regions;
+    }
+	
+	public void setRegions(ArrayList<Region> Regions) 
+	{
+        this.Regions = Regions;
+    }
 	
 	public void addRegion(String ip,ArrayList<String> dsts, String op)
     {
@@ -436,7 +451,7 @@ public class Vertice implements Comparable<Vertice>
         this.combinedOutputs = combinedOutputs;
     }
     
-    public void PrintRegions(float[] stats,BufferedWriter bw)
+    public void PrintRegions(float[] stats,BufferedWriter bw, int nBits)
     {              
     	int maxRegion = (int)stats[0];    	
     	try 
@@ -446,14 +461,13 @@ public class Vertice implements Comparable<Vertice>
         
     		for(int a=0;a<this.Regions.size(); a++)
     		{            
-    			int Xmin = Integer.parseInt(Character.toString(this.Regions.get(a).getDownLeft().charAt(0)));                        
-    			int Ymin = Integer.parseInt(Character.toString(this.Regions.get(a).getDownLeft().charAt(1)));            
-    			int Xmax = Integer.parseInt(Character.toString(this.Regions.get(a).getUpRight().charAt(0)));            
-    			int Ymax = Integer.parseInt(Character.toString(this.Regions.get(a).getUpRight().charAt(1)));            
-                                
+    			int Xmin = Integer.parseInt(this.Regions.get(a).getDownLeft().split("\\.")[0]);                        
+    			int Ymin = Integer.parseInt(this.Regions.get(a).getDownLeft().split("\\.")[1]);            
+    			int Xmax = Integer.parseInt(this.Regions.get(a).getUpRight().split("\\.")[0]);            
+    			int Ymax = Integer.parseInt(this.Regions.get(a).getUpRight().split("\\.")[1]);
             
     			//Write on file
-    			String outLine = "(\""+GetBitsOp(this.Regions.get(a).getIp())+IntToBitsString(Xmin, 4)+IntToBitsString(Ymin, 4)+IntToBitsString(Xmax, 4)+IntToBitsString(Ymax, 4)+GetBitsOp(this.Regions.get(a).getOp())+"\")";                    
+    			String outLine = "(\""+GetBitsOp(this.Regions.get(a).getIp())+IntToBitsString(Xmin, nBits)+IntToBitsString(Ymin, nBits)+IntToBitsString(Xmax, nBits)+IntToBitsString(Ymax, nBits)+GetBitsOp(this.Regions.get(a).getOp())+"\")";                    
             
     			bw.append(outLine);
 
@@ -472,7 +486,7 @@ public class Vertice implements Comparable<Vertice>
     			while(a<maxRegion)
     			{
     				a++;
-    				String outLine = "(\""+IntToBitsString(0,26)+"\")";
+    				String outLine = "(\""+IntToBitsString(0,4*nBits+10)+"\")";
     				bw.append(outLine);
               
     				if(a<maxRegion)
@@ -483,10 +497,12 @@ public class Vertice implements Comparable<Vertice>
     		}
         
     		bw.append(")");
+    		//bw.flush();
+    		//bw.close();
     	}
     	catch (IOException ex) 
     	{
-    		Logger.getLogger(Router.class.getName()).log(Level.SEVERE, null, ex);
+    		Logger.getLogger(Vertice.class.getName()).log(Level.SEVERE, null, ex);
     	}                                                               
     }
     

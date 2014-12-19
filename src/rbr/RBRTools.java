@@ -1,5 +1,6 @@
 package rbr;
 
+import util.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -38,7 +39,7 @@ public class RBRTools {
 	// Make log file for each input file
 	public void makeLog(Graph noc) {
 		// Print all regions of all routers
-		for (Router router : noc.getVertices()) {
+		for (Vertice router : noc.getVertices()) {
 			System.out.println("");
 			System.out.println("Router " + router.getNome() + ":\n");
 			for (Region r : router.getRegions()) {
@@ -57,32 +58,17 @@ public class RBRTools {
 			FileWriter lwMeanfs = new FileWriter(new File("lw-Mean"));
 			FileWriter lwStdfs = new FileWriter(new File("lw-Std"));
 			FileWriter regionMaxfs = new FileWriter(new File("region-max"));
-			// FileWriter hcMeanfs = new FileWriter(new File("hc-mean"));
-			// FileWriter hcMinfs = new FileWriter(new File("hc-min"));
-			// FileWriter hcMaxfs = new FileWriter(new File("hc-max"));
-			// FileWriter regionMeanfs = new FileWriter(new
-			// File("region-mean"));
-			// FileWriter regionMinfs = new FileWriter(new File("region-min"));
 
 			ardfs.write("" + ard);
 			lwMeanfs.write("" + linkWeight[0]);
 			lwStdfs.write("" + linkWeight[1]);
 			regionMaxfs.write("" + Regions[0]);
-			// regionMinfs.write("" + Regions[1]);
-			// regionMeanfs.write("" + Regions[2]);
-			// hcMaxfs.write("" + hopCount[0]);
-			// hcMinfs.write("" + hopCount[1]);
-			// hcMeanfs.write("" + hopCount[2]);
 
 			ardfs.close();
 			lwMeanfs.close();
 			lwStdfs.close();
 			regionMaxfs.close();
-			// regionMinfs.close();
-			// regionMeanfs.close();
-			// hcMaxfs.close();
-			// hcMinfs.close();
-			// hcMeanfs.close();
+			
 		} catch (IOException ex) {
 			Logger.getLogger(RBRTools.class.getName()).log(Level.SEVERE, null,
 					ex);
@@ -91,21 +77,21 @@ public class RBRTools {
 	}
 
 	// Check if r2 can be reached through r1
-	public boolean canBeReached(Router r1, Router r2) {
+	public boolean canBeReached(Vertice r1, Vertice r2) 
+	{
 		String corArestaPai; // Output port
 		String corArestaAtual;// Input port
 		String rest = ""; // Restriction
-		corArestaAtual = r1.getLink(r2).getCor();
+		corArestaAtual = r1.getAresta(r2).getCor();
 
-		if (r1.preds.size() == 0) {
+		if (r1.preds.size() == 0) 
+		{
 			corArestaPai = "I";
-
-			// if(!rest.contains(corArestaAtual))
 			return true;
 		}
 
-		for (Router pred : r1.preds) {
-			corArestaPai = r1.getLink(pred).getCor();
+		for (Vertice pred : r1.preds) {
+			corArestaPai = r1.getAresta(pred).getCor();
 			rest = this.restrictions.get(r1.getNome() + ":" + corArestaPai);
 
 			if (!rest.contains(corArestaAtual))
@@ -116,13 +102,13 @@ public class RBRTools {
 	}
 
 	// Calculates the hop-count stats - [0] - Max / [1] - Min / [2] - Average
-	public double[] getHopCountStats(ArrayList<ArrayList<Router>> paths) {
+	public double[] getHopCountStats(ArrayList<ArrayList<Vertice>> paths) {
 		double[] hcStats = new double[3];
 		double averageHopCount = 0;
 		double maxHopCount = 0;
 		double minHopCount = Double.POSITIVE_INFINITY;
 
-		for (ArrayList<Router> path : paths) {
+		for (ArrayList<Vertice> path : paths) {
 			maxHopCount = (maxHopCount > path.size() - 1) ? maxHopCount : path
 					.size() - 1;
 			minHopCount = (minHopCount < path.size() - 1) ? minHopCount : path
@@ -138,17 +124,17 @@ public class RBRTools {
 	}
 
 	// Get just one path (from source to sink) from all paths computed
-	public ArrayList<ArrayList<Router>> getSimplePaths(
-			ArrayList<ArrayList<Router>> p, Graph graph) {
-		ArrayList<ArrayList<Router>> simplePaths = new ArrayList<ArrayList<Router>>();
-		ArrayList<ArrayList<Router>> paths = new ArrayList<ArrayList<Router>>(p);
+	public ArrayList<ArrayList<Vertice>> getSimplePaths(
+			ArrayList<ArrayList<Vertice>> p, Graph graph) {
+		ArrayList<ArrayList<Vertice>> simplePaths = new ArrayList<ArrayList<Vertice>>();
+		ArrayList<ArrayList<Vertice>> paths = new ArrayList<ArrayList<Vertice>>(p);
 
-		for (Router source : graph.getVertices()) {
-			for (Router sink : graph.getVertices()) {
+		for (Vertice source : graph.getVertices()) {
+			for (Vertice sink : graph.getVertices()) {
 				if (source.getNome().equals(sink.getNome()))
 					continue;
 				List<Integer> indexs = new ArrayList<Integer>();
-				for (ArrayList<Router> path : paths) {
+				for (ArrayList<Vertice> path : paths) {
 					if (path.get(0).getNome().equals(source.getNome())
 							&& path.get(path.size() - 1).getNome()
 									.equals(sink.getNome()))
@@ -169,11 +155,12 @@ public class RBRTools {
 
 	}
 
-	public void doRoutingTable(float[] stats, Graph graph) {
+	public void doRoutingTable(float[] stats, Graph graph)
+	{
 		String routingTableFile = "Table_package.vhd";
 		File routingTable = new File(routingTableFile);
 		// TODO Solve to non-square nocs
-		int nBits = (int) Math.ceil(Math.log(Math.sqrt(graph.vertices.size()))/Math.log(2));
+		int nBits = (int) Math.ceil(Math.log(Math.sqrt(graph.getVertices().size()))/Math.log(2));
 
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
@@ -191,10 +178,10 @@ public class RBRTools {
 					"type tables is array (0 to NROT-1) of memory;\n\n" + 
 					"constant TAB: tables :=(");
 
-			for (Router router : graph.getVertices()) {
+			for (Vertice router : graph.getVertices()) 
+			{
 				router.PrintRegions(stats, bw, nBits);
-				if (graph.getVertices().indexOf(router) != graph.getVertices()
-						.size() - 1)
+				if (graph.getVertices().indexOf(router) != graph.getVertices().size() - 1)
 					bw.append(",");
 			}
 
@@ -209,11 +196,11 @@ public class RBRTools {
 	}
 
 	// Calculate routing distance -> all paths lengths / #paths
-	public double getRoutingDistance(ArrayList<ArrayList<Router>> paths,
+	public double getRoutingDistance(ArrayList<ArrayList<Vertice>> paths,
 			Graph graph) {
 		double routingDistance = 0.0;
 
-		for (ArrayList<Router> path : paths)
+		for (ArrayList<Vertice> path : paths)
 			routingDistance += path.size();
 
 		// Cover paths with the same source and destination
@@ -223,20 +210,20 @@ public class RBRTools {
 	}
 
 	// Set all links weight -> #paths that cross the link
-	private static void setLinkWeight(ArrayList<ArrayList<Router>> paths,
+	private static void setLinkWeight(ArrayList<ArrayList<Vertice>> paths,
 			Graph graph) {
 
-		for (ArrayList<Router> path : paths) {
+		for (ArrayList<Vertice> path : paths) {
 			for (int v = 0; v < path.size() - 1; v++) {
-				Link link = path.get(v).getLink(path.get(v + 1));
+				Aresta link = path.get(v).getAresta(path.get(v + 1));
 				link.incremWeight();
 			}
 		}
 	}
 
 	// Link weight stats [0] - mean / [1] - standard deviation
-	public double[] linkWeightStats(ArrayList<ArrayList<Router>> paths,
-			Graph graph) {
+	public double[] linkWeightStats(ArrayList<ArrayList<Vertice>> paths,Graph graph) 
+	{
 		setLinkWeight(paths, graph); // After that we have the weight of all
 										// links
 		double linksWeight = 0.0;
@@ -244,18 +231,18 @@ public class RBRTools {
 		double mean = 0.0;
 		double std = 0.0;
 
-		for (Link link : graph.getLinks())
+		for (Aresta link : graph.getArestas())
 			linksWeight += (double) link.getWeight();
 
-		mean = linksWeight / (double) graph.getLinks().size();
+		mean = linksWeight / (double) graph.getArestas().size();
 		stats[0] = mean;
 
 		double temp = 0.0;
-		for (Link link : graph.getLinks())
+		for (Aresta link : graph.getArestas())
 			temp += ((double) link.getWeight() - mean)
 					* ((double) link.getWeight() - mean);
 
-		double variance = (temp / (double) (graph.getLinks().size()));
+		double variance = (temp / (double) (graph.getArestas().size()));
 		// size-1 for sample. We have population
 
 		std = Math.sqrt(variance);
@@ -271,7 +258,7 @@ public class RBRTools {
 		float average;
 		List<Integer> regSizes = new ArrayList<>();
 
-		for (Router r : grafo.getVertices()) {
+		for (Vertice r : grafo.getVertices()) {
 			regSizes.add(r.getRegions().size());
 		}
 		Collections.sort(regSizes);
@@ -290,19 +277,19 @@ public class RBRTools {
 
 	// Calculates the size of minimum path length
 	// If destination cannot be reached starting at source the return is null
-	private int MinimumPathLength(Graph grafo, Router o, Router d) {
+	private int MinimumPathLength(Graph grafo, Vertice o, Vertice d) {
 		int min = 0;
-		ArrayList<Router> bestPath = new ArrayList<>();
-		Router atual;
-		Router vizinho;
-		List<Router> naoVisitados = new ArrayList<>();
+		ArrayList<Vertice> bestPath = new ArrayList<>();
+		Vertice atual;
+		Vertice vizinho;
+		ArrayList<Vertice> naoVisitados = new ArrayList<>();
 
 		grafo.setGraph();
 		bestPath.add(o);
 
 		// Setting the initial distance for all vertices
 		for (int i = 0; i < grafo.getVertices().size(); i++) {
-			grafo.getVertices().get(i).preds = new ArrayList<Router>();
+			grafo.getVertices().get(i).preds = new ArrayList<Vertice>();
 			if (grafo.getVertices().get(i).getNome().equals(o.getNome())) {
 				grafo.getVertices().get(i).setDistancia(0);
 			} else {
@@ -350,7 +337,7 @@ public class RBRTools {
 
 	// Pack routing options if they have the same input port and the same
 	// destination
-	private static void packOutputPort(Router atual) {
+	private static void packOutputPort(Vertice atual) {
 
 		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
 		atual.setRoutingPaths(new ArrayList<RoutingPath>());
@@ -371,7 +358,8 @@ public class RBRTools {
 
 	// Pack routing options if they have the same output port and the same
 	// destination
-	public static void packInputPort(Router atual) {
+	public static void packInputPort(Vertice atual) 
+	{
 		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
 		atual.setRoutingPaths(new ArrayList<RoutingPath>());
 		for (RoutingPath a : actRP) {
@@ -393,18 +381,18 @@ public class RBRTools {
 	 * Implements Dijkstra's algorithm : computes all minimal paths for a pair
 	 * (source, sink)
 	 */
-	public ArrayList<ArrayList<Router>> getPaths(Graph grafo, Router src,
-			Router dst) {
+	public ArrayList<ArrayList<Vertice>> getPaths(Graph grafo, Vertice src,
+			Vertice dst) {
 		int max = MinimumPathLength(grafo, src, dst);
-		ArrayList<ArrayList<Router>> paths = new ArrayList<ArrayList<Router>>();
+		ArrayList<ArrayList<Vertice>> paths = new ArrayList<ArrayList<Vertice>>();
 		depthFirst(0, max, dst, paths);
 
-		ArrayList<ArrayList<Router>> removePaths = new ArrayList<ArrayList<Router>>();
-		for (ArrayList<Router> path : paths) {
+		ArrayList<ArrayList<Vertice>> removePaths = new ArrayList<ArrayList<Vertice>>();
+		for (ArrayList<Vertice> path : paths) {
 			for (int i = 1; i < path.size() - 1; i++) {
-				Router atual = path.get(i);
-				String corAnt = atual.getLink(path.get(i - 1)).getCor();
-				String corProx = atual.getLink(path.get(i + 1)).getCor();
+				Vertice atual = path.get(i);
+				String corAnt = atual.getAresta(path.get(i - 1)).getCor();
+				String corProx = atual.getAresta(path.get(i + 1)).getCor();
 				String restric = this.restrictions.get(atual.getNome() + ":"
 						+ corAnt);
 				if (restric.contains(corProx)) {
@@ -418,42 +406,43 @@ public class RBRTools {
 		return paths;
 	}
 
-	private void depthFirst(int niv, int max, Router act,
-			ArrayList<ArrayList<Router>> paths) {
-		if (++niv > max) {
-			ArrayList<Router> temp = new ArrayList<Router>();
+	private void depthFirst(int niv, int max, Vertice act, ArrayList<ArrayList<Vertice>> paths) 
+	{
+		if (++niv > max) 
+		{
+			ArrayList<Vertice> temp = new ArrayList<Vertice>();
 			temp.add(act);
 			paths.add(temp);
 			return;
 		}
-		for (Router parent : act.preds) {
+		for (Vertice parent : act.preds) 
+		{
 			depthFirst(niv, max, parent, paths);
-			for (ArrayList<Router> path : paths) {
-				if (path.get(path.size() - 1) == parent) {
+			for (ArrayList<Vertice> path : paths) 
+				if (path.get(path.size() - 1) == parent)
 					path.add(act);
-				}
-			}
+
 		}
 	}
 
 	// Do getPaths for all pairs (source, sink)
-	public ArrayList<ArrayList<Router>> pathsComputation(Graph graph) {
-		ArrayList<ArrayList<Router>> paths = null;// = new ArrayList<>();
-		ArrayList<ArrayList<Router>> allPaths = new ArrayList<>();
-		for (Router src : graph.getVertices()) {
-			for (Router dst : graph.getVertices()) {
+	public ArrayList<ArrayList<Vertice>> pathsComputation(Graph graph) {
+		ArrayList<ArrayList<Vertice>> paths = null;// = new ArrayList<>();
+		ArrayList<ArrayList<Vertice>> allPaths = new ArrayList<>();
+		for (Vertice src : graph.getVertices()) {
+			for (Vertice dst : graph.getVertices()) {
 				if (!src.getNome().equals(dst.getNome())) {
 					paths = getPaths(graph, src, dst);
 					allPaths.addAll(paths);
-					for (ArrayList<Router> path : paths) {
+					for (ArrayList<Vertice> path : paths) {
 						String dest = dst.getNome();
-						for (Router sw : path) {
+						for (Vertice sw : path) {
 							if (path.indexOf(sw) != path.size() - 1) {
-								String op = sw.getLink(
+								String op = sw.getAresta(
 										path.get(path.indexOf(sw) + 1))
 										.getCor();
 								String ip = (path.indexOf(sw) == 0) ? "I"
-										: sw.getLink(
+										: sw.getAresta(
 												path.get(path.indexOf(sw) - 1))
 												.getCor();
 								sw.addRP(ip, dest, op);
@@ -465,7 +454,7 @@ public class RBRTools {
 				}
 			}
 		}
-		for (Router atual : graph.getVertices()) {
+		for (Vertice atual : graph.getVertices()) {
 			packOutputPort(atual);
 			// packInputPort(atual);
 		}
@@ -493,7 +482,7 @@ public class RBRTools {
 	// Compute the regions
 	public void regionsComput(Graph grafo) {
 		ArrayList<String> opComb = getOutputCombinations();
-		for (Router sw : grafo.getVertices()) {
+		for (Vertice sw : grafo.getVertices()) {
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
@@ -518,7 +507,7 @@ public class RBRTools {
 
 	// Adjust the regions to avoid overlap
 	public void adjustsRegions(Graph grafo) {
-		for (Router sw : grafo.getVertices()) {
+		for (Vertice sw : grafo.getVertices()) {
 			ArrayList<Region> regionsTemp = new ArrayList<>();
 			ArrayList<Region> regionsRemov = new ArrayList<>();
 			for (Region reg : sw.getRegions()) {
@@ -876,9 +865,9 @@ public class RBRTools {
 	}
 
 	// Calculates reachability
-	public double reachability(Graph grafo, Router orig) {
+	public double reachability(Graph grafo, Vertice orig) {
 		double reaches = 0, total = grafo.getVertices().size() - 1;
-		for (Router dest : grafo.getVertices()) {
+		for (Vertice dest : grafo.getVertices()) {
 			if (orig != dest) {
 				if (orig.reaches(dest)) {
 					reaches++;
@@ -889,7 +878,7 @@ public class RBRTools {
 	}
 
 	// Merge the regions of a router
-	void Merge(Graph grafo, Router router, double reachability) {
+	void Merge(Graph grafo, Vertice router, double reachability) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 
@@ -907,7 +896,7 @@ public class RBRTools {
 	 * Tries to make one (and only one) merge and returns true in case of
 	 * success
 	 */
-	private boolean mergeUnitary(Router router) {
+	private boolean mergeUnitary(Vertice router) {
 		for (int a = 0; a < router.getRegions().size(); a++) {
 			Region ra = router.getRegions().get(a);
 			for (int b = a + 1; b < router.getRegions().size(); b++) {
@@ -1058,8 +1047,8 @@ public class RBRTools {
 	// Check if output port are subsets
 	public boolean OpIsSub(Region r1, Region r2) {
 
-		String r1Op = Router.sortStrAlf(r1.getOp());
-		String r2Op = Router.sortStrAlf(r2.getOp());
+		String r1Op = Vertice.sortStrAlf(r1.getOp());
+		String r2Op = Vertice.sortStrAlf(r2.getOp());
 		if (r1Op.contains(r2Op) || r2Op.contains(r1Op)) {
 			return true;
 		}

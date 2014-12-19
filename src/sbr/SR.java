@@ -1,5 +1,6 @@
 package sbr;
 
+import util.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -24,28 +25,14 @@ public class SR {
 	private ArrayList<Segment> segments;
 	private ArrayList<String[]> routwFailLinks = new ArrayList<>();
 
-	private List<Switch> visiteds;
-	private List<Switch> nVisiteds;
+	private List<Vertice> visiteds;
+	private List<Vertice> nVisiteds;
 
-	public SR(String fileName) {
-		graph = new Graph(fileName);
-		segments = new ArrayList<>();
-		visiteds = new ArrayList<>();
-		nVisiteds = new ArrayList<>();
-		nUnitSeg = 0;
-		nRegSeg = 0;
-		RRIndex = new int[2];
-		RRIndex[0] = -1;
-		RRIndex[1] = -1;
-		subNet = 0;
-		maxSN = 0;
-	}
 
-	public SR(File fileName) {
+	public SR(File fileName) 
+	{
 		graph = new Graph(fileName);
 		System.err.println(graph);
-		// this.routwFailLinks = graph.getroutwFailLinks();
-		// graph.PrintFailRouters();
 		segments = new ArrayList<>();
 		visiteds = new ArrayList<>();
 		nVisiteds = new ArrayList<>();
@@ -59,7 +46,7 @@ public class SR {
 	}
 
 	public void computeSegments() {
-		int Nx = (int) Math.sqrt(graph.getSwitches().size()) - 1;
+		int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
 		int Ny = Nx;
 		String max = Nx + "." + Ny;
 		for (int i = Ny - 1; i >= 0; i--) {
@@ -80,7 +67,7 @@ public class SR {
 		int yMax = Integer.valueOf(Max[1]);
 		for (int x = xMin; x <= xMax; x++) {
 			for (int y = yMax; y >= yMin; y--) {
-				Switch sw = graph.getSwitch(x + "." + y);
+				Vertice sw = graph.getVertice(x + "." + y);
 				if (!sw.isVisited() && !nVisiteds.contains(sw))
 					nVisiteds.add(sw);
 			}
@@ -93,9 +80,9 @@ public class SR {
 		// Choose the start switch
 		boolean first = (yMin + 1 == yMax);
 		boolean pair = ((yMin + 1) % 2 == 0);
-		Switch sw;
-		Switch left = graph.getSwitch(xMin + "." + (yMin + 1));
-		Switch right = graph.getSwitch(xMax + "." + (yMin + 1));
+		Vertice sw;
+		Vertice left = graph.getVertice(xMin + "." + (yMin + 1));
+		Vertice right = graph.getVertice(xMax + "." + (yMin + 1));
 		if (first || (left.isVisited() && right.isVisited())) {
 			if (pair)
 				sw = left;
@@ -109,7 +96,7 @@ public class SR {
 
 		System.err.println("#starting: " + sw.getNome());
 
-		Switch sw2;
+		Vertice sw2;
 		if (!sw.isVisited()) {
 			if ((sw2 = nextVisited(min, max)) == null) {
 				sw.setStart();
@@ -178,7 +165,7 @@ public class SR {
 
 	}
 
-	protected boolean find(Switch sw, Segment segm, String min, String max) {
+	protected boolean find(Vertice sw, Segment segm, String min, String max) {
 
 		sw.setTVisited();
 		if (!sw.isVisited()) {
@@ -188,7 +175,7 @@ public class SR {
 			return false;
 		if (debug)
 			System.err.println("Switch now: " + sw.getNome());
-		ArrayList<Link> links = sw.suitableLinks(min, max);
+		ArrayList<Aresta> links = sw.suitableLinks(min, max);
 		if (links == null) {
 			if (debug)
 				System.err.println("No Suitable Links found.");
@@ -198,16 +185,16 @@ public class SR {
 			return false;
 		}
 		while (!links.isEmpty()) {
-			Link ln = getNextLink(links);
+			Aresta ln = getNextLink(links);
 			links.remove(ln);
-			Link nl = ln.getDestino().getLink(ln.getOrigem());
+			Aresta nl = ln.getDestino().getAresta(ln.getOrigem());
 			if (debug)
 				System.err.println("Link now: " + ln.getOrigem().getNome()
 						+ " <-> " + ln.getDestino().getNome());
 			ln.setTVisited();
 			nl.setTVisited();
 			segm.add(ln);
-			Switch nsw = ln.other(sw);
+			Vertice nsw = ln.other(sw);
 			if (nsw.isIn(min, max)) {
 				if (((nsw.isVisited() || nsw.isStart()) && nsw
 						.belongsTo(subNet)) || find(nsw, segm, min, max)) {
@@ -249,15 +236,15 @@ public class SR {
 	 * search for a switch marked as visited, belonging to the current subnet,
 	 * and with at least one link not marked as visited.
 	 */
-	protected Switch nextVisited(String min, String max) {
+	protected Vertice nextVisited(String min, String max) {
 		// get switches from visiteds' list
 		for (int i = visiteds.size() - 1; i >= 0; i--) {
-			Switch sw = visiteds.get(i);
+			Vertice sw = visiteds.get(i);
 			if (!sw.isTerminal() && sw.isIn(min, max)) {
 				if (debug)
 					System.err.println(" - Switch " + sw.getNome());
-				ArrayList<Link> lE = sw.getLinks();
-				for (Link e : lE) {
+				ArrayList<Aresta> lE = sw.getArestas();
+				for (Aresta e : lE) {
 					if (!e.isVisited() && e.getDestino().isIn(min, max)) {
 						if (debug)
 							System.err.println(" - - Link "
@@ -280,11 +267,11 @@ public class SR {
 	 * look for a switch that is not marked as visited not marked as terminal,
 	 * and attached to a terminal switch.
 	 */
-	protected Switch nextNotVisited(String min, String max) {
-		for (Switch sw : visiteds) {
+	protected Vertice nextNotVisited(String min, String max) {
+		for (Vertice sw : visiteds) {
 			if (sw.isIn(min, max) && sw.isTerminal()) {
-				List<Switch> lS = sw.getNeighbors();
-				for (Switch s : lS) {
+				List<Vertice> lS = sw.getNeighbors();
+				for (Vertice s : lS) {
 					if (!s.isVisited() && !s.isTerminal() && s.isIn(min, max)) {
 						if (debug)
 							System.err.println("nextNotVisited " + s.getNome());
@@ -302,8 +289,8 @@ public class SR {
 	 * try to make a small segment by choosing a link for close a cycle making a
 	 * turn every time. RRIndex keeps track of the last turn
 	 */
-	protected Link getNextLink(ArrayList<Link> links) {
-		Link got = null;
+	protected Aresta getNextLink(ArrayList<Aresta> links) {
+		Aresta got = null;
 		int index;
 		if (RRIndex[0] == -1) {
 			if (RRIndex[1] == -1) { // first choice of this computation
@@ -318,7 +305,7 @@ public class SR {
 			}
 		}
 		while (true) {
-			for (Link ln : links) {
+			for (Aresta ln : links) {
 				if (ln.getCor() == RoundRobin[index]) {
 					got = ln;
 					break;
@@ -360,7 +347,7 @@ public class SR {
 			FileWriter wRestrictions = new FileWriter(restrictions);
 			BufferedWriter bw = new BufferedWriter(wRestrictions);
 
-			for (Switch sw : graph.getSwitches()) {
+			for (Vertice sw : graph.getVertices()) {
 				bw.write(sw.getRestrictions());
 				bw.newLine();
 			}
@@ -406,19 +393,19 @@ public class SR {
 			if (segment.isUnitary()) {
 				nUnitSeg++;
 				// No traffic allowed at link
-				Switch Starting = segment.getLinks().get(0).getOrigem();
-				Switch Ending = segment.getLinks().get(0).getDestino();
+				Vertice Starting = segment.getLinks().get(0).getOrigem();
+				Vertice Ending = segment.getLinks().get(0).getDestino();
 				System.err.println("Start: " + Starting.getNome() + " Ending: "
 						+ Ending.getNome());
 				// Restricted link
-				String opStarting = Starting.getLink(Ending).getCor();
-				String opEnding = Ending.getLink(Starting).getCor();
+				String opStarting = Starting.getAresta(Ending).getCor();
+				String opEnding = Ending.getAresta(Starting).getCor();
 				// Restrictions at Starting core
-				for (Link link : Starting.getAdj())
+				for (Aresta link : Starting.getAdj())
 					if (link.getCor() != opStarting)
 						Starting.addRestriction(link.getCor(), opStarting);
 				// Restrictions at Ending core
-				for (Link link : Ending.getAdj())
+				for (Aresta link : Ending.getAdj())
 					if (link.getCor() != opEnding)
 						Ending.addRestriction(link.getCor(), opEnding);
 				continue;
@@ -440,7 +427,7 @@ public class SR {
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
 				nRegSeg++;
-				Switch restrict = segment.getSwitchs().get(1);
+				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
 						segment.getLinks().get(1).getInvColor(), segment
 								.getLinks().get(2).getCor());
@@ -449,7 +436,7 @@ public class SR {
 				continue;
 			}
 			if (segment.isStarting()) {
-				Switch restrict = segment.getSwitchs().get(1);
+				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
 						segment.getLinks().get(0).getInvColor(), segment
 								.getLinks().get(1).getCor());
@@ -469,9 +456,9 @@ public class SR {
 
 			if (segment.isStarting()) {
 				int nTurns = 0;
-				Link firstLink, secondLink;
+				Aresta firstLink, secondLink;
 				String ip = null, op = null;
-				Switch restrict = null;
+				Vertice restrict = null;
 
 				for (int nLink = 0; nLink < segment.getLinks().size() - 1; nLink++) {
 					firstLink = segment.getLinks().get(nLink);
@@ -483,7 +470,7 @@ public class SR {
 					// The number of turn you want to place the restriction
 					if (nTurns == 2) {
 						ip = firstLink.getDestino()
-								.getLink(firstLink.getOrigem()).getCor();
+								.getAresta(firstLink.getOrigem()).getCor();
 						// System.err.println("Input Port: " + ip);
 						op = secondLink.getCor();
 						// System.err.println("Output Port: " + op);
@@ -498,9 +485,9 @@ public class SR {
 
 			if (segment.isRegular()) {
 				int nTurns = 0;
-				Link firstLink = null, secondLink = null;
+				Aresta firstLink = null, secondLink = null;
 				String ip = null, op = null;
-				Switch restrict = null;
+				Vertice restrict = null;
 
 				for (int nLink = 0; nLink < segment.getLinks().size() - 1; nLink++) {
 					firstLink = segment.getLinks().get(nLink);
@@ -512,14 +499,14 @@ public class SR {
 					// The number of turn you want to place the restriction
 					if (nTurns == 2) {
 						ip = firstLink.getDestino()
-								.getLink(firstLink.getOrigem()).getCor();
+								.getAresta(firstLink.getOrigem()).getCor();
 						op = secondLink.getCor();
 						restrict = firstLink.getDestino();
 						break;
 					}
 				}
 				if (nTurns == 1) {
-					ip = firstLink.getDestino().getLink(firstLink.getOrigem())
+					ip = firstLink.getDestino().getAresta(firstLink.getOrigem())
 							.getCor();
 					op = secondLink.getCor();
 					restrict = firstLink.getDestino();
@@ -533,25 +520,25 @@ public class SR {
 			if (segment.isUnitary()) {
 				nUnitSeg++;
 				// No traffic allowed at link
-				Switch Starting = segment.getLinks().get(0).getOrigem();
-				Switch Ending = segment.getLinks().get(0).getDestino();
+				Vertice Starting = segment.getLinks().get(0).getOrigem();
+				Vertice Ending = segment.getLinks().get(0).getDestino();
 				// Restricted link
-				String opStarting = Starting.getLink(Ending).getCor();
-				String opEnding = Ending.getLink(Starting).getCor();
+				String opStarting = Starting.getAresta(Ending).getCor();
+				String opEnding = Ending.getAresta(Starting).getCor();
 
 				// Restriction at local link
 				// Starting.addRestriction("I", opStarting);
 				// Ending.addRestriction("I", opEnding);
 
-				for (Link link : Starting.getAdj()) {
-					if (link.getCor() == Starting.getLink(Ending).getCor())
+				for (Aresta link : Starting.getAdj()) {
+					if (link.getCor() == Starting.getAresta(Ending).getCor())
 						continue;
 
 					Starting.addRestriction(link.getCor(), opStarting);
 				}
 
-				for (Link link : Ending.getAdj()) {
-					if (link.getCor() == Ending.getLink(Starting).getCor())
+				for (Aresta link : Ending.getAdj()) {
+					if (link.getCor() == Ending.getAresta(Starting).getCor())
 						continue;
 
 					Ending.addRestriction(link.getCor(), opEnding);

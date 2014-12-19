@@ -1,11 +1,11 @@
-import java.util.ArrayList;
+package util;
 
+import java.util.ArrayList;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 
 public class Graph 
@@ -35,34 +35,38 @@ public class Graph
             if(sc.hasNextLine())
             	columns = sc.nextLine().split("; ");
             
-            for(int i = 0; i < lines.length; i++) 
-            {
-            	for(int j = 0; j <= columns.length; j++) 
-            	{
-            		String vertice = i + "" + j;
+            for(int i = 0; i < lines.length; i++) {
+            	for(int j = 0; j <= columns.length; j++) {
+            		String vertice = i + "." + j;
             		this.addVertice(vertice);
             		
             	}
             }
             
-            for(int i = 0; i < lines.length; i++) {
+            for(int i = 0; i < lines.length; i++) 
+            {
             	String [] line = lines[i].split(" ");
-            	for(int j = 0; j < line.length; j++) {
-            		if(line[j].charAt(0) == '0') { //there is a link
-                		Vertice starting = this.getVertice("" + j + (columns.length - i));
-                		Vertice ending = this.getVertice("" + (j+1) + (columns.length - i));
+            	for(int j = 0; j < line.length; j++) 
+            	{
+            		if(line[j].charAt(0) == '0') //there is a link 
+            		{ 
+                		Vertice starting = this.getVertice(j + "." + (columns.length - i));
+                		Vertice ending = this.getVertice((j+1) + "." + (columns.length - i));
                 		this.addAresta(starting, ending, ports[2]);
                 		this.addAresta(ending, starting, ports[3]);            			
             		}
             	}
             }
 
-            for(int i = 0; i < columns.length; i++) {
+            for(int i = 0; i < columns.length; i++) 
+            {
             	String [] column = columns[i].split(" ");
-            	for(int j = 0; j < column.length; j++) {
-            		if(column[j].charAt(0) == '0') { //there is a link
-            			Vertice starting = this.getVertice(j + "" + (columns.length - i));
-            			Vertice ending = this.getVertice(j + "" + (columns.length - 1 - i));
+            	for(int j = 0; j < column.length; j++) 
+            	{
+            		if(column[j].charAt(0) == '0') //there is a link 
+            		{ 
+            			Vertice starting = this.getVertice(j + "." + (columns.length - i));
+            			Vertice ending = this.getVertice(j + "." + (columns.length - 1 - i));
                 		this.addAresta(starting, ending, ports[1]);
                 		this.addAresta(ending, starting, ports[0]);    			
             		}
