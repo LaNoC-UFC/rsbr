@@ -102,13 +102,13 @@ public class RBRTools {
 	}
 
 	// Calculates the hop-count stats - [0] - Max / [1] - Min / [2] - Average
-	public double[] getHopCountStats(ArrayList<ArrayList<Vertice>> paths) {
+	public double[] getHopCountStats(ArrayList<Path> paths) {
 		double[] hcStats = new double[3];
 		double averageHopCount = 0;
 		double maxHopCount = 0;
 		double minHopCount = Double.POSITIVE_INFINITY;
 
-		for (ArrayList<Vertice> path : paths) {
+		for (Path path : paths) {
 			maxHopCount = (maxHopCount > path.size() - 1) ? maxHopCount : path
 					.size() - 1;
 			minHopCount = (minHopCount < path.size() - 1) ? minHopCount : path
@@ -124,17 +124,17 @@ public class RBRTools {
 	}
 
 	// Get just one path (from source to sink) from all paths computed
-	public ArrayList<ArrayList<Vertice>> getSimplePaths(
-			ArrayList<ArrayList<Vertice>> p, Graph graph) {
-		ArrayList<ArrayList<Vertice>> simplePaths = new ArrayList<ArrayList<Vertice>>();
-		ArrayList<ArrayList<Vertice>> paths = new ArrayList<ArrayList<Vertice>>(p);
+	public ArrayList<Path> getSimplePaths(
+			ArrayList<Path> p, Graph graph) {
+		ArrayList<Path> simplePaths = new ArrayList<Path>();
+		ArrayList<Path> paths = new ArrayList<Path>(p);
 
 		for (Vertice source : graph.getVertices()) {
 			for (Vertice sink : graph.getVertices()) {
 				if (source.getNome().equals(sink.getNome()))
 					continue;
 				List<Integer> indexs = new ArrayList<Integer>();
-				for (ArrayList<Vertice> path : paths) {
+				for (Path path : paths) {
 					if (path.get(0).getNome().equals(source.getNome())
 							&& path.get(path.size() - 1).getNome()
 									.equals(sink.getNome()))
@@ -196,11 +196,11 @@ public class RBRTools {
 	}
 
 	// Calculate routing distance -> all paths lengths / #paths
-	public double getRoutingDistance(ArrayList<ArrayList<Vertice>> paths,
+	public double getRoutingDistance(ArrayList<Path> paths,
 			Graph graph) {
 		double routingDistance = 0.0;
 
-		for (ArrayList<Vertice> path : paths)
+		for (Path path : paths)
 			routingDistance += path.size();
 
 		// Cover paths with the same source and destination
@@ -210,10 +210,10 @@ public class RBRTools {
 	}
 
 	// Set all links weight -> #paths that cross the link
-	private static void setLinkWeight(ArrayList<ArrayList<Vertice>> paths,
+	private static void setLinkWeight(ArrayList<Path> paths,
 			Graph graph) {
 
-		for (ArrayList<Vertice> path : paths) {
+		for (Path path : paths) {
 			for (int v = 0; v < path.size() - 1; v++) {
 				Aresta link = path.get(v).getAresta(path.get(v + 1));
 				link.incremWeight();
@@ -222,7 +222,7 @@ public class RBRTools {
 	}
 
 	// Link weight stats [0] - mean / [1] - standard deviation
-	public double[] linkWeightStats(ArrayList<ArrayList<Vertice>> paths,Graph graph) 
+	public double[] linkWeightStats(ArrayList<Path> paths,Graph graph) 
 	{
 		setLinkWeight(paths, graph); // After that we have the weight of all
 										// links
@@ -381,14 +381,14 @@ public class RBRTools {
 	 * Implements Dijkstra's algorithm : computes all minimal paths for a pair
 	 * (source, sink)
 	 */
-	public ArrayList<ArrayList<Vertice>> getPaths(Graph grafo, Vertice src,
+	public ArrayList<Path> getPaths(Graph grafo, Vertice src,
 			Vertice dst) {
 		int max = MinimumPathLength(grafo, src, dst);
-		ArrayList<ArrayList<Vertice>> paths = new ArrayList<ArrayList<Vertice>>();
+		ArrayList<Path> paths = new ArrayList<Path>();
 		depthFirst(0, max, dst, paths);
 
-		ArrayList<ArrayList<Vertice>> removePaths = new ArrayList<ArrayList<Vertice>>();
-		for (ArrayList<Vertice> path : paths) {
+		ArrayList<Path> removePaths = new ArrayList<Path>();
+		for (Path path : paths) {
 			for (int i = 1; i < path.size() - 1; i++) {
 				Vertice atual = path.get(i);
 				String corAnt = atual.getAresta(path.get(i - 1)).getCor();
@@ -406,11 +406,11 @@ public class RBRTools {
 		return paths;
 	}
 
-	private void depthFirst(int niv, int max, Vertice act, ArrayList<ArrayList<Vertice>> paths) 
+	private void depthFirst(int niv, int max, Vertice act, ArrayList<Path> paths) 
 	{
 		if (++niv > max) 
 		{
-			ArrayList<Vertice> temp = new ArrayList<Vertice>();
+			Path temp = new Path();
 			temp.add(act);
 			paths.add(temp);
 			return;
@@ -418,7 +418,7 @@ public class RBRTools {
 		for (Vertice parent : act.preds) 
 		{
 			depthFirst(niv, max, parent, paths);
-			for (ArrayList<Vertice> path : paths) 
+			for (Path path : paths) 
 				if (path.get(path.size() - 1) == parent)
 					path.add(act);
 
@@ -426,15 +426,15 @@ public class RBRTools {
 	}
 
 	// Do getPaths for all pairs (source, sink)
-	public ArrayList<ArrayList<Vertice>> pathsComputation(Graph graph) {
-		ArrayList<ArrayList<Vertice>> paths = null;// = new ArrayList<>();
-		ArrayList<ArrayList<Vertice>> allPaths = new ArrayList<>();
+	public ArrayList<Path> pathsComputation(Graph graph) {
+		ArrayList<Path> paths = null;// = new ArrayList<>();
+		ArrayList<Path> allPaths = new ArrayList<>();
 		for (Vertice src : graph.getVertices()) {
 			for (Vertice dst : graph.getVertices()) {
 				if (!src.getNome().equals(dst.getNome())) {
 					paths = getPaths(graph, src, dst);
 					allPaths.addAll(paths);
-					for (ArrayList<Vertice> path : paths) {
+					for (Path path : paths) {
 						String dest = dst.getNome();
 						for (Vertice sw : path) {
 							if (path.indexOf(sw) != path.size() - 1) {

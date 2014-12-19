@@ -43,8 +43,8 @@ public class RBR
         RBRTools tools = new RBRTools();
         //Make graph
         Graph graph = new Graph(topology);
-        ArrayList<ArrayList<Vertice>> paths;
-        ArrayList<ArrayList<Vertice>> simplePaths;
+        ArrayList<Path> paths;
+        ArrayList<Path> simplePaths;
         System.err.println(graph); 
          
          tools.setRestricitions(restrictionFile);
