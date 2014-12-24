@@ -67,32 +67,34 @@ public class Vertice implements Comparable<Vertice>
             return out;
     }
     
-    public String GetBitsOp(String op)
+    public String opToBinary(String ports)
     {
-        String outOp;
+        char[] outOp= {'0','0','0','0','0'};
+        char[] port = ports.toCharArray();
         
-        switch(op)
-            {
-                case "E":
-                    outOp = IntToBitsString(1, 5);
+        for(char pt : port)
+        {
+        	switch(pt)
+        	{
+                case 'E':
+                    outOp[4]= '1';
                     break;
-                case "W":
-                    outOp = IntToBitsString(2, 5);
+                case 'W':
+                    outOp[3]= '1';
                     break;
-                case "N":
-                    outOp = IntToBitsString(4, 5);
+                case 'N':
+                    outOp[2] = '1';
                     break;
-                case "S":
-                    outOp = IntToBitsString(8, 5);
+                case 'S':
+                    outOp[1] = '1';
                     break;
-                case "I":
-                    outOp = IntToBitsString(16, 5);
-                    break;
-                default:
-                    outOp = IntToBitsString(0, 5);
-            }
+                case 'I':
+                    outOp[0] = '1';
+                    break;                
+        	}
+        }
         
-        return outOp;
+        return String.valueOf(outOp);
     }
     
     public Aresta getAresta(Vertice destino) 
@@ -467,7 +469,7 @@ public class Vertice implements Comparable<Vertice>
     			int Ymax = Integer.parseInt(this.Regions.get(a).getUpRight().split("\\.")[1]);
             
     			//Write on file
-    			String outLine = "(\""+GetBitsOp(this.Regions.get(a).getIp())+IntToBitsString(Xmin, nBits)+IntToBitsString(Ymin, nBits)+IntToBitsString(Xmax, nBits)+IntToBitsString(Ymax, nBits)+GetBitsOp(this.Regions.get(a).getOp())+"\")";                    
+    			String outLine = "(\""+opToBinary(this.Regions.get(a).getIp())+IntToBitsString(Xmin, nBits)+IntToBitsString(Ymin, nBits)+IntToBitsString(Xmax, nBits)+IntToBitsString(Ymax, nBits)+opToBinary(this.Regions.get(a).getOp())+"\")";                    
             
     			bw.append(outLine);
 

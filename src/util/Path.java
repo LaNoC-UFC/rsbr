@@ -2,8 +2,8 @@ package util;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+/*import java.util.Spliterator;
+import java.util.function.Consumer;*/
 
 
 public class Path implements Iterable<Vertice>, Comparable<Path>
@@ -121,11 +121,11 @@ public class Path implements Iterable<Vertice>, Comparable<Path>
 		
 	}
 
-	@Override
+	/*@Override
 	public void forEach(Consumer<? super Vertice> arg0) {
 		// TODO Auto-generated method stub
 		
-	}
+	}*/
 
 	@Override
 	public Iterator<Vertice> iterator() 
@@ -133,9 +133,9 @@ public class Path implements Iterable<Vertice>, Comparable<Path>
 		return itself.iterator();
 	}
 
-	@Override
+	/*@Override
 	public Spliterator<Vertice> spliterator() 
 	{
 		return null;
-	}		
+	}*/		
 }
