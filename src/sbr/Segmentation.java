@@ -1,6 +1,6 @@
 package sbr;
 
-import java.io.File;
+//import java.io.File;
 
 public class Segmentation {
 
@@ -15,23 +15,23 @@ public class Segmentation {
 		}
 		else
 		{
-			file = "Input11.txt";
+			file = "2x2.txt";
 			//file = "8x8.1";
 		}
 		
 		// create the graph
-		SR teste = new SR(new File(file));
+		//SR teste = new SR(new File(file));
 		// print the graph
 		//teste.printGraph();
 		// run the algorithm
-		teste.computeSegments();
-		// list segments
-		teste.listSegments();
-		
-		// insert restrictions
-		teste.setrestrictions();
-		//print restrictions
-		teste.printRestrictions();
+//		teste.computeSegments();
+//		// list segments
+//		teste.listSegments();
+//		
+//		// insert restrictions
+//		teste.setrestrictions();
+//		//print restrictions
+//		teste.printRestrictions();
 		//teste.printUnitSeg();
 		
 		System.out.println("SBR to "+file+" done!");

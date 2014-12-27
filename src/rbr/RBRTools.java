@@ -92,7 +92,7 @@ public class RBRTools {
 
 		for (Vertice pred : r1.preds) {
 			corArestaPai = r1.getAresta(pred).getCor();
-			rest = this.restrictions.get(r1.getNome() + ":" + corArestaPai);
+			rest = pred.getRestriction(corArestaPai);
 
 			if (!rest.contains(corArestaAtual))
 				return true;
@@ -393,8 +393,7 @@ public class RBRTools {
 				Vertice atual = path.get(i);
 				String corAnt = atual.getAresta(path.get(i - 1)).getCor();
 				String corProx = atual.getAresta(path.get(i + 1)).getCor();
-				String restric = this.restrictions.get(atual.getNome() + ":"
-						+ corAnt);
+				String restric = atual.getRestriction(corAnt);
 				if (restric.contains(corProx)) {
 					removePaths.add(path);
 					break;
@@ -487,7 +486,7 @@ public class RBRTools {
 					Vertice dst = e.getDestino();
 					if(dst == pre) // esta voltando
 						continue; 
-					if (restrictions.get(src.getNome()+":"+inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
+					if (src.getRestriction(inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
 						continue;
 					if(pairs.contains(p.src().getNome()+":"+dst.getNome())) // nao eh minimo
 						continue;
@@ -942,7 +941,7 @@ public class RBRTools {
 	}
 
 	// Merge the regions of a router
-	void Merge(Graph grafo, Vertice router, double reachability) {
+	public void Merge(Graph grafo, Vertice router, double reachability) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 

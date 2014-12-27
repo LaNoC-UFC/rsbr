@@ -18,7 +18,8 @@ public class Vertice implements Comparable<Vertice>
 	private boolean visited;
 	private boolean tvisited;
 	private boolean terminal;
-	private String restrictions;
+	//private String restrictions;
+	private String[] restrictions = {"","","","",""};; //[0]-I [1]-N [2]-S [3]-E [4]-W
 	private sbr.Segment seg;
 	private int snet;
 	
@@ -44,16 +45,53 @@ public class Vertice implements Comparable<Vertice>
 		snet = -1;
 		nome = name;
 		adj = new ArrayList<Aresta>();
-		restrictions = nome + ": I{} N{} S{} E{} W{}";
+		//restrictions = nome + ": I{} N{} S{} E{} W{}";
 	}
 	
 	public void addRestriction(String op, String rest)
     {
-    	String op1 = op+"{";
-    	this.restrictions = restrictions.substring(0,restrictions.indexOf(op1)+2)+rest+restrictions.substring(restrictions.indexOf(op1)+2);    	    
+    	/*String op1 = op+"{";
+    	this.restrictions = restrictions.substring(0,restrictions.indexOf(op1)+2)+rest+restrictions.substring(restrictions.indexOf(op1)+2);*/
+    	switch(op)
+    	{
+    		case "I":
+    			restrictions[0] = restrictions[0]+""+rest; 
+    			break;
+    		case "N":
+    			restrictions[1] = restrictions[1]+""+rest;
+    			break;
+    		case "S":
+    			restrictions[2] = restrictions[2]+""+rest;
+    			break;
+    		case "E":
+    			restrictions[3] = restrictions[3]+""+rest;
+    			break;
+    		case "W":
+    			restrictions[4] = restrictions[4]+""+rest;
+    			break;
+    	}
+    }
+	
+	public String getRestriction(String op)
+    {
+    	switch(op)
+    	{
+    		case "I":
+    			return restrictions[0];     			
+    		case "N":
+    			return restrictions[1];
+    		case "S":
+    			return restrictions[2];
+    		case "E":
+    			return restrictions[3];
+    		case "W":
+    			return restrictions[4];
+    		default:
+    			return null;
+    	}
     }
     
-    public String getRestrictions()
+    public String[] getRestrictions()
     {
     	return this.restrictions;
     }
