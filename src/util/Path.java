@@ -39,14 +39,26 @@ public class Path implements Iterable<Vertice>, Comparable<Path>
 	}
 	
 	public Vertice dst() {
-		assert itself.size() != 0;
-		return itself.get(itself.size()-1);
+		if(itself.size() != 0)
+		{
+			return itself.get(itself.size()-1);
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	public Vertice src() 
 	{
-		assert itself.size() != 0;
-		return itself.get(0);
+		if (itself.size() != 0)
+		{
+			return itself.get(0);
+		}
+		else
+		{
+			return null;
+		}
 	}
 	
 	public void add(Vertice r) 

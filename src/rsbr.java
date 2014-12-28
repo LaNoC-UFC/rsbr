@@ -49,7 +49,9 @@ public class rsbr
         rbr.addRoutingOptions(paths, graph);
         rbr.regionsComput(graph);
         rbr.adjustsRegions(graph);
+        rbr.printLengthofPaths(paths, graph.dimension());
         
+        System.out.println("Doing Merge");
         if(merge.equals("merge"))        
        	 for(Vertice vertice : graph.getVertices())
        		 rbr.Merge(graph, vertice, reachability);

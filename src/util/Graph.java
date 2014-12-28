@@ -184,5 +184,11 @@ public class Graph
         return sws;
         
     }
+    
+    public int dimension()
+    {
+    	
+    	return (int) Math.sqrt((double)this.vertices.size());
+    }
 
 }

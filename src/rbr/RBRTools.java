@@ -457,7 +457,7 @@ public class RBRTools {
 	}
 	
 	/*
-	 * Nova vers√£o da busca de pacotes.
+	 * Nova vers„o da busca de pacotes.
 	 */
 	public ArrayList<Path> pathComputation(Graph graph) {
 		ArrayList<Path> allPaths = new ArrayList<Path>();
@@ -540,6 +540,49 @@ public class RBRTools {
 			oPComb.add(a);
 		}
 		return oPComb;
+	}
+	
+	public void printLengthofPaths(ArrayList<Path> paths, int dimension)
+	{
+		int[][] sizePath = new int[dimension*dimension][dimension*dimension];
+		
+		Path aux = new Path();
+		for(Path path : paths)
+		{	
+			if(path.src()==aux.src()&&path.dst()==aux.dst())
+				continue;
+			int sourceX = Integer.parseInt(path.src().getNome().split("\\.")[0]);
+			int sourceY = Integer.parseInt(path.src().getNome().split("\\.")[1]);
+			int sinkX = Integer.parseInt(path.dst().getNome().split("\\.")[0]);
+			int sinkY = Integer.parseInt(path.dst().getNome().split("\\.")[1]);			
+			int sourceN = sourceX + sourceY*dimension;
+			int sinkN = sinkX + sinkY*dimension;
+			
+			sizePath[sourceN][sinkN] = path.size();
+			aux=path;				
+		}
+		
+		try 
+		{
+			Formatter output = new Formatter("sizeOfPaths.txt");
+			
+			for(int x=0;x<(dimension*dimension-1);x++)
+			{
+				for(int y=0;y<(dimension*dimension-1);y++)
+				{
+					output.format("%d \t", sizePath[x][y]);
+				}
+				output.format("\r\n");
+			}
+
+			output.close();
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		
 	}
 
 	// Compute the regions
