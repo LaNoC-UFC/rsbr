@@ -47,8 +47,10 @@ public class SR {
 	}
 
 	public void computeSegments() {
-		int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
-		int Ny = Nx;
+		//int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
+		int Nx = graph.dimX()-1;
+		//int Ny = Nx;
+		int Ny = graph.dimY()-1;
 		String max = Nx + "." + Ny;
 		for (int i = Ny - 1; i >= 0; i--) {
 			String min = 0 + "." + i;

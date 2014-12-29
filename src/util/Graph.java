@@ -13,6 +13,8 @@ public class Graph
 	static private String[] ports = {"N","S","E","W"};
     ArrayList<Vertice> vertices;
     ArrayList<Aresta> arestas;
+    int dimX;
+    int dimY;
     
     public Graph() 
     {
@@ -35,8 +37,11 @@ public class Graph
             if(sc.hasNextLine())
             	columns = sc.nextLine().split("; ");
             
-            for(int i = 0; i < lines.length; i++) {
-            	for(int j = 0; j <= columns.length; j++) {
+            dimX = lines[0].split(" ").length + 1;
+            dimY = lines.length;
+            
+            for(int i = 0; i < dimX; i++) {
+            	for(int j = 0; j < dimY; j++) {
             		String vertice = i + "." + j;
             		this.addVertice(vertice);
             		
@@ -189,6 +194,16 @@ public class Graph
     {
     	
     	return (int) Math.sqrt((double)this.vertices.size());
+    }
+    
+    public int dimX()
+    {
+    	return dimX;
+    }
+    
+    public int dimY()
+    {
+    	return dimY;
     }
 
 }

@@ -42,6 +42,8 @@ public class rsbr
 		sbr.setrestrictions();
 		sbr.printRestrictions();
 		
+		System.out.println("X: "+graph.dimX()+" Y: "+graph.dimY());
+		
 		RBRTools rbr = new RBRTools();
 		ArrayList<Path> paths;
         ArrayList<Path> simplePaths;
@@ -49,7 +51,7 @@ public class rsbr
         rbr.addRoutingOptions(paths, graph);
         rbr.regionsComput(graph);
         rbr.adjustsRegions(graph);
-        rbr.printLengthofPaths(paths, graph.dimension());
+        rbr.printLengthofPaths(paths, graph.dimX(), graph.dimY());
         
         System.out.println("Doing Merge");
         if(merge.equals("merge"))        

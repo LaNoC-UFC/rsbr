@@ -159,8 +159,8 @@ public class RBRTools {
 	{
 		String routingTableFile = "Table_package.vhd";
 		File routingTable = new File(routingTableFile);
-		// TODO Solve to non-square nocs
-		int nBits = (int) Math.ceil(Math.log(Math.sqrt(graph.getVertices().size()))/Math.log(2));
+		int size = (graph.dimX()>=graph.dimY()) ? graph.dimX() : graph.dimY();
+		int nBits = (int) Math.ceil(Math.log(size)/Math.log(2));
 
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
@@ -474,8 +474,9 @@ public class RBRTools {
 				pairs.add(src.getNome()+":"+dst.getNome());
 			}
 		}
+		int nPairs = graph.dimX()*graph.dimY()*(graph.dimX()*graph.dimY()-1);
 		// N > 1 hop
-		while(pairs.size() < graph.getVertices().size()*(graph.getVertices().size()-1)) { // pares cadastrados menor que numero de fluxos
+		while(pairs.size() < nPairs) { // pares cadastrados menor que numero de fluxos
 			ArrayList<Path> aux = new ArrayList<Path>();
 			System.out.println("Tamanho anterior: " + lastPaths.get(0).size());
 			for(Path p : lastPaths) {
@@ -542,9 +543,9 @@ public class RBRTools {
 		return oPComb;
 	}
 	
-	public void printLengthofPaths(ArrayList<Path> paths, int dimension)
+	public void printLengthofPaths(ArrayList<Path> paths, int dimX, int dimY)
 	{
-		int[][] sizePath = new int[dimension*dimension][dimension*dimension];
+		int[][] sizePath = new int[dimX*dimY][dimX*dimY];
 		
 		Path aux = new Path();
 		for(Path path : paths)
@@ -555,8 +556,8 @@ public class RBRTools {
 			int sourceY = Integer.parseInt(path.src().getNome().split("\\.")[1]);
 			int sinkX = Integer.parseInt(path.dst().getNome().split("\\.")[0]);
 			int sinkY = Integer.parseInt(path.dst().getNome().split("\\.")[1]);			
-			int sourceN = sourceX + sourceY*dimension;
-			int sinkN = sinkX + sinkY*dimension;
+			int sourceN = sourceX + sourceY*dimX;
+			int sinkN = sinkX + sinkY*dimX;
 			
 			sizePath[sourceN][sinkN] = path.size();
 			aux=path;				
@@ -566,9 +567,9 @@ public class RBRTools {
 		{
 			Formatter output = new Formatter("sizeOfPaths.txt");
 			
-			for(int x=0;x<(dimension*dimension-1);x++)
+			for(int x=0;x<(dimX*dimY-1);x++)
 			{
-				for(int y=0;y<(dimension*dimension-1);y++)
+				for(int y=0;y<(dimX*dimY-1);y++)
 				{
 					output.format("%d \t", sizePath[x][y]);
 				}
