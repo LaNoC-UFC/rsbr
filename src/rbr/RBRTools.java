@@ -92,7 +92,7 @@ public class RBRTools {
 
 		for (Vertice pred : r1.preds) {
 			corArestaPai = r1.getAresta(pred).getCor();
-			rest = this.restrictions.get(r1.getNome() + ":" + corArestaPai);
+			rest = pred.getRestriction(corArestaPai);
 
 			if (!rest.contains(corArestaAtual))
 				return true;
@@ -159,8 +159,8 @@ public class RBRTools {
 	{
 		String routingTableFile = "Table_package.vhd";
 		File routingTable = new File(routingTableFile);
-		// TODO Solve to non-square nocs
-		int nBits = (int) Math.ceil(Math.log(Math.sqrt(graph.getVertices().size()))/Math.log(2));
+		int size = (graph.dimX()>=graph.dimY()) ? graph.dimX() : graph.dimY();
+		int nBits = (int) Math.ceil(Math.log(size)/Math.log(2));
 
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
@@ -393,8 +393,7 @@ public class RBRTools {
 				Vertice atual = path.get(i);
 				String corAnt = atual.getAresta(path.get(i - 1)).getCor();
 				String corProx = atual.getAresta(path.get(i + 1)).getCor();
-				String restric = this.restrictions.get(atual.getNome() + ":"
-						+ corAnt);
+				String restric = atual.getRestriction(corAnt);
 				if (restric.contains(corProx)) {
 					removePaths.add(path);
 					break;
@@ -458,7 +457,7 @@ public class RBRTools {
 	}
 	
 	/*
-	 * Nova vers√£o da busca de pacotes.
+	 * Nova vers„o da busca de pacotes.
 	 */
 	public ArrayList<Path> pathComputation(Graph graph) {
 		ArrayList<Path> allPaths = new ArrayList<Path>();
@@ -475,8 +474,9 @@ public class RBRTools {
 				pairs.add(src.getNome()+":"+dst.getNome());
 			}
 		}
+		int nPairs = graph.dimX()*graph.dimY()*(graph.dimX()*graph.dimY()-1);
 		// N > 1 hop
-		while(pairs.size() < graph.getVertices().size()*(graph.getVertices().size()-1)) { // pares cadastrados menor que numero de fluxos
+		while(pairs.size() < nPairs) { // pares cadastrados menor que numero de fluxos
 			ArrayList<Path> aux = new ArrayList<Path>();
 			System.out.println("Tamanho anterior: " + lastPaths.get(0).size());
 			for(Path p : lastPaths) {
@@ -487,7 +487,7 @@ public class RBRTools {
 					Vertice dst = e.getDestino();
 					if(dst == pre) // esta voltando
 						continue; 
-					if (restrictions.get(src.getNome()+":"+inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
+					if (src.getRestriction(inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
 						continue;
 					if(pairs.contains(p.src().getNome()+":"+dst.getNome())) // nao eh minimo
 						continue;
@@ -541,6 +541,49 @@ public class RBRTools {
 			oPComb.add(a);
 		}
 		return oPComb;
+	}
+	
+	public void printLengthofPaths(ArrayList<Path> paths, int dimX, int dimY)
+	{
+		int[][] sizePath = new int[dimX*dimY][dimX*dimY];
+		
+		Path aux = new Path();
+		for(Path path : paths)
+		{	
+			if(path.src()==aux.src()&&path.dst()==aux.dst())
+				continue;
+			int sourceX = Integer.parseInt(path.src().getNome().split("\\.")[0]);
+			int sourceY = Integer.parseInt(path.src().getNome().split("\\.")[1]);
+			int sinkX = Integer.parseInt(path.dst().getNome().split("\\.")[0]);
+			int sinkY = Integer.parseInt(path.dst().getNome().split("\\.")[1]);			
+			int sourceN = sourceX + sourceY*dimX;
+			int sinkN = sinkX + sinkY*dimX;
+			
+			sizePath[sourceN][sinkN] = path.size();
+			aux=path;				
+		}
+		
+		try 
+		{
+			Formatter output = new Formatter("sizeOfPaths.txt");
+			
+			for(int x=0;x<(dimX*dimY-1);x++)
+			{
+				for(int y=0;y<(dimX*dimY-1);y++)
+				{
+					output.format("%d \t", sizePath[x][y]);
+				}
+				output.format("\r\n");
+			}
+
+			output.close();
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		
 	}
 
 	// Compute the regions
@@ -942,7 +985,7 @@ public class RBRTools {
 	}
 
 	// Merge the regions of a router
-	void Merge(Graph grafo, Vertice router, double reachability) {
+	public void Merge(Graph grafo, Vertice router, double reachability) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 

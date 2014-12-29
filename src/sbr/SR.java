@@ -29,10 +29,11 @@ public class SR {
 	private List<Vertice> nVisiteds;
 
 
-	public SR(File fileName) 
+	public SR(Graph graph) 
 	{
-		graph = new Graph(fileName);
-		System.err.println(graph);
+		//graph = new Graph(fileName);
+		this.graph = graph;
+		if(debug) System.err.println(graph);
 		segments = new ArrayList<>();
 		visiteds = new ArrayList<>();
 		nVisiteds = new ArrayList<>();
@@ -46,12 +47,14 @@ public class SR {
 	}
 
 	public void computeSegments() {
-		int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
-		int Ny = Nx;
+		//int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
+		int Nx = graph.dimX()-1;
+		//int Ny = Nx;
+		int Ny = graph.dimY()-1;
 		String max = Nx + "." + Ny;
 		for (int i = Ny - 1; i >= 0; i--) {
 			String min = 0 + "." + i;
-			System.err.println("#Min: " + min + " #Max: " + max);
+			if(debug) System.err.println("#Min: " + min + " #Max: " + max);
 			computeSegments(min, max);
 		}
 	}
@@ -347,8 +350,12 @@ public class SR {
 			FileWriter wRestrictions = new FileWriter(restrictions);
 			BufferedWriter bw = new BufferedWriter(wRestrictions);
 
-			for (Vertice sw : graph.getVertices()) {
-				bw.write(sw.getRestrictions());
+			for (Vertice sw : graph.getVertices()) 
+			{
+				bw.write(sw.getNome()+": ");
+				for(String rest : sw.getRestrictions())
+					bw.write(rest+" ");
+				
 				bw.newLine();
 			}
 
