@@ -6,6 +6,6 @@ target/
 ard
 lw-Mean
 lw-Std
-region-Max
+region-max
 *.vhd
 

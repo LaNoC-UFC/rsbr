@@ -174,6 +174,7 @@ public class RBRTools {
 					"constant NBITS : integer := " + nBits + ";\n" +
 					"constant CELL_SIZE : integer := 2*NPORT+4*NBITS;\n\n" +
 					"subtype cell is std_logic_vector(CELL_SIZE-1 downto 0);\n" +
+					"subtype regAddr is std_logic_vector(2*NBITS-1 downto 0);\n" +
 					"type memory is array (0 to MEMORY_SIZE-1) of cell;\n" + 
 					"type tables is array (0 to NROT-1) of memory;\n\n" + 
 					"constant TAB: tables :=(");
