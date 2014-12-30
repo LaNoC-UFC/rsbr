@@ -10,11 +10,11 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class RBRTools {
+public class RBR {
 	// public HashMap<String, String> restrictions = new HashMap<>();
 	private Graph graph;
 
-	public RBRTools(Graph g) {
+	public RBR(Graph g) {
 		graph = g;
 
 	}
@@ -72,7 +72,7 @@ public class RBRTools {
 			regionMaxfs.close();
 
 		} catch (IOException ex) {
-			Logger.getLogger(RBRTools.class.getName()).log(Level.SEVERE, null,
+			Logger.getLogger(RBR.class.getName()).log(Level.SEVERE, null,
 					ex);
 		}
 

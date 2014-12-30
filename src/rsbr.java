@@ -1,7 +1,7 @@
 import java.io.File;
 import java.util.ArrayList;
 
-import rbr.RBRTools;
+import rbr.RBR;
 import sbr.SR;
 import util.Graph;
 import util.Path;
@@ -12,8 +12,8 @@ public class rsbr {
 	public static void main(String[] args) {
 		Graph graph;
 		String topologyFile;
-		String merge;
-		double reachability = 0.0;
+		String merge = "merge";
+		double reachability = 1.0;
 
 		switch (args.length) {
 		case 3:
@@ -23,15 +23,13 @@ public class rsbr {
 			break;
 
 		default:
-			topologyFile = "2x2.txt";
-			merge = "merge";
-			reachability = 1.0;
+			topologyFile = "Input4.txt";
 		}
 
 		System.out.println("Geranting graph from " + topologyFile);
 		graph = new Graph(new File(topologyFile));
 
-		System.out.println("SR Section");
+		System.out.println(" - SR Section");
 		SR sbr = new SR(graph);
 
 		System.out.println("Compute the segments");
@@ -42,8 +40,8 @@ public class rsbr {
 		sbr.setrestrictions();
 		// sbr.printRestrictions();
 
-		System.out.println("RBR Section");
-		RBRTools rbr = new RBRTools(graph);
+		System.out.println(" - RBR Section");
+		RBR rbr = new RBR(graph);
 
 		System.out.println("Paths Computation");
 		ArrayList<Path> paths;
@@ -52,7 +50,7 @@ public class rsbr {
 		System.out.println("Paths Selection");
 		ArrayList<Path> simplePaths;
 		simplePaths = rbr.getSimplePaths(paths);
-		rbr.addRoutingOptions(simplePaths);
+		rbr.addRoutingOptions(paths); // it should be simplePaths
 
 		System.out.println("Regions Computation");
 		rbr.regionsComput();
@@ -69,9 +67,10 @@ public class rsbr {
 		System.out.println("Making Tables");
 		rbr.doRoutingTable();
 
-		System.out.println("Doing Average Routing Distance and Link Weight...");
+		System.out.println("Doing Average Routing Distance and Link Weight");
 		rbr.makeStats(simplePaths);
 
+		System.out.println("All done!");
 	}
 
 }

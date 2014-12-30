@@ -1,153 +1,76 @@
 package util;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-/*import java.util.Spliterator;
-import java.util.function.Consumer;*/
 
+public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
-public class Path implements Iterable<Vertice>, Comparable<Path>
-{
-	private ArrayList<Vertice> itself;
-	private ArrayList<Aresta> Arestas = new ArrayList<Aresta>(); 
-	
+	private static final long serialVersionUID = 1L;
+
 	public Path() {
-		itself = new ArrayList<Vertice>();
+		super();
 	}
-	
+
 	public Path(Path p) {
-		itself = new ArrayList<Vertice>(p.itself);
+		super(p);
 	}
-	
-	public Path(ArrayList<Vertice> path) {
-		itself = path;
+
+	// #Arestas
+	private int numArestas() {
+		return this.size() - 1;
 	}
-	
-	public void initializeArestas() {
-		for(int i=0; i<(itself.size()-1);i++)
-			this.Arestas.add(itself.get(i).getAresta(itself.get(i+1)));
-	}
-	
-	//#Vertices
-	public int size() {
-		return itself.size();
-	}
-	
-	//#Arestas
-	public int ArestasSize() {
-		return itself.size()-1;
-	}
-	
+
 	public Vertice dst() {
-		if(itself.size() != 0)
-		{
-			return itself.get(itself.size()-1);
-		}
-		else
-		{
-			return null;
-		}
+		return (this.size() != 0) ? this.get(this.size() - 1) : null;
 	}
 
-	public Vertice src() 
-	{
-		if (itself.size() != 0)
-		{
-			return itself.get(0);
-		}
-		else
-		{
-			return null;
-		}
-	}
-	
-	public void add(Vertice r) 
-	{
-		itself.add(r);
-	}
-	
-	public void remove(Vertice r) 
-	{
-		itself.remove(r);
+	public Vertice src() {
+		return (this.size() != 0) ? this.get(0) : null;
 	}
 
-	public void remove(int index) 
-	{
-		itself.remove(index);
-	}
-	
-	public Vertice get(int index) 
-	{
-		return itself.get(index);
-	}
-	
-	public int indexOf(Vertice Vertice) 
-	{
-		return itself.indexOf(Vertice);
-	}
-	
-	//Sum of Aresta's weight
-	public double getWeight() 	
-	{
-		
-		double weight=0;
-		
-		for(int i=0; i<(itself.size()-1);i++)
-			weight+=itself.get(i).getAresta(itself.get(i+1)).getWeight();
-		
+	// Sum of Aresta's weight
+	public double getWeight() {
+		double weight = 0;
+
+		for (int i = 0; i < numArestas(); i++)
+			weight += this.get(i).getAresta(this.get(i + 1)).getWeight();
+
 		return weight;
-		
 	}
-	
-	public void incremWeight() {
-		for(int i=0; i<(itself.size()-1);i++)
-			itself.get(i).getAresta(itself.get(i+1)).incremWeight();
-	}
-		
-	public void decremWeight() {
-		for(int i=0; i<(itself.size()-1);i++)
-			itself.get(i).getAresta(itself.get(i+1)).decremWeight();
-	}
-	
-	public int compareTo(Path other) 
-	{    
-		if (this.ArestasSize() < other.ArestasSize()) 
-				return -1;
 
-		if (this.ArestasSize() > other.ArestasSize()) 
-				return 1;				
-		return 0;
-    
+	public void incremWeight() {
+		for (int i = 0; i < numArestas(); i++)
+			this.get(i).getAresta(this.get(i + 1)).incremWeight();
 	}
-	
+
+	public void decremWeight() {
+		for (int i = 0; i < numArestas(); i++)
+			this.get(i).getAresta(this.get(i + 1)).decremWeight();
+	}
+
+	public int compareTo(Path other) {
+		if (this.numArestas() < other.numArestas())
+			return -1;
+
+		if (this.numArestas() > other.numArestas())
+			return 1;
+		return 0;
+
+	}
+
 	public void printArestaWeight() {
-		for(int i=0; i<(itself.size()-1);i++) {
-			System.out.println(itself.get(i).getNome());			
-			System.out.println(itself.get(i).getAresta(itself.get(i+1)).getWeight());
+		for (int i = 0; i < numArestas(); i++) {
+			System.out.println(this.get(i).getNome());
+			System.out.println(this.get(i).getAresta(this.get(i + 1))
+					.getWeight());
 		}
 	}
-	
+
 	public String toString() {
-		
-		return "src: "+this.src().getNome()+", dst: "+this.dst().getNome()+", size: "+this.ArestasSize()+", weight: "+this.getWeight();
-		
+
+		return "src: " + this.src().getNome() + ", dst: "
+				+ this.dst().getNome() + ", size: " + this.numArestas()
+				+ ", weight: " + this.getWeight();
+
 	}
 
-	/*@Override
-	public void forEach(Consumer<? super Vertice> arg0) {
-		// TODO Auto-generated method stub
-		
-	}*/
-
-	@Override
-	public Iterator<Vertice> iterator() 
-	{
-		return itself.iterator();
-	}
-
-	/*@Override
-	public Spliterator<Vertice> spliterator() 
-	{
-		return null;
-	}*/		
 }

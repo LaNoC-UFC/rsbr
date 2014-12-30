@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SR {
 
-	private final boolean debug = true;
+	private final boolean debug = false;
 	private final static String[] RoundRobin = { "N", "E", "S", "W" };
 	private static int RRIndex[];
 
@@ -97,7 +97,7 @@ public class SR {
 			sw = right;
 		}
 
-		System.err.println("#starting: " + sw.getNome());
+		if (debug) System.err.println("#starting: " + sw.getNome());
 
 		Vertice sw2;
 		if (!sw.isVisited()) {
