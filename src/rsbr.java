@@ -7,60 +7,70 @@ import util.Graph;
 import util.Path;
 import util.Vertice;
 
+public class rsbr {
 
-public class rsbr 
-{
-
-	public static void main(String[] args) 
-	{	Graph graph;
+	public static void main(String[] args) {
+		Graph graph;
 		String topologyFile;
 		String merge;
-        double reachability = 0.0;
-        
-		switch(args.length)
-		{
+		double reachability = 0.0;
+
+		switch (args.length) {
 		case 3:
 			topologyFile = args[0];
-            merge = args[1];
-            reachability = Double.valueOf(args[2]);
+			merge = args[1];
+			reachability = Double.valueOf(args[2]);
 			break;
-			
+
 		default:
 			topologyFile = "2x2.txt";
-            merge = "merge";
-            reachability = 1.0;
-            break;
-		
+			merge = "merge";
+			reachability = 1.0;
 		}
-		
-		System.err.println("File name: "+topologyFile);
+
+		System.out.println("Geranting graph from " + topologyFile);
 		graph = new Graph(new File(topologyFile));
-		
+
+		System.out.println("SR Section");
 		SR sbr = new SR(graph);
+
+		System.out.println("Compute the segments");
 		sbr.computeSegments();
-		sbr.listSegments();
+		// sbr.listSegments();
+
+		System.out.println("Set the restrictions");
 		sbr.setrestrictions();
-		sbr.printRestrictions();
-		
-		System.out.println("X: "+graph.dimX()+" Y: "+graph.dimY());
-		
-		RBRTools rbr = new RBRTools();
+		// sbr.printRestrictions();
+
+		System.out.println("RBR Section");
+		RBRTools rbr = new RBRTools(graph);
+
+		System.out.println("Paths Computation");
 		ArrayList<Path> paths;
-        ArrayList<Path> simplePaths;
-        paths = rbr.pathComputation(graph); 
-        rbr.addRoutingOptions(paths, graph);
-        rbr.regionsComput(graph);
-        rbr.adjustsRegions(graph);
-        rbr.printLengthofPaths(paths, graph.dimX(), graph.dimY());
-        
-        System.out.println("Doing Merge");
-        if(merge.equals("merge"))        
-       	 for(Vertice vertice : graph.getVertices())
-       		 rbr.Merge(graph, vertice, reachability);
-        
-        rbr.doRoutingTable(rbr.getRegionsStats(graph), graph);
-        simplePaths = rbr.getSimplePaths(paths, graph);
-        rbr.makeStats(rbr.getHopCountStats(paths), rbr.getRegionsStats(graph), rbr.getRoutingDistance(simplePaths, graph),rbr.linkWeightStats(simplePaths, graph));
+		paths = rbr.pathComputation();
+
+		System.out.println("Paths Selection");
+		ArrayList<Path> simplePaths;
+		simplePaths = rbr.getSimplePaths(paths);
+		rbr.addRoutingOptions(simplePaths);
+
+		System.out.println("Regions Computation");
+		rbr.regionsComput();
+
+		System.out.println("Regions Adjustment");
+		rbr.adjustsRegions();
+		rbr.printLengthofPaths(simplePaths);
+
+		System.out.println("Doing Merge");
+		if (merge.equals("merge"))
+			for (Vertice vertice : graph.getVertices())
+				rbr.Merge(vertice, reachability);
+
+		System.out.println("Making Tables");
+		rbr.doRoutingTable();
+
+		System.out.println("Doing Average Routing Distance and Link Weight...");
+		rbr.makeStats(simplePaths);
 
 	}
 
