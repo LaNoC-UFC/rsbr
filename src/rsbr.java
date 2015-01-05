@@ -48,16 +48,20 @@ public class rsbr {
 		paths = rbr.pathComputation();
 
 		System.out.println("Paths Selection");
-		ArrayList<Path> simplePaths;
-		simplePaths = rbr.getSimplePaths(paths);
-		rbr.addRoutingOptions(paths); // it should be simplePaths
+		ArrayList<Path> oneRandPaths;
+		ArrayList<Path> maxWeightPath;
+		ArrayList<Path> compareTMWPath;
+		oneRandPaths = rbr.getOneRandPath(paths);
+		maxWeightPath = rbr.getMaxWeightPath(paths);
+		compareTMWPath = rbr.comparePathsToMaxWeight(paths, maxWeightPath); //Deve ser chamado várias vezes
+		rbr.addRoutingOptions(compareTMWPath); // it should be simplePaths
 
 		System.out.println("Regions Computation");
 		rbr.regionsComput();
 
 		System.out.println("Regions Adjustment");
 		rbr.adjustsRegions();
-		rbr.printLengthofPaths(simplePaths);
+		rbr.printLengthofPaths(oneRandPaths);
 
 		System.out.println("Doing Merge");
 		if (merge.equals("merge"))
@@ -68,7 +72,7 @@ public class rsbr {
 		rbr.doRoutingTable();
 
 		System.out.println("Doing Average Routing Distance and Link Weight");
-		rbr.makeStats(simplePaths);
+		rbr.makeStats(oneRandPaths);
 
 		System.out.println("All done!");
 	}

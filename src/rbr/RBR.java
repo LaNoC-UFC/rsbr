@@ -109,37 +109,6 @@ public class RBR {
 	 * return hcStats; }
 	 */
 
-	// Get just one path (from source to sink) from all paths computed
-	public ArrayList<Path> getSimplePaths(ArrayList<Path> p) {
-		ArrayList<Path> simplePaths = new ArrayList<Path>();
-		ArrayList<Path> paths = new ArrayList<Path>(p);
-
-		for (Vertice source : graph.getVertices()) {
-			for (Vertice sink : graph.getVertices()) {
-				if (source.getNome().equals(sink.getNome()))
-					continue;
-				List<Integer> indexs = new ArrayList<Integer>();
-				for (Path path : paths) {
-					if (path.get(0).getNome().equals(source.getNome())
-							&& path.get(path.size() - 1).getNome()
-									.equals(sink.getNome()))
-						indexs.add(paths.indexOf(path));
-				}
-				int randIndex = 0;
-				if (indexs.size() > 1) {
-					randIndex = (int) (Math.random() * ((double) indexs.size() - 1));
-				}
-				simplePaths.add(paths.get(indexs.get(randIndex)));
-				for (Integer i : indexs) {
-					paths.remove(i);
-				}
-			}
-		}
-
-		return simplePaths;
-
-	}
-
 	public void doRoutingTable() {
 		float[] stats = getRegionsStats();
 		String routingTableFile = "Table_package.vhd";
@@ -284,7 +253,7 @@ public class RBR {
 
 	// Pack routing options if they have the same output port and the same
 	// destination
-	private static void packInputPort(Vertice atual) {
+	public static void packInputPort(Vertice atual) {
 		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
 		atual.setRoutingPaths(new ArrayList<RoutingPath>());
 		for (RoutingPath a : actRP) {
@@ -439,6 +408,184 @@ public class RBR {
 		allPaths.addAll(lastPaths);
 		return allPaths;
 	}
+	
+
+	// Get just one path (from source to sink) from all paths computed
+	public ArrayList<Path> getOneRandPath(ArrayList<Path> p) {
+		ArrayList<Path> oneRandPath = new ArrayList<Path>();
+		ArrayList<Path> paths = new ArrayList<Path>(p);
+
+		for (Vertice source : graph.getVertices()) {
+			for (Vertice sink : graph.getVertices()) {
+				if (source.getNome().equals(sink.getNome()))
+					continue;
+				List<Integer> indexs = new ArrayList<Integer>();
+				for (Path path : paths) {
+					if (path.src().getNome().equals(source.getNome())
+							&& path.dst().getNome()
+									.equals(sink.getNome()))
+						indexs.add(paths.indexOf(path));
+				}
+				int randIndex = 0;
+				if (indexs.size() > 1) {
+					randIndex = (int) (Math.random() * ((double) indexs.size() - 1));
+				}
+				oneRandPath.add(paths.get(indexs.get(randIndex)));
+				for (Integer i : indexs) {
+					paths.remove(i);
+				}
+			}
+		}
+
+		return oneRandPath;
+
+	}
+	
+	public ArrayList<Path> getMaxWeightPath(ArrayList<Path> paths)
+	{		
+		ArrayList<Path> chosenPaths = new ArrayList<Path>();
+		ArrayList<Path> toRemove = new ArrayList<Path>();
+		Path bestPath = new Path();
+		Collections.sort(paths);
+
+		//Delete paths with unitary weight
+		for(Path path : paths)
+		{
+			//Links with unitary weight
+			if(path.linksSize()==1) 
+			{
+				path.incremWeight();
+				chosenPaths.add(path);
+				toRemove.add(path);			
+			}
+		}
+		paths.removeAll(toRemove);
+			
+		bestPath = paths.get(0);
+		for(Path path : paths) 
+		{ 						
+				if(path.src()==bestPath.src() && path.dst()==bestPath.dst())
+				{					
+					if(path.getWeight()>bestPath.getWeight())						
+						bestPath = path;
+				}
+				else
+				{										
+					bestPath.incremWeight();
+					chosenPaths.add(bestPath);
+					bestPath = path;
+				}						
+		}
+		
+		bestPath.incremWeight();
+		chosenPaths.add(bestPath);
+		
+		return chosenPaths;
+	}
+	
+	public ArrayList<Path> getMinWeightPath(ArrayList<Path> paths)
+	{
+		return null;
+	}
+	
+	
+	// arg 1 -> all Paths, arg 2 -> return of minMaxLinkWeight1
+	// Compara caminhos escolhidos pelo metodo acima com caminhos gerais da rede
+	public ArrayList<Path> comparePathsToMaxWeight(ArrayList<Path> paths,ArrayList<Path> chosenPaths) 
+	{
+		ArrayList<Path> bestPaths = new ArrayList<Path>();
+		Path toComparePath = null;
+		ArrayList<Path> toRemove = new ArrayList<Path>();
+		Collections.sort(chosenPaths);
+
+		// To compare only paths with more than one link
+		for (Path currentPath : chosenPaths) 
+		{
+			if (currentPath.linksSize() == 1) 
+			{
+				bestPaths.add(currentPath);
+				toRemove.add(currentPath);
+			}
+		}
+		chosenPaths.removeAll(toRemove);
+
+		// Will get the path with greater weight between gotten paths at early
+		// stage and all paths.
+		for (Path currentPath : chosenPaths) 
+		{
+			// Problem: Always loop all collection!
+			for (Path path : paths) 
+			{
+				if (path.src() == currentPath.src()
+						&& path.dst() == currentPath.dst()) 
+				{
+					if (toComparePath == null) 
+					{
+						if (path.getWeight() > currentPath.getWeight()-currentPath.linksSize())
+							toComparePath = path;
+					}
+					else 
+					{
+						if (path.getWeight() > toComparePath.getWeight())
+							toComparePath = path;
+					}
+				}
+			}
+
+			if (toComparePath == null) 
+			{
+				bestPaths.add(currentPath);
+			} 
+			else 
+			{
+				toComparePath.incremWeight(); // add path
+				currentPath.decremWeight(); // deleting path, so decrement
+											// weight
+				bestPaths.add(toComparePath);
+				toComparePath = null;
+			}
+		}
+
+		return bestPaths;
+	}
+	
+	public ArrayList<Path> getSimplePaths(ArrayList<Path> p, Graph graph, Double percent) 
+	{
+		ArrayList<Path> simplePaths = new ArrayList<Path>();
+		ArrayList<Path> paths = new ArrayList<Path>(p);
+
+		for (Vertice source : graph.getVertices()) {
+			for (Vertice sink : graph.getVertices()) {
+				if (source.getNome().equals(sink.getNome()))
+					continue;
+				
+					List<Integer> indexs = new ArrayList<Integer>();
+					
+					//	Get index of paths from source to sink
+					for (Path path : paths) 
+					{
+						if (path.src().getNome().equals(source.getNome())&& path.dst().getNome().equals(sink.getNome()))
+								indexs.add(paths.indexOf(path));
+					}
+					
+					//At indexs we have all the indexs of paths from source to sink
+					int pathNumber = (int) (Math.ceil(percent*indexs.size()));
+
+					//sort a path to use
+					Collections.shuffle(indexs);
+				
+					for(int ind=0;ind<pathNumber;ind++) 
+						simplePaths.add(paths.get(indexs.get(ind)));
+					
+					for (Integer i : indexs) 
+						paths.remove(i);
+					
+				}
+			}
+
+			return simplePaths;
+
+		}
 
 	public void addRoutingOptions(ArrayList<Path> paths) {
 		for (Path path : paths) {
@@ -501,8 +648,8 @@ public class RBR {
 		try {
 			Formatter output = new Formatter("sizeOfPaths.txt");
 
-			for (int x = 0; x < (dimX * dimY - 1); x++) {
-				for (int y = 0; y < (dimX * dimY - 1); y++) {
+			for (int x = 0; x < dimX * dimY; x++) {
+				for (int y = 0; y < dimX * dimY; y++) {
 					output.format("%d \t", sizePath[x][y]);
 				}
 				output.format("\r\n");
