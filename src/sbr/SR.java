@@ -662,7 +662,7 @@ public class SR {
 		}
 	}
 
-	public void printTopologicDistance(double topologicDistance) {
+	public static void printTopologicDistance(double topologicDistance) {
 		try {
 			FileWriter topDist = new FileWriter(new File("topDist"));
 			topDist.write(Double.toString(topologicDistance));

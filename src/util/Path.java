@@ -1,10 +1,35 @@
 package util;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
 	private static final long serialVersionUID = 1L;
+
+	public static class MinWeight implements Comparator<Path> {
+
+		@Override
+		public int compare(Path p0, Path p1) {
+			if(p0.getWeight() < p1.getWeight()) return -1;
+			if(p0.getWeight() > p1.getWeight()) return +1;
+			return 0;
+		}
+
+	}
+	
+
+	public static class MaxWeight implements Comparator<Path> {
+
+		@Override
+		public int compare(Path p0, Path p1) {
+			if(p0.getWeight() < p1.getWeight()) return +1;
+			if(p0.getWeight() > p1.getWeight()) return -1;
+			return 0;
+		}
+		
+	}
+	
 
 	public Path() {
 		super();

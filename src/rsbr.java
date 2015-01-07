@@ -44,16 +44,14 @@ public class rsbr {
 		RBR rbr = new RBR(graph);
 
 		System.out.println("Paths Computation");
-		ArrayList<Path> paths;
-		paths = rbr.pathComputation();
+		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
 
 		System.out.println("Paths Selection");
-		ArrayList<Path> simplePaths;
-		simplePaths = rbr.getSimplePaths(paths);
-		rbr.addRoutingOptions(paths); // it should be simplePaths
+		ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path.MaxWeight(), 1);
 
 		System.out.println("Regions Computation");
-		rbr.regionsComput();
+		rbr.addRoutingOptions(simplePaths);
+		rbr.regionsComputation();
 
 		System.out.println("Regions Adjustment");
 		rbr.adjustsRegions();
@@ -62,12 +60,14 @@ public class rsbr {
 		System.out.println("Doing Merge");
 		if (merge.equals("merge"))
 			for (Vertice vertice : graph.getVertices())
-				rbr.Merge(vertice, reachability);
+				rbr.merge(vertice, reachability);
 
 		System.out.println("Making Tables");
 		rbr.doRoutingTable();
 
 		System.out.println("Doing Average Routing Distance and Link Weight");
+		float[] stats = rbr.getRegionsStats();
+		System.out.println(stats[0]+" "+stats[1]+" "+stats[2]);
 		rbr.makeStats(simplePaths);
 
 		System.out.println("All done!");
