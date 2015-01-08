@@ -707,6 +707,11 @@ pair (source, sink)
 	*/
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
+		
+		//inicializa opções de roteamento
+		for(Vertice v : graph.getVertices())
+			v.initRoutingOptions();
+		
 		for(ArrayList<Path> alp : paths) {			
 			for (Path path : alp) {
 				String dest = path.dst().getNome();
@@ -783,7 +788,8 @@ pair (source, sink)
 	// Compute the regions
 	public void regionsComputation() {
 		ArrayList<String> opComb = getOutputCombinations();
-		for (Vertice sw : graph.getVertices()) {
+		for (Vertice sw : graph.getVertices()) {			
+			sw.initRegions();
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
@@ -803,11 +809,13 @@ pair (source, sink)
 				reg.setextrems();
 			}
 		}
+		
+		adjustsRegions();
 
 	}
 
 	// Adjust the regions to avoid overlap
-	public void adjustsRegions() {
+	private void adjustsRegions() {
 		for (Vertice sw : graph.getVertices()) {
 			ArrayList<Region> regionsTemp = new ArrayList<>();
 			ArrayList<Region> regionsRemov = new ArrayList<>();

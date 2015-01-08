@@ -47,28 +47,70 @@ public class rsbr {
 		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
 
 		System.out.println("Paths Selection");
-		ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path.MaxWeight(), 1);
-
-		System.out.println("Regions Computation");
-		rbr.addRoutingOptions(simplePaths);
+		//Um caminho aleatório
+		ArrayList<ArrayList<Path>> aleatPath = rbr.pathSelection(paths);
+		//Seleção por peso máximo (rodado 1 vez)
+		ArrayList<ArrayList<Path>> MaxWeigthPath1 = rbr.pathSelection(paths, new Path.MaxWeight(), 1);
+		//Seleção por peso máximo (rodado 2 vezes)
+		ArrayList<ArrayList<Path>> MaxWeigthPath2 = rbr.pathSelection(paths, new Path.MaxWeight(), 2);
+		//Seleção por peso mínimo (rodado 1 vez)
+		ArrayList<ArrayList<Path>> MinWeigthPath1 = rbr.pathSelection(paths, new Path.MinWeight(), 1);
+		//Seleção por peso mínimo (rodado 2 vezes)
+		ArrayList<ArrayList<Path>> MinWeigthPath2 = rbr.pathSelection(paths, new Path.MinWeight(), 2);
+		//--
+		System.out.println("Regions Computation for all selections of paths");
+		float[] stats = null;
+		
+		//All paths
+		rbr.addRoutingOptions(paths);
 		rbr.regionsComputation();
+		for (Vertice vertice : graph.getVertices())
+			rbr.merge(vertice, reachability);
+		stats = rbr.getRegionsStats();
+		System.out.println("Todos os caminhos:");
+		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+		
+		//Um caminho aleatório
+		rbr.addRoutingOptions(aleatPath);
+		rbr.regionsComputation();
+		for (Vertice vertice : graph.getVertices())
+			rbr.merge(vertice, reachability);
+		stats = rbr.getRegionsStats();
+		System.out.println("Um caminho aleatório:");
+		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+		
+		//Seleção por peso máximo (rodado uma vez)
+		rbr.addRoutingOptions(MaxWeigthPath1);
+		rbr.regionsComputation();
+		for (Vertice vertice : graph.getVertices())
+			rbr.merge(vertice, reachability);
+		stats = rbr.getRegionsStats();
+		System.out.println("Seleção por peso máximo (1x):");
+		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+		
+		//Seleção por peso máximo (rodado duas vezes)
+		rbr.addRoutingOptions(MaxWeigthPath2);
+		rbr.regionsComputation();
+		for (Vertice vertice : graph.getVertices())
+			rbr.merge(vertice, reachability);
+		stats = rbr.getRegionsStats();
+		System.out.println("Seleção por peso máximo (2x):");
+		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
 
+		//--
 		System.out.println("Regions Adjustment");
-		rbr.adjustsRegions();
-		rbr.printLengthofPaths(simplePaths);
-
+		rbr.printLengthofPaths(aleatPath);
+		//--
 		System.out.println("Doing Merge");
 		if (merge.equals("merge"))
 			for (Vertice vertice : graph.getVertices())
 				rbr.merge(vertice, reachability);
-
+		//--
 		System.out.println("Making Tables");
 		rbr.doRoutingTable();
-
-		System.out.println("Doing Average Routing Distance and Link Weight");
-		float[] stats = rbr.getRegionsStats();
-		System.out.println(stats[0]+" "+stats[1]+" "+stats[2]);
-		rbr.makeStats(simplePaths);
+		//--
+		/*System.out.println("Doing Average Routing Distance and Link Weight");
+		rbr.makeStats(aleatPath);*/
 
 		System.out.println("All done!");
 	}

@@ -48,6 +48,16 @@ public class Vertice implements Comparable<Vertice>
 		//restrictions = nome + ": I{} N{} S{} E{} W{}";
 	}
 	
+	public void initRoutingOptions()
+	{
+		this.routingPaths = new ArrayList<>();
+	}
+	
+	public void initRegions()
+	{
+		this.Regions = new ArrayList<>();
+	}
+	
 	public void addRestriction(String op, String rest)
     {
     	/*String op1 = op+"{";
