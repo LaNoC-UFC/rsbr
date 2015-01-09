@@ -79,6 +79,37 @@ public class Graph {
 			Logger.getLogger(Graph.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
+	
+	public Graph(int dX,int dY, double perc)
+	{
+		vertices = new ArrayList<>();
+		arestas = new ArrayList<>();
+		
+		dimX=dX;
+		dimY=dY;
+		int nArests = (dimX-1)*dimY + dimX*(dimY-1);
+		int nFalts = (int)Math.ceil((double)nArests*perc);
+		
+		//Adiciona Vertices
+		for(int y=0; y<dimY; y++)
+			for(int x=0; x<dimX; x++)
+				addVertice(x+"."+y);
+		
+		//Adiciona Arestas
+		for(int y=0; y<dimY; y++)
+			for(int x=0; x<dimX; x++)
+			{
+				if(contem(x+"."+(y+1)))
+					addAresta(getVertice(x+"."+y), getVertice(x+"."+(y+1)), ports[0]);
+				if(contem(x+"."+(y-1)))
+					addAresta(getVertice(x+"."+y), getVertice(x+"."+(y-1)), ports[1]);
+				if(contem((x+1)+"."+y))
+					addAresta(getVertice(x+"."+y), getVertice((x+1)+"."+y), ports[2]);	
+				if(contem((x-1)+"."+y))
+					addAresta(getVertice(x+"."+y), getVertice((x-1)+"."+y), ports[3]);	
+			}
+
+	}
 
 	public void setGraph() {
 		// Dijkstra
@@ -89,15 +120,15 @@ public class Graph {
 		}
 	}
 
-	public int contem(String vertice) {
+	public boolean contem(String vertice) {
 
 		for (int i = 0; i < vertices.size(); i++) {
 
 			if (vertice.equals(vertices.get(i).getNome())) {
-				return i;
+				return true;
 			}
 		}
-		return -1;
+		return false;
 	}
 
 	public ArrayList<Vertice> getVertices() {

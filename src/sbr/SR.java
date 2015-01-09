@@ -132,10 +132,10 @@ public class SR {
 					sw.setTerminal();
 					if (debug)
 						System.err.println(sw.getNome() + " is Terminal.");
-				} else if (min.equals("00")) {// (sw.isStart() &&
+				} else if (min.equals("0.0")) {// (sw.isStart() &&
 												// nVisiteds.size() == 1) {
 					sw.setTerminal();
-					System.err.println(sw.getNome() + " is Terminal.");
+					if (debug) System.err.println(sw.getNome() + " is Terminal.");
 					sw.setVisited();
 					nVisiteds.remove(sw);
 					visiteds.add(sw);

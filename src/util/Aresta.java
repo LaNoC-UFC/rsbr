@@ -4,6 +4,7 @@ public class Aresta
 {
 	private boolean visited;
 	private boolean tvisited;
+	private boolean isFail = false;
 	private sbr.Segment seg;
 	private int snet;
     protected Vertice starting;
@@ -34,6 +35,16 @@ public class Aresta
 		tvisited = false;
 		seg = null;
 		snet = -1;
+	}
+	
+	public void isFail()
+	{
+		isFail=true;
+	}
+	
+	public boolean checkFail()
+	{
+		return isFail;
 	}
 	
 	public String getCor () 
