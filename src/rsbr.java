@@ -23,12 +23,14 @@ public class rsbr {
 			break;
 
 		default:
-			topologyFile = "Input10-5.txt";
+			topologyFile = "Input45.txt";
 		}
 
-		System.out.println("Geranting graph from " + topologyFile);
-		//graph = new Graph(new File(topologyFile));
-		graph = new Graph(4,4,0.0);
+		System.out.println("Gerating graph");
+		graph = new Graph(new File(topologyFile));
+		//graph = new Graph(8,8,0.2);
+		System.out.println("Isolado? :"+graph.haveIsolatedCores());
+		
 		System.out.println("graph: "+graph);
 		System.out.println(" - SR Section");
 		SR sbr = new SR(graph);
@@ -43,7 +45,6 @@ public class rsbr {
 
 		System.out.println(" - RBR Section");
 		RBR rbr = new RBR(graph);
-
 		System.out.println("Paths Computation");
 		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
 

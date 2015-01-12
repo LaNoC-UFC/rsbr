@@ -19,7 +19,7 @@ public class Vertice implements Comparable<Vertice>
 	private boolean tvisited;
 	private boolean terminal;
 	//private String restrictions;
-	private String[] restrictions = {"","","","",""};; //[0]-I [1]-N [2]-S [3]-E [4]-W
+	private String[] restrictions = {"","","","",""}; //[0]-I [1]-N [2]-S [3]-E [4]-W
 	private sbr.Segment seg;
 	private int snet;
 	
@@ -446,7 +446,20 @@ public class Vertice implements Comparable<Vertice>
     	return this.getAdj(opColor).getDestino().reaches(dest, getAdj(opColor).getInvColor());	
     }
     
-    
+    public void checkIsolation(ArrayList<Vertice> alc)
+    {    	
+    	if(!alc.contains(this)) alc.add(this); //Adiciona primeiro core analisado aos alcançaveis
+    	for(Aresta adj : adj)
+    	{
+    		//So adiciona aos alcançaveis cores que ainda não foram adicionados
+    		if(alc.contains(adj.getDestino())) continue;
+    		Vertice neigh = adj.getDestino();
+    		alc.add(neigh);
+    		//checa para vizinhos
+    		neigh.checkIsolation(alc);
+    	}    	
+    }
+        
     private String getOpColor(Vertice dest, String ipColor)
     {
     	String router = dest.getNome();

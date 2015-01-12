@@ -562,7 +562,8 @@ pair (source, sink)
 		while (pairs.size() < nPairs) { // pares cadastrados menor que numero de
 										// fluxos
 			ArrayList<Path> aux = new ArrayList<Path>();
-			System.out.println("Tamanho anterior: " + lastPaths.get(0).get(0).size());
+			if(lastPaths.size()!=0)
+				System.out.println("Tamanho anterior: " + lastPaths.get(0).get(0).size());
 			for (ArrayList<Path> alp : lastPaths) {
 				for(Path p: alp) {
 					Vertice src = p.dst(); // fonte atual
@@ -1185,6 +1186,8 @@ pair (source, sink)
 		}
 		return (reaches / total);
 	}
+	
+	
 
 	// Merge the regions of a router
 	public void merge(Vertice router, double reachability) {

@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Graph {
+	boolean debug = true;
 	static private String[] ports = { "N", "S", "E", "W" };
 	ArrayList<Vertice> vertices;
 	ArrayList<Aresta> arestas;
@@ -20,6 +21,7 @@ public class Graph {
 	}
 
 	public Graph(File topology) {
+		System.out.println("from file: "+topology.getName());
 		vertices = new ArrayList<>();
 		arestas = new ArrayList<>();
 
@@ -89,7 +91,9 @@ public class Graph {
 		dimY=dY;
 		int nArests = (dimX-1)*dimY + dimX*(dimY-1);
 		int nFalts = (int)Math.ceil((double)nArests*perc);
-		
+		System.out.println("#Arestas: "+nArests);
+		System.out.println("#Faults: "+nFalts);
+			
 		//Adiciona Vertices
 		for(int y=0; y<dimY; y++)
 			for(int x=0; x<dimX; x++)
@@ -103,12 +107,59 @@ public class Graph {
 					addAresta(getVertice(x+"."+y), getVertice(x+"."+(y+1)), ports[0]);
 				if(contem(x+"."+(y-1)))
 					addAresta(getVertice(x+"."+y), getVertice(x+"."+(y-1)), ports[1]);
-				if(contem((x+1)+"."+y))
+				if(contem((x+1)+"."+y)) 
 					addAresta(getVertice(x+"."+y), getVertice((x+1)+"."+y), ports[2]);	
-				if(contem((x-1)+"."+y))
+				if(contem((x-1)+"."+y)) 
 					addAresta(getVertice(x+"."+y), getVertice((x-1)+"."+y), ports[3]);	
+			}				
+		
+		//Adiciona Falhas e checa isolamento
+		for(int i=0;i<nFalts;i++)
+		{
+			while(true)
+			{
+				int idx = (int)(Math.random()*(arestas.size()));
+				Aresta toRemove = arestas.get(idx);
+				if (debug) System.out.println("Removing: "+toRemove.getOrigem().getNome()+"->"+toRemove.getDestino().getNome());
+				removeAresta(toRemove);
+				
+				if(haveIsolatedCores())
+					AddAresta(toRemove);
+				else break;
 			}
-
+		}
+	}
+	
+	//Checha se existe cores isolados
+	public boolean haveIsolatedCores()
+	{
+		ArrayList<Vertice> alc = new ArrayList<Vertice>();
+		//Escolha do 0.0 para ser o core inicial. Garantido a existencia em todas as topologias
+		getVertice("0.0").checkIsolation(alc);
+		
+		//Se lista de alcançaveis for igual ao total de cores não existe isolamento
+		if(!(alc.size()==vertices.size())) return true;
+		
+    	return false;
+	}
+	
+	private void removeAresta(Aresta toRemove)
+	{
+		//Aresta indo = arestas.get(indx);
+		Aresta vindo = toRemove.getDestino().getAresta(toRemove.getOrigem());
+		
+		toRemove.getOrigem().adj.remove(toRemove);
+		vindo.getOrigem().adj.remove(vindo);
+		arestas.remove(toRemove); arestas.remove(vindo);
+	}
+	
+	private void AddAresta(Aresta toAdd)
+	{
+		Aresta vindo = toAdd.getDestino().getAresta(toAdd.getOrigem());
+		
+		toAdd.getOrigem().adj.add(toAdd);
+		vindo.getDestino().adj.add(vindo);
+		arestas.add(toAdd); arestas.add(vindo);
 	}
 
 	public void setGraph() {
