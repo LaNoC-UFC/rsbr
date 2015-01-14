@@ -118,13 +118,21 @@ public class Graph {
 		{
 			while(true)
 			{
-				int idx = (int)(Math.random()*(arestas.size()));
-				Aresta toRemove = arestas.get(idx);
-				if (debug) System.out.println("Removing: "+toRemove.getOrigem().getNome()+"->"+toRemove.getDestino().getNome());
-				removeAresta(toRemove);
+				int idx = (int)(Math.random()*((double)arestas.size()));
+				Aresta toRemoveIndo = arestas.get(idx);
+				Aresta toRemoveVindo = toRemoveIndo.getDestino().getAresta(toRemoveIndo.getOrigem());
+				
+				if (debug) System.out.println("Removing: "+toRemoveIndo.getOrigem().getNome()
+						+"->"+toRemoveIndo.getDestino().getNome());
+				
+				removeAresta(toRemoveIndo);
+				removeAresta(toRemoveVindo);
 				
 				if(haveIsolatedCores())
-					AddAresta(toRemove);
+				{
+					AddAresta(toRemoveIndo);
+					AddAresta(toRemoveVindo);
+				}
 				else break;
 			}
 		}
@@ -143,24 +151,7 @@ public class Graph {
     	return false;
 	}
 	
-	private void removeAresta(Aresta toRemove)
-	{
-		//Aresta indo = arestas.get(indx);
-		Aresta vindo = toRemove.getDestino().getAresta(toRemove.getOrigem());
-		
-		toRemove.getOrigem().adj.remove(toRemove);
-		vindo.getOrigem().adj.remove(vindo);
-		arestas.remove(toRemove); arestas.remove(vindo);
-	}
 	
-	private void AddAresta(Aresta toAdd)
-	{
-		Aresta vindo = toAdd.getDestino().getAresta(toAdd.getOrigem());
-		
-		toAdd.getOrigem().adj.add(toAdd);
-		vindo.getDestino().adj.add(vindo);
-		arestas.add(toAdd); arestas.add(vindo);
-	}
 
 	public void setGraph() {
 		// Dijkstra
@@ -212,11 +203,24 @@ public class Graph {
 		Vertice v = new Vertice(nome);
 		vertices.add(v);
 	}
-
-	private void addAresta(Vertice origem, Vertice destino, String cor) {
+	
+	private void addAresta(Vertice origem, Vertice destino, String cor) 
+	{
 		Aresta e = new Aresta(origem, destino, cor);
 		origem.addAdj(e);
 		arestas.add(e);
+	}
+	
+	public void AddAresta(Aresta toAdd)
+	{
+		toAdd.getOrigem().adj.add(toAdd);
+		arestas.add(toAdd);
+	}
+	
+	public void removeAresta(Aresta toRemove)
+	{
+		toRemove.getOrigem().adj.remove(toRemove);
+		arestas.remove(toRemove);		
 	}
 
 	public String toString() {

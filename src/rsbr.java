@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 import rbr.RBR;
 import sbr.SR;
+import util.Aresta;
 import util.Graph;
 import util.Path;
 import util.Vertice;
@@ -23,13 +24,13 @@ public class rsbr {
 			break;
 
 		default:
-			topologyFile = "Input45.txt";
+			topologyFile = "Input5.txt";
 		}
 
-		System.out.println("Gerating graph");
+		System.out.println("Generating graph");
 		graph = new Graph(new File(topologyFile));
-		//graph = new Graph(8,8,0.2);
-		System.out.println("Isolado? :"+graph.haveIsolatedCores());
+		//graph = new Graph(20,20,0.1);
+		System.out.println("Isolado? :"+graph.haveIsolatedCores());			
 		
 		System.out.println("graph: "+graph);
 		System.out.println(" - SR Section");

@@ -147,13 +147,11 @@ public class SR {
 				if ((xMin == 0 && yMin == 0)
 						&& (sw = nextNotVisited(min, max)) != null) {
 					subNet = ++maxSN;
-					if (debug)
-						System.err.println("Subnet now: " + subNet);
+					if (debug) System.err.println("Subnet now: " + subNet);
 					sg.add(sw);
 					sw.setStart();
-					if (debug)
-						System.err.println(sw.getNome() + " is Start.");
-					// sw.setVisited();
+					if (debug) System.err.println(sw.getNome() + " is Start.");
+					sw.setVisited();
 					// nVisiteds.remove(sw);
 					// visiteds.add(sw);
 					sw.setSubNet(subNet);
@@ -176,12 +174,10 @@ public class SR {
 			sw.setSegment(segm);
 		} else if (!sw.belongsTo(subNet) && !(sw.isStart() && sw.isTerminal()))
 			return false;
-		if (debug)
-			System.err.println("Switch now: " + sw.getNome());
+		if (debug) System.err.println("Switch now: " + sw.getNome());
 		ArrayList<Aresta> links = sw.suitableLinks(min, max);
 		if (links == null) {
-			if (debug)
-				System.err.println("No Suitable Links found.");
+			if (debug) System.err.println("No Suitable Links found.");
 			sw.unsetTVisited();
 			sw.setSegment(null);
 			segm.remove(sw);
