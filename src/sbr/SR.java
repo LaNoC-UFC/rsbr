@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SR {
 
-	private final boolean debug = false;
+	private final boolean debug = true;
 	private final static String[] RoundRobin = { "N", "E", "S", "W" };
 	private static int RRIndex[];
 
@@ -135,7 +135,7 @@ public class SR {
 				} else if (min.equals("0.0")) {// (sw.isStart() &&
 												// nVisiteds.size() == 1) {
 					sw.setTerminal();
-					System.err.println(sw.getNome() + " is Terminal.");
+					if (debug) System.err.println(sw.getNome() + " is Terminal.");
 					sw.setVisited();
 					nVisiteds.remove(sw);
 					visiteds.add(sw);
@@ -153,7 +153,7 @@ public class SR {
 					sw.setStart();
 					if (debug)
 						System.err.println(sw.getNome() + " is Start.");
-					// sw.setVisited();
+					sw.setVisited();
 					// nVisiteds.remove(sw);
 					// visiteds.add(sw);
 					sw.setSubNet(subNet);

@@ -62,7 +62,7 @@ public class RBR {
 	// Make stats files
 	public void makeStats(ArrayList<ArrayList<Path>> paths) {
 		// double[] hopCount = getHopCountStats(paths);
-		float[] Regions = getRegionsStats();
+		double[] Regions = getRegionsStats();
 		double ard = getRoutingDistance(paths);
 		double[] linkWeight = linkWeightStats();
 		try {
@@ -168,7 +168,7 @@ public class RBR {
 	*/
 
 	public void doRoutingTable() {
-		float[] stats = getRegionsStats();
+		double[] stats = getRegionsStats();
 		String routingTableFile = "Table_package.vhd";
 		File routingTable = new File(routingTableFile);
 		int size = (graph.dimX() >= graph.dimY()) ? graph.dimX() : graph.dimY();
@@ -238,7 +238,7 @@ public class RBR {
 	*/
 
 	// Link weight stats [0] - mean / [1] - standard deviation
-	private double[] linkWeightStats() {
+	public double[] linkWeightStats() {
 		//setLinkWeight(paths); // After that we have the weight of all
 								// links
 		double linksWeight = 0.0;
@@ -267,10 +267,10 @@ public class RBR {
 	}
 
 	// Calculates the regions stats - [0] - Max / [1] - Min / [2] - Average
-	public float[] getRegionsStats() {
+	public double[] getRegionsStats() {
 
-		float[] stats = new float[3];
-		float average;
+		double[] stats = new double[3];
+		double average;
 		List<Integer> regSizes = new ArrayList<>();
 
 		for (Vertice r : graph.getVertices()) {
@@ -284,9 +284,9 @@ public class RBR {
 		}
 		average = sum / regSizes.size();
 
-		stats[0] = (float) regSizes.get(regSizes.size() - 1);
-		stats[1] = (float) regSizes.get(0);
-		stats[2] = (float) average;
+		stats[0] = (double) regSizes.get(regSizes.size() - 1);
+		stats[1] = (double) regSizes.get(0);
+		stats[2] = (double) average;
 		return stats;
 	}
 
@@ -476,12 +476,12 @@ pair (source, sink)
 	/*
 	 * Nova versao da busca de pacotes.
 	 */
-	/*
-	public ArrayList<Path> pathComputation2() {
+	public ArrayList<ArrayList<Path>> pathComputation() {
 		ArrayList<Path> allPaths = new ArrayList<Path>();
 		ArrayList<Path> lastPaths = new ArrayList<Path>();
 		ArrayList<String> pairs = new ArrayList<String>();
 		// N = 1 hop
+		System.out.println("Tamanho atual: 1");
 		for (Vertice src : graph.getVertices()) {
 			for (Aresta e : src.getAdj()) {
 				Vertice dst = e.getDestino();
@@ -489,16 +489,21 @@ pair (source, sink)
 				p.add(src);
 				p.add(dst);
 				lastPaths.add(p);
-				pairs.add(src.getNome() + ":" + dst.getNome());
+				String pair = src.getNome() + ":" + dst.getNome();
+				pairs.add(pair);
+				System.out.println(pair + " #"+pairs.size());
 			}
 		}
+		allPaths.addAll(lastPaths);
+		
 		int nPairs = graph.dimX() * graph.dimY()
 				* (graph.dimX() * graph.dimY() - 1);
 		// N > 1 hop
 		while (pairs.size() < nPairs) { // pares cadastrados menor que numero de
 										// fluxos
-			ArrayList<Path> aux = new ArrayList<Path>();
-			System.out.println("Tamanho anterior: " + lastPaths.get(0).size());
+			ArrayList<Path> valid = new ArrayList<Path>(); // actual mininal paths
+			//ArrayList<Path> invalid = new ArrayList<Path>(); // actual not minimal paths
+			System.out.println("Tamanho atual: " + lastPaths.get(0).size());
 			for (Path p : lastPaths) {
 				Vertice src = p.dst(); // fonte atual
 				Vertice pre = p.get(p.size() - 2); // predecessor
@@ -508,31 +513,34 @@ pair (source, sink)
 					Vertice dst = e.getDestino();
 					if (dst == pre) // esta voltando
 						continue;
+					if (p.contains(dst))
+						continue;
 					if (src.getRestriction(inColor).contains(
 							src.getAresta(dst).getCor())) // nao eh permitido
 						continue;
-					if (pairs.contains(p.src().getNome() + ":" + dst.getNome())) // nao
-																					// eh
-																					// minimo
-						continue;
 					Path q = new Path(p);
 					q.add(dst);
-					aux.add(q);
+					if (!pairs.contains(p.src().getNome() + ":" + dst.getNome())) // nao minimo
+						valid.add(q);
+				//	else invalid.add(q);
 				}
 			}
-			allPaths.addAll(lastPaths);
-			lastPaths = aux;
-			for (Path p : lastPaths) {
+			allPaths.addAll(valid);
+			//lastPaths = null; // try to call garbage collector
+			lastPaths = valid;
+			//lastPaths.addAll(invalid);
+			//invalid = null; // try to call garbage collector
+			for (Path p : valid) {
 				String pair = p.src().getNome() + ":" + p.dst().getNome();
-				if (!pairs.contains(pair))
-					pairs.add(pair); // util contar o numero de paths entre cada
-										// par?
+				if (!pairs.contains(pair)) {
+					pairs.add(pair);
+					System.out.println(pair + " #"+pairs.size());					
+				}
 			}
+			//System.gc();
 		}
-		allPaths.addAll(lastPaths);
-		return allPaths;
+		return divideByPair(allPaths);
 	}
-	*/
 
 	/*
 	 * Nova versao da busca de pacotes. Retorna dividido por par de comunicação
@@ -585,6 +593,7 @@ pair (source, sink)
 				}
 			}
 			allPaths.addAll(lastPaths);
+			lastPaths = null; // try to call garbage collector
 			lastPaths = new ArrayList<ArrayList<Path>>();
 			for (Path p : aux) {
 				String pair = p.src().getNome() + ":" + p.dst().getNome();
@@ -802,11 +811,11 @@ pair (source, sink)
 				reg.setextrems();
 			}
 		}
-
+		adjustsRegions();
 	}
 
 	// Adjust the regions to avoid overlap
-	public void adjustsRegions() {
+	private void adjustsRegions() {
 		for (Vertice sw : graph.getVertices()) {
 			ArrayList<Region> regionsTemp = new ArrayList<>();
 			ArrayList<Region> regionsRemov = new ArrayList<>();
@@ -1176,9 +1185,14 @@ pair (source, sink)
 		}
 		return (reaches / total);
 	}
+	
+	public void merge(double reachability) {
+		for (Vertice vertice : graph.getVertices())
+			merge(vertice, reachability);
+	}
 
 	// Merge the regions of a router
-	public void merge(Vertice router, double reachability) {
+	private void merge(Vertice router, double reachability) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 
@@ -1355,7 +1369,7 @@ pair (source, sink)
 		return false;
 	}
 	
-	public static ArrayList<ArrayList<Path>> divideByPair(ArrayList<Path> paths) {
+	public ArrayList<ArrayList<Path>> divideByPair(ArrayList<Path> paths) {
 		ArrayList<ArrayList<Path>> paths2 = new ArrayList<ArrayList<Path>>();
 		ArrayList<Path> aux = new ArrayList<Path>();
 		Collections.sort(paths);
@@ -1374,6 +1388,40 @@ pair (source, sink)
 		}
 		return paths2;
 	}
+	
+	public double linkWeightMean(ArrayList<ArrayList<Path>> paths) {
+		double acc = 0;
+		for(ArrayList<Path> alp : paths)
+			acc += (double) (alp.get(0).size()-1);
+		// TODO Modificar para usar o volume de comunicacao do pair
+		return acc/(double)graph.getArestas().size();
+	}
 
+	public double pathWeightMean(ArrayList<ArrayList<Path>> paths) {
+		double acc = 0;
+		for(ArrayList<Path> alp : paths)
+			acc += (double) (alp.get(0).size()-1);
+		// TODO Modificar para usar o volume de comunicacao do pair
+		return acc*linkWeightMean(paths)/(double)paths.size();
+	}
 
+	public double[] pathWeightStats(ArrayList<ArrayList<Path>> paths) {
+		double[] stats = new double[2];
+		double acc = 0;
+		int nPaths = 0;
+		for(ArrayList<Path> alp : paths) {
+			for(Path path: alp)
+				acc += path.getWeight();
+			nPaths += alp.size();
+		}
+		stats[0] = acc/(double)nPaths; // media
+		
+		acc = 0;
+		for(ArrayList<Path> alp : paths) {
+			for(Path path: alp)
+				acc += (stats[0]-path.getWeight())*(stats[0]-path.getWeight());
+		}
+		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
+		return stats;
+	}
 }
