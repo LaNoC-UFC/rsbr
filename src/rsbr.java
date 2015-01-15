@@ -6,25 +6,31 @@ import sbr.SR;
 import util.Aresta;
 import util.Graph;
 import util.Path;
-import util.Vertice;
 
 public class rsbr {
 
 	public static void main(String[] args) {
 		Graph graph;
-		String topologyFile;
+		String topologyFile, volumePath = null;
 		String merge = "merge";
 		double reachability = 1.0;
 
 		switch (args.length) {
+		case 1:
+			topologyFile = args[0];
+			break;
+		case 2:
+			topologyFile = args[0];
+			volumePath = args[1];
+			break;
 		case 3:
 			topologyFile = args[0];
 			merge = args[1];
 			reachability = Double.valueOf(args[2]);
 			break;
-
 		default:
-			topologyFile = "Input5.txt";
+			topologyFile = "Input4-5.2.txt";
+			volumePath = "nPcksMatrix";
 		}
 
 		System.out.println("Generating graph");
@@ -32,99 +38,72 @@ public class rsbr {
 		//graph = new Graph(20,20,0.1);
 		System.out.println("Isolado? :"+graph.haveIsolatedCores());			
 		
-		System.out.println("graph: "+graph);
+		//System.out.println(graph);
+
 		System.out.println(" - SR Section");
 		SR sbr = new SR(graph);
 
 		System.out.println("Compute the segments");
 		sbr.computeSegments();
-		// sbr.listSegments();
+		sbr.listSegments();
 
 		System.out.println("Set the restrictions");
 		sbr.setrestrictions();
-		// sbr.printRestrictions();
+		//sbr.printRestrictions();
 
 		System.out.println(" - RBR Section");
 		RBR rbr = new RBR(graph);
 		System.out.println("Paths Computation");
 		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
-
+		
+		if(volumePath != null) {
+			File commvol = new File(volumePath);
+			if(commvol.exists()) {
+				System.out.println("Getting volumes from "+volumePath);
+				rbr.setVolume(paths, commvol);
+			}
+		}
+		
 		System.out.println("Paths Selection");
-		//Um caminho aleatório
-		ArrayList<ArrayList<Path>> aleatPath = rbr.pathSelection(paths);
-		//Seleção por peso máximo (rodado 1 vez)
-		ArrayList<ArrayList<Path>> MaxWeigthPath1 = rbr.pathSelection(paths, new Path.MaxWeight(), 1);
-		//Seleção por peso máximo (rodado 2 vezes)
-		ArrayList<ArrayList<Path>> MaxWeigthPath2 = rbr.pathSelection(paths, new Path.MaxWeight(), 2);
-		//Seleção por peso máximo (rodado 3 vezes)
-		ArrayList<ArrayList<Path>> MaxWeigthPath3 = rbr.pathSelection(paths, new Path.MaxWeight(), 3);
-		//Seleção por peso mínimo (rodado 1 vez)
-		ArrayList<ArrayList<Path>> MinWeigthPath1 = rbr.pathSelection(paths, new Path.MinWeight(), 1);
-		//Seleção por peso mínimo (rodado 2 vezes)
-		ArrayList<ArrayList<Path>> MinWeigthPath2 = rbr.pathSelection(paths, new Path.MinWeight(), 2);
-		//--
-		System.out.println("Regions Computation for all selections of paths");
-		float[] stats = null;
+		// Selecao aleatoria
+		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths);
 		
-		//All paths
-		rbr.addRoutingOptions(paths);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Todos os caminhos:");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+		// Selecao que minimiza o peso dos caminhos individualmente
+		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path.MinWeight(), 10);
 		
-		//Um caminho aleatório
-		rbr.addRoutingOptions(aleatPath);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Um caminho aleatório:");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+		// Peso do caminho proporcional ao seu comprimento (equaliza peso dos links)
+		double lwm = rbr.linkWeightMean(paths);
+		ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new PropWeight(lwm), 10);
 		
-		//Seleção por peso máximo (rodado uma vez)
-		rbr.addRoutingOptions(MaxWeigthPath1);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Seleção por peso máximo (1x):");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-		
-		//Seleção por peso máximo (rodado duas vezes)
-		rbr.addRoutingOptions(MaxWeigthPath2);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Seleção por peso máximo (2x):");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-		
-		//Seleção por peso máximo (rodado tres vezes)
-		rbr.addRoutingOptions(MaxWeigthPath3);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Seleção por peso máximo (3x):");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+		// Selecao que equaliza o peso dos caminhos
+		double pwm = rbr.pathWeightMean(paths);
+		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new MedWeight(pwm), 10);
 
-		//--
-		System.out.println("Regions Adjustment");
-		rbr.printLengthofPaths(aleatPath);
-		//--
-		System.out.println("Doing Merge");
-		if (merge.equals("merge"))
-			for (Vertice vertice : graph.getVertices())
-				rbr.merge(vertice, reachability);
-		//--
+		//rbr.printLengthofPaths(simplePaths);
+		
+		System.out.println("Regions Computation");
+		rbr.addRoutingOptions(simplePaths);
+		rbr.regionsComputation();
+		
+		if (merge.equals("merge")) {
+			System.out.println("Doing Merge");
+			rbr.merge(reachability);
+		}
+
 		System.out.println("Making Tables");
 		rbr.doRoutingTable();
-		//--
-		/*System.out.println("Doing Average Routing Distance and Link Weight");
-		rbr.makeStats(aleatPath);*/
+
+		System.out.println("Doing Average Routing Distance and Link Weight");
+		double[] reg = rbr.getRegionsStats();
+		double[] lw = rbr.linkWeightStats();
+		double[] pw = rbr.pathWeightStats(simplePaths);
+		//rbr.makeStats(simplePaths);
+		
+		System.out.println("Regions - Min: "+reg[0]+", Med: "+reg[1]+", Max: "+reg[2]);
+		// TODO Mostrar media e std do linkWeight e pathWeight esperados
+		System.out.println("Link Weight - Esperado: "+lwm+", AlcanÃ§ado: "+lw[0]+" ("+lw[1]+")");
+		// TODO Mostrar media e std do pathWeight e pathWeight alcancados
+		System.out.println("Path Weight - Esperado: "+pwm+", AlcanÃ§ado: "+pw[0]+" ("+pw[1]+")");
 
 		System.out.println("All done!");
 	}

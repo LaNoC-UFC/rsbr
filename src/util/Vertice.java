@@ -514,7 +514,7 @@ public class Vertice implements Comparable<Vertice>
         this.combinedOutputs = combinedOutputs;
     }
     
-    public void PrintRegions(float[] stats,BufferedWriter bw, int nBits)
+    public void PrintRegions(double[] stats,BufferedWriter bw, int nBits)
     {              
     	int maxRegion = (int)stats[0];    	
     	try 
