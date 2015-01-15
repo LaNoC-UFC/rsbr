@@ -92,6 +92,10 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 	public Vertice src() {
 		return (this.size() != 0) ? this.get(0) : null;
 	}
+	
+	public int linksSize() {
+		return this.size()-1;
+	}
 
 	// Sum of Aresta's weight
 	public double getWeight() {

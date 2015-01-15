@@ -330,7 +330,7 @@ public class RBR {
 
 	// Pack routing options if they have the same output port and the same
 	// destination
-	private static void packInputPort(Vertice atual) {
+	public static void packInputPort(Vertice atual) {
 		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
 		atual.setRoutingPaths(new ArrayList<RoutingPath>());
 		for (RoutingPath a : actRP) {
@@ -657,6 +657,11 @@ pair (source, sink)
 	*/
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
+		
+		//inicializa op\E7\F5es de roteamento
+		for(Vertice v : graph.getVertices())
+			v.initRoutingOptions();
+		
 		for(ArrayList<Path> alp : paths) {			
 			for (Path path : alp) {
 				String dest = path.dst().getNome();
@@ -737,7 +742,8 @@ pair (source, sink)
 	// Compute the regions
 	public void regionsComputation() {
 		ArrayList<String> opComb = getOutputCombinations();
-		for (Vertice sw : graph.getVertices()) {
+		for (Vertice sw : graph.getVertices()) {			
+			sw.initRegions();
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
@@ -758,6 +764,7 @@ pair (source, sink)
 			}
 		}
 		adjustsRegions();
+
 	}
 
 	// Adjust the regions to avoid overlap

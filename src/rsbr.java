@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 import rbr.RBR;
 import sbr.SR;
+import util.Aresta;
 import util.Graph;
 import util.Path;
 
@@ -32,8 +33,11 @@ public class rsbr {
 			volumePath = "nPcksMatrix";
 		}
 
-		System.out.println("Geranting graph from " + topologyFile);
+		System.out.println("Generating graph");
 		graph = new Graph(new File(topologyFile));
+		//graph = new Graph(20,20,0.1);
+		System.out.println("Isolado? :"+graph.haveIsolatedCores());			
+		
 		//System.out.println(graph);
 
 		System.out.println(" - SR Section");
@@ -49,7 +53,6 @@ public class rsbr {
 
 		System.out.println(" - RBR Section");
 		RBR rbr = new RBR(graph);
-
 		System.out.println("Paths Computation");
 		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
 		
@@ -76,14 +79,12 @@ public class rsbr {
 		double pwm = rbr.pathWeightMean(paths);
 		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new MedWeight(pwm), 10);
 
+		//rbr.printLengthofPaths(simplePaths);
+		
 		System.out.println("Regions Computation");
 		rbr.addRoutingOptions(simplePaths);
 		rbr.regionsComputation();
-
-		//System.out.println("Regions Adjustment");
-		//rbr.adjustsRegions();
-		//rbr.printLengthofPaths(simplePaths);
-
+		
 		if (merge.equals("merge")) {
 			System.out.println("Doing Merge");
 			rbr.merge(reachability);
