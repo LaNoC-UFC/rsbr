@@ -10,7 +10,7 @@ public class rsbr {
 
 	public static void main(String[] args) {
 		Graph graph;
-		String topologyFile;
+		String topologyFile, volumePath = null;
 		String merge = "merge";
 		double reachability = 1.0;
 
@@ -18,13 +18,18 @@ public class rsbr {
 		case 1:
 			topologyFile = args[0];
 			break;
+		case 2:
+			topologyFile = args[0];
+			volumePath = args[1];
+			break;
 		case 3:
 			topologyFile = args[0];
 			merge = args[1];
 			reachability = Double.valueOf(args[2]);
 			break;
 		default:
-			topologyFile = "Input5-4.txt";
+			topologyFile = "Input4-5.2.txt";
+			volumePath = "nPcksMatrix";
 		}
 
 		System.out.println("Geranting graph from " + topologyFile);
@@ -36,7 +41,7 @@ public class rsbr {
 
 		System.out.println("Compute the segments");
 		sbr.computeSegments();
-		//sbr.listSegments();
+		sbr.listSegments();
 
 		System.out.println("Set the restrictions");
 		sbr.setrestrictions();
@@ -46,20 +51,30 @@ public class rsbr {
 		RBR rbr = new RBR(graph);
 
 		System.out.println("Paths Computation");
-		//ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
-		ArrayList<ArrayList<Path>> paths = rbr.pathComputation();
+		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
+		
+		if(volumePath != null) {
+			File commvol = new File(volumePath);
+			if(commvol.exists()) {
+				System.out.println("Getting volumes from "+volumePath);
+				rbr.setVolume(paths, commvol);
+			}
+		}
 		
 		System.out.println("Paths Selection");
 		// Selecao aleatoria
-		ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths);
+		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths);
+		
+		// Selecao que minimiza o peso dos caminhos individualmente
+		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path.MinWeight(), 10);
+		
 		// Peso do caminho proporcional ao seu comprimento (equaliza peso dos links)
 		double lwm = rbr.linkWeightMean(paths);
-		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new PropWeight(lwm), 2);
-		// Selecao que minimiza o peso dos caminhos
-		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path.MinWeight(), 1);
+		ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new PropWeight(lwm), 10);
+		
 		// Selecao que equaliza o peso dos caminhos
 		double pwm = rbr.pathWeightMean(paths);
-		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new MedWeight(pwm), 2);
+		//ArrayList<ArrayList<Path>> simplePaths = rbr.pathSelection(paths, new Path().new MedWeight(pwm), 10);
 
 		System.out.println("Regions Computation");
 		rbr.addRoutingOptions(simplePaths);
@@ -69,9 +84,10 @@ public class rsbr {
 		//rbr.adjustsRegions();
 		//rbr.printLengthofPaths(simplePaths);
 
-		System.out.println("Doing Merge");
-		if (merge.equals("merge"))
+		if (merge.equals("merge")) {
+			System.out.println("Doing Merge");
 			rbr.merge(reachability);
+		}
 
 		System.out.println("Making Tables");
 		rbr.doRoutingTable();
