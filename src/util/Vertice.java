@@ -18,7 +18,8 @@ public class Vertice implements Comparable<Vertice>
 	private boolean visited;
 	private boolean tvisited;
 	private boolean terminal;
-	private String restrictions;
+	//private String restrictions;
+	private String[] restrictions = {"","","","",""}; //[0]-I [1]-N [2]-S [3]-E [4]-W
 	private sbr.Segment seg;
 	private int snet;
 	
@@ -44,16 +45,63 @@ public class Vertice implements Comparable<Vertice>
 		snet = -1;
 		nome = name;
 		adj = new ArrayList<Aresta>();
-		restrictions = nome + ": I{} N{} S{} E{} W{}";
+		//restrictions = nome + ": I{} N{} S{} E{} W{}";
+	}
+	
+	public void initRoutingOptions()
+	{
+		this.routingPaths = new ArrayList<>();
+	}
+	
+	public void initRegions()
+	{
+		this.Regions = new ArrayList<>();
 	}
 	
 	public void addRestriction(String op, String rest)
     {
-    	String op1 = op+"{";
-    	this.restrictions = restrictions.substring(0,restrictions.indexOf(op1)+2)+rest+restrictions.substring(restrictions.indexOf(op1)+2);    	    
+    	/*String op1 = op+"{";
+    	this.restrictions = restrictions.substring(0,restrictions.indexOf(op1)+2)+rest+restrictions.substring(restrictions.indexOf(op1)+2);*/
+    	switch(op)
+    	{
+    		case "I":
+    			restrictions[0] = restrictions[0]+""+rest; 
+    			break;
+    		case "N":
+    			restrictions[1] = restrictions[1]+""+rest;
+    			break;
+    		case "S":
+    			restrictions[2] = restrictions[2]+""+rest;
+    			break;
+    		case "E":
+    			restrictions[3] = restrictions[3]+""+rest;
+    			break;
+    		case "W":
+    			restrictions[4] = restrictions[4]+""+rest;
+    			break;
+    	}
+    }
+	
+	public String getRestriction(String op)
+    {
+    	switch(op)
+    	{
+    		case "I":
+    			return restrictions[0];     			
+    		case "N":
+    			return restrictions[1];
+    		case "S":
+    			return restrictions[2];
+    		case "E":
+    			return restrictions[3];
+    		case "W":
+    			return restrictions[4];
+    		default:
+    			return null;
+    	}
     }
     
-    public String getRestrictions()
+    public String[] getRestrictions()
     {
     	return this.restrictions;
     }
@@ -67,32 +115,34 @@ public class Vertice implements Comparable<Vertice>
             return out;
     }
     
-    public String GetBitsOp(String op)
+    public String opToBinary(String ports)
     {
-        String outOp;
+        char[] outOp= {'0','0','0','0','0'};
+        char[] port = ports.toCharArray();
         
-        switch(op)
-            {
-                case "E":
-                    outOp = IntToBitsString(1, 5);
+        for(char pt : port)
+        {
+        	switch(pt)
+        	{
+                case 'E':
+                    outOp[4]= '1';
                     break;
-                case "W":
-                    outOp = IntToBitsString(2, 5);
+                case 'W':
+                    outOp[3]= '1';
                     break;
-                case "N":
-                    outOp = IntToBitsString(4, 5);
+                case 'N':
+                    outOp[2] = '1';
                     break;
-                case "S":
-                    outOp = IntToBitsString(8, 5);
+                case 'S':
+                    outOp[1] = '1';
                     break;
-                case "I":
-                    outOp = IntToBitsString(16, 5);
-                    break;
-                default:
-                    outOp = IntToBitsString(0, 5);
-            }
+                case 'I':
+                    outOp[0] = '1';
+                    break;                
+        	}
+        }
         
-        return outOp;
+        return String.valueOf(outOp);
     }
     
     public Aresta getAresta(Vertice destino) 
@@ -396,7 +446,20 @@ public class Vertice implements Comparable<Vertice>
     	return this.getAdj(opColor).getDestino().reaches(dest, getAdj(opColor).getInvColor());	
     }
     
-    
+    public void checkIsolation(ArrayList<Vertice> alc)
+    {    	
+    	if(!alc.contains(this)) alc.add(this); //Adiciona primeiro core analisado aos alcançaveis
+    	for(Aresta adj : adj)
+    	{
+    		//So adiciona aos alcançaveis cores que ainda não foram adicionados
+    		if(alc.contains(adj.getDestino())) continue;
+    		Vertice neigh = adj.getDestino();
+    		alc.add(neigh);
+    		//checa para vizinhos
+    		neigh.checkIsolation(alc);
+    	}    	
+    }
+        
     private String getOpColor(Vertice dest, String ipColor)
     {
     	String router = dest.getNome();
@@ -451,7 +514,7 @@ public class Vertice implements Comparable<Vertice>
         this.combinedOutputs = combinedOutputs;
     }
     
-    public void PrintRegions(float[] stats,BufferedWriter bw, int nBits)
+    public void PrintRegions(double[] stats,BufferedWriter bw, int nBits)
     {              
     	int maxRegion = (int)stats[0];    	
     	try 
@@ -467,7 +530,7 @@ public class Vertice implements Comparable<Vertice>
     			int Ymax = Integer.parseInt(this.Regions.get(a).getUpRight().split("\\.")[1]);
             
     			//Write on file
-    			String outLine = "(\""+GetBitsOp(this.Regions.get(a).getIp())+IntToBitsString(Xmin, nBits)+IntToBitsString(Ymin, nBits)+IntToBitsString(Xmax, nBits)+IntToBitsString(Ymax, nBits)+GetBitsOp(this.Regions.get(a).getOp())+"\")";                    
+    			String outLine = "(\""+opToBinary(this.Regions.get(a).getIp())+IntToBitsString(Xmin, nBits)+IntToBitsString(Ymin, nBits)+IntToBitsString(Xmax, nBits)+IntToBitsString(Ymax, nBits)+opToBinary(this.Regions.get(a).getOp())+"\")";                    
             
     			bw.append(outLine);
 

@@ -1,137 +1,154 @@
 package util;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.Consumer;
+import java.util.Comparator;
 
+public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
-public class Path implements Iterable<Vertice>, Comparable<Path>
-{
-	private ArrayList<Vertice> itself;
-	private ArrayList<Aresta> Arestas = new ArrayList<Aresta>(); 
+	private static final long serialVersionUID = 1L;
+	private double volume;
+
+	public static class MinWeight implements Comparator<Path> {
+
+		@Override
+		public int compare(Path p0, Path p1) {
+			if(p0.getWeight() < p1.getWeight()) return -1;
+			if(p0.getWeight() > p1.getWeight()) return +1;
+			return 0;
+		}
+
+	}
+	
+
+	public static class MaxWeight implements Comparator<Path> {
+
+		@Override
+		public int compare(Path p0, Path p1) {
+			if(p0.getWeight() < p1.getWeight()) return +1;
+			if(p0.getWeight() > p1.getWeight()) return -1;
+			return 0;
+		}
+		
+	}
+	
+
+	public class MedWeight implements Comparator<Path> {
+
+		private double med; // peso total dividido pelo numero de paths
+		
+		public MedWeight(double med) {
+			this.med = med;
+		}
+		
+		@Override
+		public int compare(Path p0, Path p1) {
+			double err0 = Math.abs(p0.getWeight()-med);
+			double err1 = Math.abs(p1.getWeight()-med);
+			if(err0 < err1) return -1;
+			if(err0 > err1) return +1;
+			return 0;
+		}
+		
+	}
+	
+	public class PropWeight implements Comparator<Path> {
+
+		private double linkWeightMean; // peso medio dos links a ser mutiplicado pelo tamanho do path
+		
+		public PropWeight(double linkWeightMean) {
+			this.linkWeightMean = linkWeightMean;
+		}
+		
+		@Override
+		public int compare(Path p0, Path p1) {
+			double err0 = Math.abs(p0.getWeight()-linkWeightMean*(double)p0.numArestas());
+			double err1 = Math.abs(p1.getWeight()-linkWeightMean*(double)p1.numArestas());
+			if(err0 < err1) return -1;
+			if(err0 > err1) return +1;
+			return 0;
+		}
+		
+	}
 	
 	public Path() {
-		itself = new ArrayList<Vertice>();
+		super();
+		volume = 1;
 	}
-	
-	public Path(ArrayList<Vertice> path) {
-		itself = path;
+
+	public Path(Path p) {
+		super(p);
+		this.volume = p.volume;
 	}
-	
-	public void initializeArestas() {
-		for(int i=0; i<(itself.size()-1);i++)
-			this.Arestas.add(itself.get(i).getAresta(itself.get(i+1)));
+
+	// #Arestas
+	private int numArestas() {
+		return this.size() - 1;
 	}
-	
-	//#Vertices
-	public int size() {
-		return itself.size();
-	}
-	
-	//#Arestas
-	public int ArestasSize() {
-		return itself.size()-1;
-	}
-	
+
 	public Vertice dst() {
-		assert itself.size() != 0;
-		return itself.get(itself.size()-1);
+		return (this.size() != 0) ? this.get(this.size() - 1) : null;
 	}
 
-	public Vertice src() 
-	{
-		assert itself.size() != 0;
-		return itself.get(0);
+	public Vertice src() {
+		return (this.size() != 0) ? this.get(0) : null;
 	}
 	
-	public void add(Vertice r) 
-	{
-		itself.add(r);
-	}
-	
-	public void remove(Vertice r) 
-	{
-		itself.remove(r);
+	public int linksSize() {
+		return this.size()-1;
 	}
 
-	public void remove(int index) 
-	{
-		itself.remove(index);
-	}
-	
-	public Vertice get(int index) 
-	{
-		return itself.get(index);
-	}
-	
-	public int indexOf(Vertice Vertice) 
-	{
-		return itself.indexOf(Vertice);
-	}
-	
-	//Sum of Aresta's weight
-	public double getWeight() 	
-	{
-		
-		double weight=0;
-		
-		for(int i=0; i<(itself.size()-1);i++)
-			weight+=itself.get(i).getAresta(itself.get(i+1)).getWeight();
-		
+	// Sum of Aresta's weight
+	public double getWeight() {
+		double weight = 0;
+
+		for (int i = 0; i < numArestas(); i++)
+			weight += this.get(i).getAresta(this.get(i + 1)).getWeight();
+
 		return weight;
-		
 	}
-	
-	public void incremWeight() {
-		for(int i=0; i<(itself.size()-1);i++)
-			itself.get(i).getAresta(itself.get(i+1)).incremWeight();
-	}
-		
-	public void decremWeight() {
-		for(int i=0; i<(itself.size()-1);i++)
-			itself.get(i).getAresta(itself.get(i+1)).decremWeight();
-	}
-	
-	public int compareTo(Path other) 
-	{    
-		if (this.ArestasSize() < other.ArestasSize()) 
-				return -1;
 
-		if (this.ArestasSize() > other.ArestasSize()) 
-				return 1;				
-		return 0;
-    
+	public void incremWeight() {
+		for (int i = 0; i < numArestas(); i++)
+			this.get(i).getAresta(this.get(i + 1)).incremWeight(volume);
+	}
+
+	public void decremWeight() {
+		for (int i = 0; i < numArestas(); i++)
+			this.get(i).getAresta(this.get(i + 1)).decremWeight(volume);
 	}
 	
+	public double volume() {
+		return volume;
+	}
+
+	public void setVolume(double vol) {
+		this.volume = vol;
+	}
+
+	public int compareTo(Path other) {
+		if (this.numArestas() < other.numArestas())
+			return -1;
+
+		if (this.numArestas() > other.numArestas())
+			return 1;
+		return 0;
+
+	}
+
 	public void printArestaWeight() {
-		for(int i=0; i<(itself.size()-1);i++) {
-			System.out.println(itself.get(i).getNome());			
-			System.out.println(itself.get(i).getAresta(itself.get(i+1)).getWeight());
+		for (int i = 0; i < numArestas(); i++) {
+			System.out.println(this.get(i).getNome());
+			System.out.println(this.get(i).getAresta(this.get(i + 1))
+					.getWeight());
 		}
 	}
-	
+
 	public String toString() {
-		
-		return "src: "+this.src().getNome()+", dst: "+this.dst().getNome()+", size: "+this.ArestasSize()+", weight: "+this.getWeight();
-		
+
+		return "src: " + this.src().getNome() + ", dst: "
+				+ this.dst().getNome() + ", size: " + this.numArestas()
+				+ ", weight: " + this.getWeight();
+
 	}
 
-	@Override
-	public void forEach(Consumer<? super Vertice> arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public Iterator<Vertice> iterator() 
-	{
-		return itself.iterator();
-	}
-
-	@Override
-	public Spliterator<Vertice> spliterator() 
-	{
-		return null;
-	}		
 }

@@ -8,4 +8,9 @@ lw-Std
 region-Max
 *.vhd
 *.txt
+ard
+lw-Mean
+lw-Std
+region-max
+*.vhd
 

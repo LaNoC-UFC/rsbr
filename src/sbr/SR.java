@@ -29,10 +29,11 @@ public class SR {
 	private List<Vertice> nVisiteds;
 
 
-	public SR(File fileName) 
+	public SR(Graph graph) 
 	{
-		graph = new Graph(fileName);
-		System.err.println(graph);
+		//graph = new Graph(fileName);
+		this.graph = graph;
+		if(debug) System.err.println(graph);
 		segments = new ArrayList<>();
 		visiteds = new ArrayList<>();
 		nVisiteds = new ArrayList<>();
@@ -46,12 +47,14 @@ public class SR {
 	}
 
 	public void computeSegments() {
-		int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
-		int Ny = Nx;
+		//int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
+		int Nx = graph.dimX()-1;
+		//int Ny = Nx;
+		int Ny = graph.dimY()-1;
 		String max = Nx + "." + Ny;
 		for (int i = Ny - 1; i >= 0; i--) {
 			String min = 0 + "." + i;
-			System.err.println("#Min: " + min + " #Max: " + max);
+			if(debug) System.err.println("#Min: " + min + " #Max: " + max);
 			computeSegments(min, max);
 		}
 	}
@@ -94,7 +97,7 @@ public class SR {
 			sw = right;
 		}
 
-		System.err.println("#starting: " + sw.getNome());
+		if (debug) System.err.println("#starting: " + sw.getNome());
 
 		Vertice sw2;
 		if (!sw.isVisited()) {
@@ -129,10 +132,10 @@ public class SR {
 					sw.setTerminal();
 					if (debug)
 						System.err.println(sw.getNome() + " is Terminal.");
-				} else if (min.equals("00")) {// (sw.isStart() &&
+				} else if (min.equals("0.0")) {// (sw.isStart() &&
 												// nVisiteds.size() == 1) {
 					sw.setTerminal();
-					System.err.println(sw.getNome() + " is Terminal.");
+					if (debug) System.err.println(sw.getNome() + " is Terminal.");
 					sw.setVisited();
 					nVisiteds.remove(sw);
 					visiteds.add(sw);
@@ -141,16 +144,14 @@ public class SR {
 				}
 			}
 			if ((sw = nextVisited(min, max)) == null) {
-				if ((xMin == 0 && yMin == 0)
-						&& (sw = nextNotVisited(min, max)) != null) {
+				if ((xMin == 0 && yMin == 0) && (sw = nextNotVisited(min, max)) != null) {
 					subNet = ++maxSN;
-					if (debug)
-						System.err.println("Subnet now: " + subNet);
+					if (debug) System.err.println("Subnet now: " + subNet);
 					sg.add(sw);
 					sw.setStart();
 					if (debug)
 						System.err.println(sw.getNome() + " is Start.");
-					// sw.setVisited();
+					sw.setVisited();
 					// nVisiteds.remove(sw);
 					// visiteds.add(sw);
 					sw.setSubNet(subNet);
@@ -173,12 +174,10 @@ public class SR {
 			sw.setSegment(segm);
 		} else if (!sw.belongsTo(subNet) && !(sw.isStart() && sw.isTerminal()))
 			return false;
-		if (debug)
-			System.err.println("Switch now: " + sw.getNome());
+		if (debug) System.err.println("Switch now: " + sw.getNome());
 		ArrayList<Aresta> links = sw.suitableLinks(min, max);
 		if (links == null) {
-			if (debug)
-				System.err.println("No Suitable Links found.");
+			if (debug) System.err.println("No Suitable Links found.");
 			sw.unsetTVisited();
 			sw.setSegment(null);
 			segm.remove(sw);
@@ -347,8 +346,12 @@ public class SR {
 			FileWriter wRestrictions = new FileWriter(restrictions);
 			BufferedWriter bw = new BufferedWriter(wRestrictions);
 
-			for (Vertice sw : graph.getVertices()) {
-				bw.write(sw.getRestrictions());
+			for (Vertice sw : graph.getVertices()) 
+			{
+				bw.write(sw.getNome()+": ");
+				for(String rest : sw.getRestrictions())
+					bw.write(rest+" ");
+				
 				bw.newLine();
 			}
 
@@ -655,7 +658,7 @@ public class SR {
 		}
 	}
 
-	public void printTopologicDistance(double topologicDistance) {
+	public static void printTopologicDistance(double topologicDistance) {
 		try {
 			FileWriter topDist = new FileWriter(new File("topDist"));
 			topDist.write(Double.toString(topologicDistance));

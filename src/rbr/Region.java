@@ -1,7 +1,6 @@
 package rbr;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Region implements Comparable<Region> {
 	private int maxRegions = 4;

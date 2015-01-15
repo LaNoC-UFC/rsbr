@@ -4,6 +4,7 @@ public class Aresta
 {
 	private boolean visited;
 	private boolean tvisited;
+	private boolean isFail = false;
 	private sbr.Segment seg;
 	private int snet;
     protected Vertice starting;
@@ -34,6 +35,16 @@ public class Aresta
 		tvisited = false;
 		seg = null;
 		snet = -1;
+	}
+	
+	public void isFail()
+	{
+		isFail=true;
+	}
+	
+	public boolean checkFail()
+	{
+		return isFail;
 	}
 	
 	public String getCor () 
@@ -148,18 +159,18 @@ public class Aresta
     
     public void setWeight(double weight)
     {
-    	this.weight=weight;
+    	this.weight = weight;
     }
     
-    public void incremWeight()
+    public void incremWeight(double vol)
     {
-    	this.weight++;
+    	this.weight += vol;
     }
     
-    public void decremWeight()
+    public void decremWeight(double vol)
     {
     	if(this.weight!=0)
-    		this.weight--;
+    		this.weight -= vol;
     }
     
     public double getWeight() 
