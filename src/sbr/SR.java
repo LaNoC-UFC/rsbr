@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SR {
 
-	private final boolean debug = false;
+	private final boolean debug = true;
 	private final static String[] RoundRobin = { "N", "E", "S", "W" };
 	private static int RRIndex[];
 
@@ -149,7 +149,8 @@ public class SR {
 					if (debug) System.err.println("Subnet now: " + subNet);
 					sg.add(sw);
 					sw.setStart();
-					if (debug) System.err.println(sw.getNome() + " is Start.");
+					if (debug)
+						System.err.println(sw.getNome() + " is Start.");
 					sw.setVisited();
 					// nVisiteds.remove(sw);
 					// visiteds.add(sw);

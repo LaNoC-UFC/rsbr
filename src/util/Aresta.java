@@ -159,18 +159,18 @@ public class Aresta
     
     public void setWeight(double weight)
     {
-    	this.weight=weight;
+    	this.weight = weight;
     }
     
-    public void incremWeight()
+    public void incremWeight(double vol)
     {
-    	this.weight++;
+    	this.weight += vol;
     }
     
-    public void decremWeight()
+    public void decremWeight(double vol)
     {
     	if(this.weight!=0)
-    		this.weight--;
+    		this.weight -= vol;
     }
     
     public double getWeight() 

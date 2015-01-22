@@ -3,10 +3,8 @@ import java.util.ArrayList;
 
 import rbr.RBR;
 import sbr.SR;
-import util.Aresta;
 import util.Graph;
 import util.Path;
-import util.Vertice;
 
 public class rsbr {
 
@@ -64,8 +62,7 @@ public class rsbr {
 				
 				rbr.addRoutingOptions(paths);
 				rbr.regionsComputation();
-				for (Vertice vertice : graph.getVertices())
-					rbr.merge(vertice, 1.0);
+				rbr.merge(1.0);
 				stats = rbr.getRegionsStats();
 				rbr.doRoutingTable("all");
 				System.out.println("All");
@@ -74,8 +71,7 @@ public class rsbr {
 				
 				rbr.addRoutingOptions(toSimPaths);
 				rbr.regionsComputation();
-				for (Vertice vertice : graph.getVertices())
-					rbr.merge(vertice, 1.0);
+				rbr.merge(1.0);
 				stats = rbr.getRegionsStats();
 				rbr.doRoutingTable("mw2");
 				System.out.println("mw2");

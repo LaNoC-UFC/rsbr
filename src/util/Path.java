@@ -6,6 +6,7 @@ import java.util.Comparator;
 public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
 	private static final long serialVersionUID = 1L;
+	private double volume;
 
 	public static class MinWeight implements Comparator<Path> {
 
@@ -31,12 +32,52 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 	}
 	
 
+	public class MedWeight implements Comparator<Path> {
+
+		private double med; // peso total dividido pelo numero de paths
+		
+		public MedWeight(double med) {
+			this.med = med;
+		}
+		
+		@Override
+		public int compare(Path p0, Path p1) {
+			double err0 = Math.abs(p0.getWeight()-med);
+			double err1 = Math.abs(p1.getWeight()-med);
+			if(err0 < err1) return -1;
+			if(err0 > err1) return +1;
+			return 0;
+		}
+		
+	}
+	
+	public class PropWeight implements Comparator<Path> {
+
+		private double linkWeightMean; // peso medio dos links a ser mutiplicado pelo tamanho do path
+		
+		public PropWeight(double linkWeightMean) {
+			this.linkWeightMean = linkWeightMean;
+		}
+		
+		@Override
+		public int compare(Path p0, Path p1) {
+			double err0 = Math.abs(p0.getWeight()-linkWeightMean*(double)p0.numArestas());
+			double err1 = Math.abs(p1.getWeight()-linkWeightMean*(double)p1.numArestas());
+			if(err0 < err1) return -1;
+			if(err0 > err1) return +1;
+			return 0;
+		}
+		
+	}
+	
 	public Path() {
 		super();
+		volume = 1;
 	}
 
 	public Path(Path p) {
 		super(p);
+		this.volume = p.volume;
 	}
 
 	// #Arestas
@@ -68,12 +109,20 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
 	public void incremWeight() {
 		for (int i = 0; i < numArestas(); i++)
-			this.get(i).getAresta(this.get(i + 1)).incremWeight();
+			this.get(i).getAresta(this.get(i + 1)).incremWeight(volume);
 	}
 
 	public void decremWeight() {
 		for (int i = 0; i < numArestas(); i++)
-			this.get(i).getAresta(this.get(i + 1)).decremWeight();
+			this.get(i).getAresta(this.get(i + 1)).decremWeight(volume);
+	}
+	
+	public double volume() {
+		return volume;
+	}
+
+	public void setVolume(double vol) {
+		this.volume = vol;
 	}
 
 	public int compareTo(Path other) {
@@ -94,11 +143,20 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		}
 	}
 
+	/**
+	 * Return the string of the volume and all routers of this path.
+	 */
 	public String toString() {
 
-		return "src: " + this.src().getNome() + ", dst: "
-				+ this.dst().getNome() + ", size: " + this.numArestas()
-				+ ", weight: " + this.getWeight();
+//		return "src: " + this.src().getNome() + ", dst: "
+//				+ this.dst().getNome() + ", size: " + this.numArestas()
+//				+ ", weight: " + this.getWeight();
+		String pathLine = "" + volume + ":";
+		for(Vertice v : this)
+		{
+			pathLine += " " + v.getNome();
+		}
+		return pathLine;
 
 	}
 
