@@ -9,6 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -308,6 +312,80 @@ public class RBR {
 			}
 		}
 		return divideByPair(allPaths);
+	}
+	
+	/**
+	 * Save in a file all the paths.
+	 * @param fileName File name.
+	 * @param paths Array of all paths.
+	 */
+	public void savePathInFile(String fileName, ArrayList<ArrayList<Path>> paths)
+	{
+		try {
+			PrintWriter printer = new PrintWriter(fileName, "UTF-8");
+			
+			for(ArrayList<Path> pathList : paths)
+			{
+				for(Path path : pathList)
+				{
+					printer.println(path.toString());
+				}
+			}
+			
+			printer.close();
+			
+			System.out.println("Paths saved in " + fileName);
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Could not create the file.");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("UTF-8 encode format unssuported.");
+		}
+	}
+	
+	/**
+	 * Read an especified file and return a list of paths.
+	 * @param fileName File Name.
+	 * @return Paths list.
+	 */
+	public ArrayList<Path> loadPaths(String fileName)
+	{
+		ArrayList<Path> paths = new ArrayList<>();
+		Path path;
+		String volume = "";
+		String[] vertices;
+		try {
+			for(String line : Files.readAllLines(Paths.get("./" + fileName)))
+			{
+				
+				volume = line.substring(0, line.lastIndexOf(":"));
+				vertices = line.substring(line.lastIndexOf(":") + 2).split(" ");
+				path = new Path();
+				
+				for(String vertice : vertices)
+				{
+					path.add(graph.getVertice(vertice));
+				}
+				
+				path.setVolume(Double.parseDouble(volume));
+				paths.add(path);
+			}
+			
+			System.out.println("All paths loaded from " + fileName);
+						
+			return paths;
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Could not open the paths file.");
+		}
+		
+		return null;
 	}
 
 	/*

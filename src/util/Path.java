@@ -143,11 +143,20 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		}
 	}
 
+	/**
+	 * Return the string of the volume and all routers of this path.
+	 */
 	public String toString() {
 
-		return "src: " + this.src().getNome() + ", dst: "
-				+ this.dst().getNome() + ", size: " + this.numArestas()
-				+ ", weight: " + this.getWeight();
+//		return "src: " + this.src().getNome() + ", dst: "
+//				+ this.dst().getNome() + ", size: " + this.numArestas()
+//				+ ", weight: " + this.getWeight();
+		String pathLine = "" + volume + ":";
+		for(Vertice v : this)
+		{
+			pathLine += " " + v.getNome();
+		}
+		return pathLine;
 
 	}
 
