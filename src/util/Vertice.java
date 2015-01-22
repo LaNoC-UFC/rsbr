@@ -358,9 +358,11 @@ public class Vertice implements Comparable<Vertice>
 			return null;
 		
 		ArrayList<Aresta> slinks = new ArrayList<>();
-		for(Aresta ln : this.adj)
-			if(!ln.isVisited() && !ln.isTVisited() && ln.getDestino().isIn(min, max) && !(ln.getDestino().isTVisited() && !ln.getDestino().isStart()))
+		for(Aresta ln : this.adj) {
+			boolean cruzando = (ln.getDestino().isTVisited() && !ln.getDestino().isStart());
+			if(!ln.isVisited() && !ln.isTVisited() && ln.getDestino().isIn(min, max) && !cruzando && !ln.getOrigem().isTerminal())
 				slinks.add(ln);
+		}
 
 		return (slinks.isEmpty())? null : slinks;
 	}
@@ -514,7 +516,7 @@ public class Vertice implements Comparable<Vertice>
         this.combinedOutputs = combinedOutputs;
     }
     
-    public void PrintRegions(float[] stats,BufferedWriter bw, int nBits)
+    public void PrintRegions(double[] stats,BufferedWriter bw, int nBits)
     {              
     	int maxRegion = (int)stats[0];    	
     	try 

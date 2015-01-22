@@ -62,7 +62,7 @@ public class RBR {
 	// Make stats files
 	public void makeStats(ArrayList<ArrayList<Path>> paths) {
 		// double[] hopCount = getHopCountStats(paths);
-		float[] Regions = getRegionsStats();
+		double[] Regions = getRegionsStats();
 		double ard = getRoutingDistance(paths);
 		double[] linkWeight = linkWeightStats();
 		try {
@@ -167,9 +167,9 @@ public class RBR {
 	}
 	*/
 
-	public void doRoutingTable() {
-		float[] stats = getRegionsStats();
-		String routingTableFile = "Table_package.vhd";
+	public void doRoutingTable(String ext) {
+		double[] stats = getRegionsStats();
+		String routingTableFile = "Table_package_"+ext+".vhd";
 		File routingTable = new File(routingTableFile);
 		int size = (graph.dimX() >= graph.dimY()) ? graph.dimX() : graph.dimY();
 		int nBits = (int) Math.ceil(Math.log(size) / Math.log(2));
@@ -267,10 +267,10 @@ public class RBR {
 	}
 
 	// Calculates the regions stats - [0] - Max / [1] - Min / [2] - Average
-	public float[] getRegionsStats() {
+	public double[] getRegionsStats() {
 
-		float[] stats = new float[3];
-		float average;
+		double[] stats = new double[3];
+		double average;
 		List<Integer> regSizes = new ArrayList<>();
 
 		for (Vertice r : graph.getVertices()) {
@@ -284,9 +284,53 @@ public class RBR {
 		}
 		average = sum / regSizes.size();
 
-		stats[0] = (float) regSizes.get(regSizes.size() - 1);
-		stats[1] = (float) regSizes.get(0);
-		stats[2] = (float) average;
+		stats[0] = (double) regSizes.get(regSizes.size() - 1);
+		stats[1] = (double) regSizes.get(0);
+		stats[2] = (double) average;
+		return stats;
+	}
+	
+	public void printMontCarl(File file,double percent, ArrayList<Double> c1,ArrayList<Double> c2)
+	{
+		double[] statsC1 = montCarlStats(c1);
+		double[] statsC2 = montCarlStats(c2);
+		try 
+		{
+			BufferedWriter output = new BufferedWriter(new FileWriter(file));
+			output.append(percent+"\t"+statsC1[0]+"\t"+statsC1[1]+"\t"+statsC2[0]+"\t"+statsC2[1]);
+			output.close();
+			
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	private double[] montCarlStats(ArrayList<Double> input)
+	{
+		double[] stats = new double[2]; //0-Mean, 1-Std		
+		double sum=0;
+		double mean=0;
+		double sigma = 0;
+		double variance = 0;
+		double dblmean = 0;		
+		
+		for(double vlr : input)
+			sum+=vlr;
+		mean=sum/input.size();
+		
+		double ArAccum=0;
+		for(double vlr : input)
+			ArAccum+=(vlr*vlr);
+		dblmean= ArAccum/input.size();
+		
+		variance = dblmean-(mean*mean); //Variance
+		sigma=Math.sqrt(variance); //Standard Deviation
+		
+		
+		stats[0] = mean;
+		stats[1] = sigma;
 		return stats;
 	}
 
@@ -562,7 +606,7 @@ pair (source, sink)
 		while (pairs.size() < nPairs) { // pares cadastrados menor que numero de
 										// fluxos
 			ArrayList<Path> aux = new ArrayList<Path>();
-			if(lastPaths.size()!=0)
+			
 				System.out.println("Tamanho anterior: " + lastPaths.get(0).get(0).size());
 			for (ArrayList<Path> alp : lastPaths) {
 				for(Path p: alp) {

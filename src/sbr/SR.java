@@ -144,8 +144,7 @@ public class SR {
 				}
 			}
 			if ((sw = nextVisited(min, max)) == null) {
-				if ((xMin == 0 && yMin == 0)
-						&& (sw = nextNotVisited(min, max)) != null) {
+				if ((xMin == 0 && yMin == 0) && (sw = nextNotVisited(min, max)) != null) {
 					subNet = ++maxSN;
 					if (debug) System.err.println("Subnet now: " + subNet);
 					sg.add(sw);
@@ -373,6 +372,11 @@ public class SR {
 			e.printStackTrace();
 		}
 
+	}
+	
+	public int getnUnitSeg()
+	{
+		return nUnitSeg;				
 	}
 
 	public void printRegSeg() {

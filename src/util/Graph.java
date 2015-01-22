@@ -1,8 +1,11 @@
 package util;
 
 import java.util.ArrayList;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,8 +98,8 @@ public class Graph {
 		System.out.println("#Faults: "+nFalts);
 			
 		//Adiciona Vertices
-		for(int y=0; y<dimY; y++)
-			for(int x=0; x<dimX; x++)
+		for(int x=0; x<dimY; x++)
+			for(int y=0; y<dimX; y++)
 				addVertice(x+"."+y);
 		
 		//Adiciona Arestas
@@ -235,6 +238,52 @@ public class Graph {
 			r += "\n";
 		}
 		return r;
+	}
+	
+	public void printGraph(String ext)
+	{
+		File graphFile = new File("graph_"+ext);
+		BufferedWriter output;
+		try 
+		{
+			output = new BufferedWriter(new FileWriter(graphFile));
+			
+			String lineL="";
+			String lineC="";
+			for(int y=dimY-1;y>=0;y--)
+			{
+				lineC+="  ";
+				for(int x=0;x<dimX;x++)
+				{
+					String sX="";
+					String sY="";
+					sX = x<10?"0"+x:""+x;
+					sY = y<10?"0"+y:""+y;
+					
+					lineL+=""+sX+sY;
+					if(contem(""+(x+1)+"."+y) && (getVertice(""+x+"."+y).getAresta(getVertice(""+(x+1)+"."+y))!=null))
+						lineL+="-";
+					else lineL+=" ";
+					
+					if(contem(""+x+"."+(y-1)) && (getVertice(""+x+"."+y).getAresta(getVertice(""+x+"."+(y-1)))!=null))
+						lineC+="|    ";					
+					else lineC+="     ";
+				}	
+				output.write(lineL+"\n");
+				output.write(lineC+"\n");
+				lineL="";
+				lineC="";
+			}
+			
+			output.close();
+			
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		
+		
 	}
 
 	public ArrayList<Vertice> getVertices(String min, String max) {

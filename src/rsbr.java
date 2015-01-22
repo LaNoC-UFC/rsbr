@@ -11,121 +11,82 @@ import util.Vertice;
 public class rsbr {
 
 	public static void main(String[] args) {
-		Graph graph;
-		String topologyFile;
-		String merge = "merge";
-		double reachability = 1.0;
-
-		switch (args.length) {
-		case 3:
-			topologyFile = args[0];
-			merge = args[1];
-			reachability = Double.valueOf(args[2]);
-			break;
-
-		default:
-			topologyFile = "Input5.txt";
+		
+		int dimX=4,dimY=4;
+		int montCarl = 5;
+		double[] faltPercs={0.1,0.2};
+		ArrayList<ArrayList<Path>> toSimPaths = null;
+		File file = new File("monteCarlo.txt");
+		
+		switch (args.length) 
+		{
+			case 4:
+				dimX = Integer.parseInt(args[0]);
+				dimY = Integer.parseInt(args[1]);
+				montCarl = Integer.parseInt(args[3]);
+				break;
 		}
 
-		System.out.println("Generating graph");
-		graph = new Graph(new File(topologyFile));
-		//graph = new Graph(20,20,0.1);
-		System.out.println("Isolado? :"+graph.haveIsolatedCores());			
-		
-		System.out.println("graph: "+graph);
-		System.out.println(" - SR Section");
-		SR sbr = new SR(graph);
+		for(double faltPerc : faltPercs)
+		{
+			
+			Graph graph;
+			double[] stats = null;
+			ArrayList<Double> all=new ArrayList<Double>();
+			ArrayList<Double> mw2=new ArrayList<Double>();	
+			RBR rbr = null;
+			
+			for(int s=0;s<montCarl;s++)
+			{
+				System.out.println("Generating graph");
+				//	graph = new Graph(new File(topologyFile));
+				graph = new Graph(dimX,dimY,faltPerc);
+				graph.printGraph("teste");
+				System.out.println("Isolado? :"+graph.haveIsolatedCores());			
+			
+				System.out.println("graph: "+graph);
+				System.out.println(" - SR Section");
+				SR sbr = new SR(graph);
 
-		System.out.println("Compute the segments");
-		sbr.computeSegments();
-		// sbr.listSegments();
+				System.out.println("Compute the segments");
+				sbr.computeSegments();
+				//sbr.listSegments();
 
-		System.out.println("Set the restrictions");
-		sbr.setrestrictions();
-		// sbr.printRestrictions();
+				System.out.println("Set the restrictions");
+				sbr.setrestrictions();
+				sbr.printRestrictions();		
 
-		System.out.println(" - RBR Section");
-		RBR rbr = new RBR(graph);
-		System.out.println("Paths Computation");
-		ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
-
-		System.out.println("Paths Selection");
-		//Um caminho aleatório
-		ArrayList<ArrayList<Path>> aleatPath = rbr.pathSelection(paths);
-		//Seleção por peso máximo (rodado 1 vez)
-		ArrayList<ArrayList<Path>> MaxWeigthPath1 = rbr.pathSelection(paths, new Path.MaxWeight(), 1);
-		//Seleção por peso máximo (rodado 2 vezes)
-		ArrayList<ArrayList<Path>> MaxWeigthPath2 = rbr.pathSelection(paths, new Path.MaxWeight(), 2);
-		//Seleção por peso máximo (rodado 3 vezes)
-		ArrayList<ArrayList<Path>> MaxWeigthPath3 = rbr.pathSelection(paths, new Path.MaxWeight(), 3);
-		//Seleção por peso mínimo (rodado 1 vez)
-		ArrayList<ArrayList<Path>> MinWeigthPath1 = rbr.pathSelection(paths, new Path.MinWeight(), 1);
-		//Seleção por peso mínimo (rodado 2 vezes)
-		ArrayList<ArrayList<Path>> MinWeigthPath2 = rbr.pathSelection(paths, new Path.MinWeight(), 2);
-		//--
-		System.out.println("Regions Computation for all selections of paths");
-		float[] stats = null;
+				System.out.println(" - RBR Section");
+				rbr = new RBR(graph);
+				System.out.println("Paths Computation");
+				ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
+				toSimPaths = rbr.pathSelection(paths, new Path.MaxWeight(), 2);
+				
+				rbr.addRoutingOptions(paths);
+				rbr.regionsComputation();
+				for (Vertice vertice : graph.getVertices())
+					rbr.merge(vertice, 1.0);
+				stats = rbr.getRegionsStats();
+				rbr.doRoutingTable("all");
+				System.out.println("All");
+				System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+				all.add(stats[0]);
+				
+				rbr.addRoutingOptions(toSimPaths);
+				rbr.regionsComputation();
+				for (Vertice vertice : graph.getVertices())
+					rbr.merge(vertice, 1.0);
+				stats = rbr.getRegionsStats();
+				rbr.doRoutingTable("mw2");
+				System.out.println("mw2");
+				System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
+				mw2.add(stats[0]);							
+			}
+			
+			rbr.printMontCarl(file, faltPerc, all, mw2);
+						
+		}
 		
-		//All paths
-		rbr.addRoutingOptions(paths);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Todos os caminhos:");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-		
-		//Um caminho aleatório
-		rbr.addRoutingOptions(aleatPath);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Um caminho aleatório:");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-		
-		//Seleção por peso máximo (rodado uma vez)
-		rbr.addRoutingOptions(MaxWeigthPath1);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Seleção por peso máximo (1x):");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-		
-		//Seleção por peso máximo (rodado duas vezes)
-		rbr.addRoutingOptions(MaxWeigthPath2);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Seleção por peso máximo (2x):");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-		
-		//Seleção por peso máximo (rodado tres vezes)
-		rbr.addRoutingOptions(MaxWeigthPath3);
-		rbr.regionsComputation();
-		for (Vertice vertice : graph.getVertices())
-			rbr.merge(vertice, reachability);
-		stats = rbr.getRegionsStats();
-		System.out.println("Seleção por peso máximo (3x):");
-		System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
-
-		//--
-		System.out.println("Regions Adjustment");
-		rbr.printLengthofPaths(aleatPath);
-		//--
-		System.out.println("Doing Merge");
-		if (merge.equals("merge"))
-			for (Vertice vertice : graph.getVertices())
-				rbr.merge(vertice, reachability);
-		//--
-		System.out.println("Making Tables");
-		rbr.doRoutingTable();
-		//--
-		/*System.out.println("Doing Average Routing Distance and Link Weight");
-		rbr.makeStats(aleatPath);*/
-
 		System.out.println("All done!");
 	}
 
