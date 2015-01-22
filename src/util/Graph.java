@@ -82,6 +82,10 @@ public class Graph {
 		}
 	}
 	
+	public Graph(int dim, double perc) {
+		this(dim, dim, perc);
+	}
+	
 	public Graph(int dX,int dY, double perc)
 	{
 		vertices = new ArrayList<>();
@@ -95,8 +99,8 @@ public class Graph {
 		System.out.println("#Faults: "+nFalts);
 			
 		//Adiciona Vertices
-		for(int y=0; y<dimY; y++)
-			for(int x=0; x<dimX; x++)
+		for(int x=0; x<dimX; x++)
+			for(int y=0; y<dimY; y++)
 				addVertice(x+"."+y);
 		
 		//Adiciona Arestas
@@ -145,7 +149,7 @@ public class Graph {
 		//Escolha do 0.0 para ser o core inicial. Garantido a existencia em todas as topologias
 		getVertice("0.0").checkIsolation(alc);
 		
-		//Se lista de alcançaveis for igual ao total de cores não existe isolamento
+		//Se lista de alcanï¿½aveis for igual ao total de cores nï¿½o existe isolamento
 		if(!(alc.size()==vertices.size())) return true;
 		
     	return false;
@@ -153,16 +157,7 @@ public class Graph {
 	
 	
 
-	public void setGraph() {
-		// Dijkstra
-		for (Vertice v : this.vertices) {
-			v.setPai(null);
-			v.setVisitado(false);
-			v.setDistancia(Integer.MAX_VALUE);
-		}
-	}
-
-	public boolean contem(String vertice) {
+	private boolean contem(String vertice) {
 
 		for (int i = 0; i < vertices.size(); i++) {
 
@@ -211,15 +206,15 @@ public class Graph {
 		arestas.add(e);
 	}
 	
-	public void AddAresta(Aresta toAdd)
+	private void AddAresta(Aresta toAdd)
 	{
-		toAdd.getOrigem().adj.add(toAdd);
+		toAdd.getOrigem().getAdj().add(toAdd);
 		arestas.add(toAdd);
 	}
 	
-	public void removeAresta(Aresta toRemove)
+	private void removeAresta(Aresta toRemove)
 	{
-		toRemove.getOrigem().adj.remove(toRemove);
+		toRemove.getOrigem().getAdj().remove(toRemove);
 		arestas.remove(toRemove);		
 	}
 
@@ -237,34 +232,22 @@ public class Graph {
 		return r;
 	}
 
-	public ArrayList<Vertice> getVertices(String min, String max) {
-		ArrayList<Vertice> sws = new ArrayList<Vertice>();
-		int xMin = Integer.valueOf(min.substring(0, 1));
-		int yMin = Integer.valueOf(min.substring(1, 2));
-		int xMax = Integer.valueOf(max.substring(0, 1));
-		int yMax = Integer.valueOf(max.substring(1, 2));
-		for (int x = xMin; x <= xMax; x++)
-			for (int y = yMin; y <= yMax; y++)
-				sws.add(this.getVertice(x + "" + y));
-
-		if (sws.size() == 0)
-			sws = null;
-		return sws;
-
-	}
-
-	/*
-	 * private int dimension() {
-	 * 
-	 * return (int) Math.sqrt((double)this.vertices.size()); }
-	 */
-
 	public int dimX() {
 		return dimX;
 	}
 
 	public int dimY() {
 		return dimY;
+	}
+
+	public int indexOf(Vertice v) {
+		return indexOf(v.getNome());
+	}
+
+	private int indexOf(String xy) {
+		int x = Integer.parseInt(xy.split("\\.")[0]);
+		int y = Integer.parseInt(xy.split("\\.")[1]);
+		return x + y*this.dimX();
 	}
 
 }

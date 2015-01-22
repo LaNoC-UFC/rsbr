@@ -1,6 +1,7 @@
 package sbr;
 
 import util.*;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,7 +11,7 @@ import java.util.List;
 
 public class SR {
 
-	private final boolean debug = true;
+	private final boolean debug = false;
 	private final static String[] RoundRobin = { "N", "E", "S", "W" };
 	private static int RRIndex[];
 
@@ -18,15 +19,14 @@ public class SR {
 	private int nUnitSeg;
 	private int nRegSeg;
 
-	private ArrayList<Integer> TopologicalDistances = new ArrayList<Integer>();
-	private double TDMean;
-
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
-	private ArrayList<String[]> routwFailLinks = new ArrayList<>();
+	private ArrayList<Aresta> bridge;
 
-	private List<Vertice> visiteds;
-	private List<Vertice> nVisiteds;
+	private List<Vertice> visitedVertices, unvisitedVertices, start, terminal;
+	private List<Aresta> visitedArestas, unvisitedArestas;
+	//private List<Vertice> visiteds;
+	//private List<Vertice> nVisiteds;
 
 
 	public SR(Graph graph) 
@@ -35,8 +35,13 @@ public class SR {
 		this.graph = graph;
 		if(debug) System.err.println(graph);
 		segments = new ArrayList<>();
-		visiteds = new ArrayList<>();
-		nVisiteds = new ArrayList<>();
+		visitedVertices = new ArrayList<>();
+		unvisitedVertices = new ArrayList<>();
+		start = new ArrayList<>();
+		visitedArestas = new ArrayList<>();
+		unvisitedArestas = new ArrayList<>();
+		bridge = new ArrayList<>();
+		//nVisiteds = new ArrayList<>();
 		nUnitSeg = 0;
 		nRegSeg = 0;
 		RRIndex = new int[2];
@@ -44,12 +49,15 @@ public class SR {
 		RRIndex[1] = -1;
 		subNet = 0;
 		maxSN = 0;
+		new Bridge(graph);
+		System.out.println(bridge.size()+" bridges.");
 	}
 
 	public void computeSegments() {
-		//int Nx = (int) Math.sqrt(graph.getVertices().size()) - 1;
+		// fill not visiteds' list
+		unvisitedArestas.addAll(graph.getArestas());
+		unvisitedVertices.addAll(graph.getVertices());
 		int Nx = graph.dimX()-1;
-		//int Ny = Nx;
 		int Ny = graph.dimY()-1;
 		String max = Nx + "." + Ny;
 		for (int i = Ny - 1; i >= 0; i--) {
@@ -61,24 +69,14 @@ public class SR {
 
 	private void computeSegments(String min, String max) {
 
-		// fill not visiteds' list
-		String[] Min = min.split("\\.");
-		int xMin = Integer.valueOf(Min[0]);
-		int yMin = Integer.valueOf(Min[1]);
-		String[] Max = max.split("\\.");
-		int xMax = Integer.valueOf(Max[0]);
-		int yMax = Integer.valueOf(Max[1]);
-		for (int x = xMin; x <= xMax; x++) {
-			for (int y = yMax; y >= yMin; y--) {
-				Vertice sw = graph.getVertice(x + "." + y);
-				if (!sw.isVisited() && !nVisiteds.contains(sw))
-					nVisiteds.add(sw);
-			}
-		}
+		terminal = new ArrayList<>();
+		int xMin = Integer.valueOf(min.split("\\.")[0]);
+		int yMin = Integer.valueOf(min.split("\\.")[1]);
+		int xMax = Integer.valueOf(max.split("\\.")[0]);
+		int yMax = Integer.valueOf(max.split("\\.")[1]);
 
 		if (debug)
 			System.err.println("Subnet now: " + subNet);
-		Segment sg = new Segment();
 
 		// Choose the start switch
 		boolean first = (yMin + 1 == yMax);
@@ -86,147 +84,128 @@ public class SR {
 		Vertice sw;
 		Vertice left = graph.getVertice(xMin + "." + (yMin + 1));
 		Vertice right = graph.getVertice(xMax + "." + (yMin + 1));
-		if (first || (left.isVisited() && right.isVisited())) {
-			if (pair)
-				sw = left;
-			else
-				sw = right;
-		} else if (left.isVisited()) {
-			sw = left;
-		} else /* if(right.isVisited()) */{
-			sw = right;
+		
+		if(first) {
+			sw = (pair) ? left : right;
+			setStart(sw);
+			sw.setSubNet(subNet);
 		}
+		else if(isVisited(left) || isVisited(right)){
+			sw = (isVisited(left)) ? left : right;
+			subNet = sw.getSubNet();
+		}
+		else {
+			sw = nextVisited(min, max);
+			if (sw == null) {
+				sw = nextNotVisited(min, max);
+				if(sw == null) return;
+				setStart(sw);
+				subNet = ++maxSN;
+				sw.setSubNet(subNet);
+			}
+			subNet = sw.getSubNet();
+		}
+
+		Segment sg = new Segment();
+		segments.add(sg);
 
 		if (debug) System.err.println("#starting: " + sw.getNome());
 
-		Vertice sw2;
-		if (!sw.isVisited()) {
-			if ((sw2 = nextVisited(min, max)) == null) {
-				sw.setStart();
-				if (debug)
-					System.err.println(sw.getNome() + " is Start.");
-				sw.setSubNet(subNet);
-				// sw.setVisited();
-				// nVisiteds.remove(sw);
-				// visiteds.add(sw);
-				// sg.add(sw);
-				// sw.setSegment(sg);
-			} else {
-				sw = sw2;
-				subNet = sw.getSubNet();
-			}
-		} else {
-			subNet = sw.getSubNet();
-		}
-		segments.add(sg);
-
 		do {
 			this.resetRRIndex();
-			if (find(sw, sg, min, max)) {
+			
+			// try to form a segment
+			if (find(sw, min, max)) {
 				sg = new Segment();
 				segments.add(sg);
-				if (debug)
-					System.err.println("New Segment.");
+				if (debug) System.err.println("New Segment.");
+			} else if (isVisited(sw)) {
+				setTerminal(sw);
+				if (debug) System.err.println(sw.getNome() + " is Terminal.");
+
+			} else if (xMin == 0 && yMin == 0) { // eh a ultima rodada
+				visit(sw);
+				setTerminal(sw);
+				if (debug) System.err.println(sw.getNome() + " is Terminal.");
+					
 			} else {
-				if (sw.isVisited()) {
-					sw.setTerminal();
-					if (debug)
-						System.err.println(sw.getNome() + " is Terminal.");
-				} else if (min.equals("0.0")) {// (sw.isStart() &&
-												// nVisiteds.size() == 1) {
-					sw.setTerminal();
-					if (debug) System.err.println(sw.getNome() + " is Terminal.");
-					sw.setVisited();
-					nVisiteds.remove(sw);
-					visiteds.add(sw);
-				} else {
-					sw.unsetStart();
-				}
+				unsetStart(sw);
 			}
-			if ((sw = nextVisited(min, max)) == null) {
+			
+			// look for a not visited switch to form the next segment
+			sw = nextVisited(min, max);
+			if (sw == null) { // if didnt find
 				if ((xMin == 0 && yMin == 0) && (sw = nextNotVisited(min, max)) != null) {
 					subNet = ++maxSN;
 					if (debug) System.err.println("Subnet now: " + subNet);
-					sg.add(sw);
-					sw.setStart();
+					segments.get(segments.size()-1).add(sw);// sg.add(sw);
+					setStart(sw);
 					if (debug)
 						System.err.println(sw.getNome() + " is Start.");
-					sw.setVisited();
-					// nVisiteds.remove(sw);
-					// visiteds.add(sw);
+					visit(sw);
 					sw.setSubNet(subNet);
 				} else {
-					//if (sg.isEmpty())
-					if (sg.getLinks().isEmpty())
+					if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
 						segments.remove(sg);
-					break;
+					return;
 				}
 			}
 		} while (sw != null);
 
 	}
 
-	protected boolean find(Vertice sw, Segment segm, String min, String max) {
-
-		sw.setTVisited();
-		if (!sw.isVisited()) {
+	protected boolean find(Vertice sw, String min, String max) {
+		Segment segm = segments.get(segments.size()-1);
+		if (!isVisited(sw)) {
 			segm.add(sw);
-			sw.setSegment(segm);
-		} else if (!sw.belongsTo(subNet) && !(sw.isStart() && sw.isTerminal()))
+			//sw.setSegment(segm);
+			setTVisited(sw);
+		} else if (!sw.belongsTo(subNet) && !(isStart(sw) && isTerminal(sw)))
 			return false;
+			
 		if (debug) System.err.println("Switch now: " + sw.getNome());
-		ArrayList<Aresta> links = sw.suitableLinks(min, max);
+		
+		ArrayList<Aresta> links = suitableLinks(sw, min, max);
 		if (links == null) {
 			if (debug) System.err.println("No Suitable Links found.");
-			sw.unsetTVisited();
-			sw.setSegment(null);
+			if(isTVisited(sw)) unsetTVisited(sw);
+			//sw.setSegment(null);
 			segm.remove(sw);
 			return false;
 		}
+		
 		while (!links.isEmpty()) {
 			Aresta ln = getNextLink(links);
 			links.remove(ln);
 			Aresta nl = ln.getDestino().getAresta(ln.getOrigem());
-			if (debug)
-				System.err.println("Link now: " + ln.getOrigem().getNome()
-						+ " <-> " + ln.getDestino().getNome());
-			ln.setTVisited();
-			nl.setTVisited();
+			if (debug) System.err.println("Link now: "+ln.getOrigem().getNome()+" <-> "+ln.getDestino().getNome());
+			setTVisited(ln);
+			setTVisited(nl);
 			segm.add(ln);
 			Vertice nsw = ln.other(sw);
 			if (nsw.isIn(min, max)) {
-				if (((nsw.isVisited() || nsw.isStart()) && nsw
-						.belongsTo(subNet)) || find(nsw, segm, min, max)) {
-					ln.setVisited();
-					ln.unsetTVisited();
-					nl.setVisited();
-					nl.unsetTVisited();
-					sw.setVisited();
-					sw.unsetTVisited();
-					nsw.setVisited();
-					nVisiteds.remove(sw);
-					visiteds.add(sw);
-					nVisiteds.remove(nsw);
-					visiteds.add(nsw);
-					if (nsw.isTerminal() && nsw.isStart()
-							&& !nsw.belongsTo(subNet)
-							&& (nsw.getSegment() == null)) {
-						nsw.unsetTerminal();
-						nsw.unsetStart();
-						nsw.setSegment(segm);
+				if (((isVisited(nsw) || isStart(nsw)) && nsw.belongsTo(subNet)) || find(nsw, min, max)) {
+					visit(ln);
+					visit(nl);
+					if(!isVisited(sw)) visit(sw);
+					if(!isVisited(nsw)) visit(nsw);
+					if (isTerminal(nsw) && isStart(nsw) && !nsw.belongsTo(subNet) && (nsw.getSegment() == null)) {
+						unsetTerminal(nsw);
+						unsetStart(nsw);
+						//nsw.setSegment(segm);
 						segm.add(nsw);
 					}
 					nsw.setSubNet(subNet);
 					return true;
 				}
 			}
-			ln.unsetTVisited();
-			nl.unsetTVisited();
+			unsetTVisited(ln);
+			unsetTVisited(nl);
 			segm.remove(ln);
 		}
 		segm.remove(sw);
-		sw.setSegment(null);
-		sw.unsetTVisited();
+		//sw.setSegment(null);
+		if(isTVisited(sw)) unsetTVisited(sw);
 
 		return false;
 	}
@@ -236,24 +215,25 @@ public class SR {
 	 * and with at least one link not marked as visited.
 	 */
 	protected Vertice nextVisited(String min, String max) {
+		ArrayList<Vertice> next = new ArrayList<>();
 		// get switches from visiteds' list
-		for (int i = visiteds.size() - 1; i >= 0; i--) {
-			Vertice sw = visiteds.get(i);
-			if (!sw.isTerminal() && sw.isIn(min, max)) {
-				if (debug)
-					System.err.println(" - Switch " + sw.getNome());
-				ArrayList<Aresta> lE = sw.getArestas();
-				for (Aresta e : lE) {
-					if (!e.isVisited() && e.getDestino().isIn(min, max)) {
-						if (debug)
-							System.err.println(" - - Link "
-									+ e.getOrigem().getNome() + " -> "
-									+ e.getDestino().getNome());
-						if (debug)
-							System.err.println("nextVisited " + sw.getNome());
-						subNet = sw.getSubNet();
-						return sw;
+		for (int i = visitedVertices.size() - 1; i >= 0; i--) {
+			Vertice sw = visitedVertices.get(i);
+			if (!isTerminal(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
+				
+				// agora só retorna se existir mais de um visitado com links
+				// favoráveis
+				if(next.isEmpty())
+					next.add(sw);
+				else {
+					for(Vertice n : next) {
+						if(n.getSubNet() == sw.getSubNet()) {
+							if (debug) System.err.println("nextVisited " + n.getNome());
+							subNet = n.getSubNet();
+							return n;							
+						}
 					}
+					next.add(sw);
 				}
 			}
 		}
@@ -267,18 +247,31 @@ public class SR {
 	 * and attached to a terminal switch.
 	 */
 	protected Vertice nextNotVisited(String min, String max) {
-		for (Vertice sw : visiteds) {
-			if (sw.isIn(min, max) && sw.isTerminal()) {
+		for (Aresta b: bridge) {
+			Vertice sw = b.getDestino();
+			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
+				if (debug) System.err.println("nextNotVisited " + sw.getNome());
+				return sw;				
+			}
+			sw = b.getOrigem();
+			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
+				if (debug) System.err.println("nextNotVisited " + sw.getNome());
+				return sw;				
+			}
+		}
+		/*
+		for (Vertice sw : unvisitedVertices) {
+			if (sw.isIn(min, max) && isTerminal(sw)) {
 				List<Vertice> lS = sw.getNeighbors();
 				for (Vertice s : lS) {
-					if (!s.isVisited() && !s.isTerminal() && s.isIn(min, max)) {
-						if (debug)
-							System.err.println("nextNotVisited " + s.getNome());
+					if (!isVisited(s) && !isTerminal(s) && s.isIn(min, max)) {
+						if (debug) System.err.println("nextNotVisited " + s.getNome());
 						return s;
 					}
 				}
 			}
 		}
+		*/
 		if (debug)
 			System.err.println("nextNotVisited not found");
 		return null;
@@ -398,8 +391,7 @@ public class SR {
 				// No traffic allowed at link
 				Vertice Starting = segment.getLinks().get(0).getOrigem();
 				Vertice Ending = segment.getLinks().get(0).getDestino();
-				System.err.println("Start: " + Starting.getNome() + " Ending: "
-						+ Ending.getNome());
+				//System.err.println("Start: " + Starting.getNome() + " Ending: "+ Ending.getNome());
 				// Restricted link
 				String opStarting = Starting.getAresta(Ending).getCor();
 				String opEnding = Ending.getAresta(Starting).getCor();
@@ -448,225 +440,151 @@ public class SR {
 			}
 		}
 	}
+	
+	private boolean isVisited(Vertice v) {
+		return visitedVertices.contains(v);
+	}
 
-	public void setRestrictions() {
-		for (Segment segment : segments) {
+	private void visit(Vertice v) {
+		assert !visitedVertices.contains(v) : "Vertice jah visitado?";
+		//assert unvisitedVertices.contains(v) : "Vertice (t)visitado?";
+		
+		visitedVertices.add(v);
+		unvisitedVertices.remove(v);
+	}
 
-			/*
-			 * Regardless the type of segment place a restriction at second
-			 * turn. If just have one turn place at it.
-			 */
+	private boolean isVisited(Aresta a) {
+		return visitedArestas.contains(a);
+	}
 
-			if (segment.isStarting()) {
-				int nTurns = 0;
-				Aresta firstLink, secondLink;
-				String ip = null, op = null;
-				Vertice restrict = null;
+	private void visit(Aresta a) {
+		assert !visitedArestas.contains(a) : "Aresta jah visitada?";
+		//assert unvisitedArestas.contains(a) : "Aresta (t)visitada?";
+		
+		visitedArestas.add(a);
+		unvisitedArestas.remove(a);
+	}
 
-				for (int nLink = 0; nLink < segment.getLinks().size() - 1; nLink++) {
-					firstLink = segment.getLinks().get(nLink);
-					secondLink = segment.getLinks().get(nLink + 1);
+	private boolean isTVisited(Vertice v) {
+		return !visitedVertices.contains(v) && !unvisitedVertices.contains(v);
+	}
 
-					if (firstLink.getCor() != secondLink.getCor())
-						nTurns++;
+	private void setTVisited(Vertice v) {
+		assert !visitedVertices.contains(v) : "Vertice jah visitado?";
+		assert unvisitedVertices.contains(v) : "Vertice jah tvisitado?";
+		
+		unvisitedVertices.remove(v);
+	}
 
-					// The number of turn you want to place the restriction
-					if (nTurns == 2) {
-						ip = firstLink.getDestino()
-								.getAresta(firstLink.getOrigem()).getCor();
-						// System.err.println("Input Port: " + ip);
-						op = secondLink.getCor();
-						// System.err.println("Output Port: " + op);
-						restrict = firstLink.getDestino();
-						// System.err.println("Switch: " + restrict.getNome());
-						break;
+	private boolean isTVisited(Aresta a) {
+		return !visitedArestas.contains(a) && !unvisitedArestas.contains(a);
+	}
+
+	private void setTVisited(Aresta a) {
+		assert unvisitedArestas.contains(a) : "Aresta jah tvisitada?";
+		
+		unvisitedArestas.remove(a);
+	}
+
+	private void unsetTVisited(Aresta a) {
+		assert !unvisitedArestas.contains(a) : "Aresta nao tvisitada?";
+		
+		unvisitedArestas.add(a);
+	}
+
+	private void unsetTVisited(Vertice v) {
+		assert !unvisitedVertices.contains(v) : "Vertice nao tvisitado?";
+		
+		unvisitedVertices.add(v);
+	}
+
+	private boolean isStart(Vertice v) {
+		return start.contains(v);
+	}
+
+	private void setStart(Vertice v) {
+		assert !start.contains(v) : "Vertice jah start?";
+		
+		start.add(v);
+	}
+
+	private void unsetStart(Vertice v) {
+		assert start.contains(v) : "Vertice nao start?";
+		
+		start.remove(v);
+	}
+
+	private boolean isTerminal(Vertice v) {
+		return terminal.contains(v);
+	}
+
+	private void setTerminal(Vertice v) {
+		assert !terminal.contains(v) : "Vertice jah terminal?";
+		assert visitedVertices.contains(v) : "Vertice nao tvisitado?";
+
+		terminal.add(v);
+	}
+
+	private void unsetTerminal(Vertice v) {
+		assert terminal.contains(v) : "Vertice nao terminal?";
+		
+		terminal.remove(v);
+	}
+
+	public ArrayList<Aresta> suitableLinks(Vertice v, String min, String max) 
+	{
+		ArrayList<Aresta> adj = v.getAdj(); 
+		if(adj.isEmpty())
+			return null;
+		
+		ArrayList<Aresta> slinks = new ArrayList<>();
+		for(Aresta ln : adj) {
+			Vertice dst = ln.getDestino();
+			boolean cruza = isTVisited(dst) && !isStart(dst);
+			boolean bdg = bridge.contains(ln) || bridge.contains(dst.getAresta(ln.getOrigem()));
+			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(min, max) && !cruza && !bdg)
+				slinks.add(ln);
+		}
+
+		return (slinks.isEmpty())? null : slinks;
+	}
+
+	private class Bridge {
+		private int cnt; // counter
+		private int[] pre; // pre[v] = order in which dfs examines v
+		private int[] low; // low[v] = lowest preorder of any vertex connected to v
+
+		public Bridge(Graph G) {
+			assert G != null : "Ponteiro nulo para grafo!";
+			low = new int[G.getVertices().size()];
+			pre = new int[G.getVertices().size()];
+			cnt = 0;
+			for (int v = 0; v < G.getVertices().size(); v++)
+				low[v] = pre[v] = -1;
+
+			for (Vertice v: G.getVertices())
+				
+				if (pre[G.indexOf(v)] == -1)
+					dfs(G, v, v);
+		}
+
+		private void dfs(Graph g, Vertice u, Vertice v) {
+			assert g != null && u != null && v != null : "Ponteiro(s) nulo(s) para vertice(s) ou grafo!";
+			low[g.indexOf(v)] = pre[g.indexOf(v)] = cnt++;
+			for(Aresta e : v.getAdj()) {
+				Vertice w = e.getDestino();
+				if (pre[g.indexOf(w)] == -1) {
+					dfs(g, v, w);
+					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
+					if (low[g.indexOf(w)] == pre[g.indexOf(w)]) {
+						bridge.add(e);
 					}
 				}
-				restrict.addRestriction(ip, op);
-				restrict.addRestriction(op, ip);
-			}
-
-			if (segment.isRegular()) {
-				int nTurns = 0;
-				Aresta firstLink = null, secondLink = null;
-				String ip = null, op = null;
-				Vertice restrict = null;
-
-				for (int nLink = 0; nLink < segment.getLinks().size() - 1; nLink++) {
-					firstLink = segment.getLinks().get(nLink);
-					secondLink = segment.getLinks().get(nLink + 1);
-
-					if (firstLink.getCor() != secondLink.getCor())
-						nTurns++;
-
-					// The number of turn you want to place the restriction
-					if (nTurns == 2) {
-						ip = firstLink.getDestino()
-								.getAresta(firstLink.getOrigem()).getCor();
-						op = secondLink.getCor();
-						restrict = firstLink.getDestino();
-						break;
-					}
-				}
-				if (nTurns == 1) {
-					ip = firstLink.getDestino().getAresta(firstLink.getOrigem())
-							.getCor();
-					op = secondLink.getCor();
-					restrict = firstLink.getDestino();
-				}
-
-				restrict.addRestriction(ip, op);
-				restrict.addRestriction(op, ip);
-
-			}
-
-			if (segment.isUnitary()) {
-				nUnitSeg++;
-				// No traffic allowed at link
-				Vertice Starting = segment.getLinks().get(0).getOrigem();
-				Vertice Ending = segment.getLinks().get(0).getDestino();
-				// Restricted link
-				String opStarting = Starting.getAresta(Ending).getCor();
-				String opEnding = Ending.getAresta(Starting).getCor();
-
-				// Restriction at local link
-				// Starting.addRestriction("I", opStarting);
-				// Ending.addRestriction("I", opEnding);
-
-				for (Aresta link : Starting.getAdj()) {
-					if (link.getCor() == Starting.getAresta(Ending).getCor())
-						continue;
-
-					Starting.addRestriction(link.getCor(), opStarting);
-				}
-
-				for (Aresta link : Ending.getAdj()) {
-					if (link.getCor() == Ending.getAresta(Starting).getCor())
-						continue;
-
-					Ending.addRestriction(link.getCor(), opEnding);
-				}
-
+				else if (!w.equals(u))
+					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
 			}
 		}
-
-	}
-
-	// Calc the average topological distance between faults. If 0 or 1 fault
-	// return MAX_VALUE
-	public double calcTopologicDistance() {
-
-		// if one or none faults return "-1"
-		if (routwFailLinks.size() == 0 && routwFailLinks.size() == 1)
-			return Double.MAX_VALUE;
-
-		double topologicDistance = 0.0;
-		int r = 1; // not necessary
-		for (int i = 0; i < routwFailLinks.size(); i++) {
-			for (int j = i; j < routwFailLinks.size(); j++) {
-				if (i == j)
-					continue;
-
-				// Get the smallest distance between failures.
-				int TDaux = Integer.MAX_VALUE;
-				for (int a = 0; a < 2; a++) {
-					for (int b = 0; b < 2; b++) {
-						int k = Math
-								.abs(Integer.valueOf(routwFailLinks.get(i)[a]
-										.charAt(0))
-										- Integer.valueOf(routwFailLinks.get(j)[b]
-												.charAt(0)))
-								+ Math.abs(Integer.valueOf(routwFailLinks
-										.get(i)[a].charAt(1))
-										- Integer.valueOf(routwFailLinks.get(j)[b]
-												.charAt(1)));
-
-						System.err.println(routwFailLinks.get(i)[a] + "-"
-								+ routwFailLinks.get(j)[b]);
-						System.err.println("#k: " + k);
-
-						TDaux = (TDaux < k) ? TDaux : k;
-					}
-
-				}
-				/*
-				 * int a=
-				 * Math.abs(Integer.valueOf(routwFailLinks.get(i)[0].charAt
-				 * (0))-Integer.valueOf(routwFailLinks.get(j)[0].charAt(0))) +
-				 * Math
-				 * .abs(Integer.valueOf(routwFailLinks.get(i)[0].charAt(1))-Integer
-				 * .valueOf(routwFailLinks.get(j)[0].charAt(1)));
-				 * //System.err.println(a); TDaux=a; int b=
-				 * Math.abs(Integer.valueOf
-				 * (routwFailLinks.get(i)[0].charAt(0))-Integer
-				 * .valueOf(routwFailLinks.get(j)[1].charAt(0))) +
-				 * Math.abs(Integer
-				 * .valueOf(routwFailLinks.get(i)[0].charAt(1))-Integer
-				 * .valueOf(routwFailLinks.get(j)[1].charAt(1)));
-				 * //System.err.println(b); TDaux=(TDaux<b)?TDaux:b; int c=
-				 * Math.
-				 * abs(Integer.valueOf(routwFailLinks.get(i)[1].charAt(0))-Integer
-				 * .valueOf(routwFailLinks.get(j)[0].charAt(0))) +
-				 * Math.abs(Integer
-				 * .valueOf(routwFailLinks.get(i)[1].charAt(1))-Integer
-				 * .valueOf(routwFailLinks.get(j)[0].charAt(1)));
-				 * //System.err.println(c); TDaux=(TDaux<c)?TDaux:c; int d=
-				 * Math.
-				 * abs(Integer.valueOf(routwFailLinks.get(i)[1].charAt(0))-Integer
-				 * .valueOf(routwFailLinks.get(j)[1].charAt(0))) +
-				 * Math.abs(Integer
-				 * .valueOf(routwFailLinks.get(i)[1].charAt(1))-Integer
-				 * .valueOf(routwFailLinks.get(j)[1].charAt(1)));
-				 * //System.err.println(d); TDaux=(TDaux<d)?TDaux:d;
-				 */
-
-				System.err.println("#TD: " + TDaux);
-				System.err.println("#Pares: " + r++);
-
-				topologicDistance += TDaux;
-				TopologicalDistances.add(TDaux);
-
-				// System.err.println(topologicDistance);
-			}
-		}
-		TDMean = 2 * topologicDistance
-				/ (routwFailLinks.size() * (routwFailLinks.size() - 1));
-		return TDMean;
-	}
-
-	public double topologicalDistanceStd() {
-
-		double temp = 0.0;
-		for (double td : TopologicalDistances)
-			temp += (td - TDMean) * (td - TDMean);
-
-		double variance = (temp / (double) (TopologicalDistances.size()));
-		// size-1 for sample. We have population
-
-		return Math.sqrt(variance);
-
-	}
-
-	public void printTopologicDistanceStd() {
-		try {
-			FileWriter topDistStd = new FileWriter(new File("topDist-Std"));
-			topDistStd.write(Double.toString(this.topologicalDistanceStd()));
-
-			topDistStd.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static void printTopologicDistance(double topologicDistance) {
-		try {
-			FileWriter topDist = new FileWriter(new File("topDist"));
-			topDist.write(Double.toString(topologicDistance));
-
-			topDist.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		
 	}
 
 }
