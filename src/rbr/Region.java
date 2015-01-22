@@ -3,7 +3,6 @@ package rbr;
 import java.util.ArrayList;
 
 public class Region implements Comparable<Region> {
-	private int maxRegions = 4;
 	private String ip;
 	private String op;
 	private String upRight;
@@ -51,28 +50,12 @@ public class Region implements Comparable<Region> {
 		this.size = ((Xmax - Xmin) + 1) * ((Ymax - Ymin) + 1);
 	}
 
-	public int getMaxRegions() {
-		return maxRegions;
-	}
-
-	public void setMaxRegions(int maxRegions) {
-		this.maxRegions = maxRegions;
-	}
-
 	public String getIp() {
 		return ip;
 	}
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-
 	public String getOp() {
 		return op;
-	}
-
-	public void setOp(String op) {
-		this.op = op;
 	}
 
 	public String getDownLeft() {
@@ -104,10 +87,6 @@ public class Region implements Comparable<Region> {
 		if (result.size() == 0)
 			result = null;
 		return result;
-	}
-
-	public void setDst(ArrayList<String> dst) {
-		this.dst = dst;
 	}
 
 	@Override
@@ -160,22 +139,4 @@ public class Region implements Comparable<Region> {
 		return false;
 	}
 
-	// check if has overlap with other
-	public boolean hasSuperpositionWith(Region other) {
-		if (this.contains(other.getDownLeft())
-				|| this.contains(other.getUpRight())
-				|| other.contains(this.getDownLeft())
-				|| other.contains(this.getUpRight()))
-			return true;
-		return false;
-	}
-
-	// check if share ip with other
-	public boolean sharesIpWith(Region other) {
-		for (int i = 0; i < other.getIp().length();) {
-			if (this.ip.contains(other.getIp().substring(i, ++i)))
-				return true;
-		}
-		return false;
-	}
 }

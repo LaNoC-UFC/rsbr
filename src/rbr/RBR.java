@@ -1,6 +1,7 @@
 package rbr;
 
 import util.*;
+import util.Path.PropWeight;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,9 +18,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class RBR {
-	// public HashMap<String, String> restrictions = new HashMap<>();
 	private Graph graph;
 
+	/*
+	 * Compara duas listas de Path e considera maior aquela que contém mais
+	 * Path, ou seja, que possui maior adaptatividade (diversidade).
+	 */
 	private static class BySize implements Comparator<ArrayList<Path>> {
 
 		@Override
@@ -50,22 +54,6 @@ public class RBR {
 		graph = g;
 
 	}
-
-// Get restrictions and add to HashMap ( RouterName: -> Forbidden ports )
-	/*
-	public void setRestricitions(String fileName) { File restrictionsFile =
-			new File(fileName);
-
-	try { Scanner sc = new Scanner(new FileReader(restrictionsFile)); while
-		(sc.hasNextLine()) { String[] rest = sc.nextLine().split(" "); for (int i
-				= 0; i < rest.length; i++) { this.restrictions.put(
-						rest[0].concat(rest[i].substring(0, 1)), rest[i].substring(2,
-								rest[i].length() - 1)); } }
-	System.out.println("Restrictions setted from file: " +
-			restrictionsFile.getName()); sc.close(); } catch (Exception ex) {
-				Logger.getLogger(RBRTools.class.getName()).log(Level.SEVERE, null, ex); }
-	}
-	*/
 
 	// Make log file for each input file
 	public void makeLog() {
@@ -110,87 +98,11 @@ public class RBR {
 
 	}
 
-// Check if r2 can be reached through r1 
-	private static boolean canBeReached(Vertice r1, Vertice r2) {
-		String corArestaPai; // Output port
-		String corArestaAtual;// Input port
-		String rest = ""; // Restriction
-		corArestaAtual = r1.getAresta(r2).getCor();
-
-		if (r1.preds.size() == 0) {
-			corArestaPai = "I";
-			return true;
-		}
-
-		for (Vertice pred : r1.preds) {
-			corArestaPai = r1.getAresta(pred).getCor();
-			rest = pred.getRestriction(corArestaPai);
-
-			if (!rest.contains(corArestaAtual))
-				return true;
-		}
-
-		return false;
-	}
-
-	// Calculates the hop-count stats - [0] - Max / [1] - Min / [2] - Average
-	private static double[] getHopCountStats(ArrayList<Path> paths) {
-		double[] hcStats = new double[3];
-		double averageHopCount = 0;
-		double maxHopCount = 0;
-		double minHopCount = Double.POSITIVE_INFINITY;
-
-		for (Path path : paths) {
-			maxHopCount = (maxHopCount > path.size() - 1) ? maxHopCount : path
-					.size() - 1;
-			minHopCount = (minHopCount < path.size() - 1) ? minHopCount : path
-					.size() - 1;
-			averageHopCount += (path.size() - 1);
-		}
-
-		hcStats[0] = maxHopCount;
-		hcStats[1] = minHopCount;
-		hcStats[2] = averageHopCount / paths.size();
-
-		return hcStats;
-	}
-
-	// Get just one path (from source to sink) from all paths computed
-	/*
-	public ArrayList<Path> getSimplePaths(ArrayList<Path> p) {
-		ArrayList<Path> simplePaths = new ArrayList<Path>();
-		ArrayList<Path> paths = new ArrayList<Path>(p);
-
-		for (Vertice source : graph.getVertices()) {
-			for (Vertice sink : graph.getVertices()) {
-				if (source.getNome().equals(sink.getNome()))
-					continue;
-				List<Integer> indexs = new ArrayList<Integer>();
-				for (Path path : paths) {
-					if (path.get(0).getNome().equals(source.getNome())
-							&& path.get(path.size() - 1).getNome()
-									.equals(sink.getNome()))
-						indexs.add(paths.indexOf(path));
-				}
-				int randIndex = 0;
-				if (indexs.size() > 1) {
-					randIndex = (int) (Math.random() * ((double) indexs.size() - 1));
-				}
-				simplePaths.add(paths.get(indexs.get(randIndex)));
-				for (Integer i : indexs) {
-					paths.remove(i);
-				}
-			}
-		}
-
-		return simplePaths;
-
-	}
-	*/
 
 	public void doRoutingTable(String ext) {
 		double[] stats = getRegionsStats();
 		String routingTableFile = "Table_package_"+ext+".vhd";
+
 		File routingTable = new File(routingTableFile);
 		int size = (graph.dimX() >= graph.dimY()) ? graph.dimX() : graph.dimY();
 		int nBits = (int) Math.ceil(Math.log(size) / Math.log(2));
@@ -245,23 +157,8 @@ public class RBR {
 		return routingDistance / (paths.size() + graph.getVertices().size());
 	}
 
-	// Set all links weight -> #paths that cross the link
-	/*
-	private static void setLinkWeight(ArrayList<Path> paths) {
-
-		for (Path path : paths) {
-			for (int v = 0; v < path.size() - 1; v++) {
-				Aresta link = path.get(v).getAresta(path.get(v + 1));
-				link.incremWeight();
-			}
-		}
-	}
-	*/
-
 	// Link weight stats [0] - mean / [1] - standard deviation
 	public double[] linkWeightStats() {
-		//setLinkWeight(paths); // After that we have the weight of all
-								// links
 		double linksWeight = 0.0;
 		double[] stats = new double[2];
 		double mean = 0.0;
@@ -397,147 +294,7 @@ public class RBR {
 		}
 	}
 
-// Calculates the size of minimum path length // If destination cannot be
-// reached starting at source the return is null 
-	/*
-	private int MinimumPathLength(Vertice o, Vertice d) {
-		int min = 0;
-		ArrayList<Vertice> bestPath = new ArrayList<>();
-		Vertice atual;
-		Vertice vizinho;
-		ArrayList<Vertice> naoVisitados = new ArrayList<>();
 
-		graph.setGraph();
-		bestPath.add(o);
-
-		// Setting the initial distance for all vertices
-		for (int i = 0; i < graph.getVertices().size(); i++) {
-			graph.getVertices().get(i).preds = new ArrayList<Vertice>();
-			if (graph.getVertices().get(i).getNome().equals(o.getNome())) {
-				graph.getVertices().get(i).setDistancia(0);
-			} else {
-				graph.getVertices().get(i).setDistancia(9999);
-			}
-
-			naoVisitados.add(graph.getVertices().get(i));
-		}
-
-		Collections.sort(naoVisitados);
-
-		while (!naoVisitados.isEmpty()) {
-			atual = naoVisitados.get(0);
-
-			for (int i = 0; i < atual.getAdj().size(); i++) {
-				vizinho = atual.getAdj().get(i).getDestino();
-				if (!canBeReached(atual, vizinho))
-					continue;
-
-				if (!vizinho.verificarVisita()) {
-					if (vizinho.getDistancia() >= (atual.getDistancia() + atual
-							.getAdj().get(i).getPeso())) {
-						vizinho.setDistancia(atual.getDistancia()
-								+ atual.getAdj().get(i).getPeso());
-						vizinho.preds.add(atual);
-
-						if (vizinho == d) {
-							bestPath.clear();
-							bestPath.add(vizinho);
-							min = vizinho.getDistancia();
-						}
-					} else {
-						atual.visitar();
-					}
-				}
-			}
-
-			naoVisitados.remove(atual);
-
-			Collections.sort(naoVisitados);
-		}
-
-		return min;
-	}
-	*/
-
-/* Implements Dijkstra's algorithm : computes all minimal paths for a
-pair (source, sink)
-	 */
-	/*
-	public ArrayList<Path> getPaths(Vertice src, Vertice dst) {
-		int max = MinimumPathLength(src, dst);
-		ArrayList<Path> paths = new ArrayList<Path>();
-		depthFirst(0, max, dst, paths);
-
-		ArrayList<Path> removePaths = new ArrayList<Path>();
-		for (Path path : paths) {
-			for (int i = 1; i < path.size() - 1; i++) {
-				Vertice atual = path.get(i);
-				String corAnt = atual.getAresta(path.get(i - 1)).getCor();
-				String corProx = atual.getAresta(path.get(i + 1)).getCor();
-				String restric = atual.getRestriction(corAnt);
-				if (restric.contains(corProx)) {
-					removePaths.add(path);
-					break;
-				}
-			}
-		}
-		paths.removeAll(removePaths);
-
-		return paths;
-	}
-	*/
-
-	/*
-	private static void depthFirst(int niv, int max, Vertice act, ArrayList<Path> paths) {
-		if (++niv > max) {
-			Path temp = new Path();
-			temp.add(act);
-			paths.add(temp);
-			return;
-		}
-		for (Vertice parent : act.preds) {
-			depthFirst(niv, max, parent, paths);
-			for (Path path : paths)
-				if (path.get(path.size() - 1) == parent)
-					path.add(act);
-
-		}
-	}
-	*/
-
-// Do getPaths for all pairs (source, sink) 
-	/*
-	public ArrayList<Path> pathsComputation() {
-		ArrayList<Path> paths = null;// = new ArrayList<>();
-		ArrayList<Path> allPaths = new ArrayList<>();
-		for (Vertice src : graph.getVertices()) {
-			for (Vertice dst : graph.getVertices()) {
-				if (!src.getNome().equals(dst.getNome())) {
-					paths = getPaths(src, dst);
-					allPaths.addAll(paths);
-					for (Path path : paths) {
-						String dest = dst.getNome();
-						for (Vertice sw : path) {
-							if (path.indexOf(sw) != path.size() - 1) {
-								String op = sw.getAresta(path.get(path.indexOf(sw) + 1)).getCor();
-								String ip = (path.indexOf(sw) == 0) ? "I" : sw.getAresta(	path.get(path.indexOf(sw) - 1)).getCor();
-								//sw.addRP(ip, dest, op); // Need to change to
-														// just make RP for //
-														// simplePaths
-							}
-						}
-					}
-				}
-			}
-		}
-		for (Vertice atual : graph.getVertices()) {
-			packOutputPort(atual); //
-			packInputPort(atual);
-		}
-
-		return allPaths;
-	}
-	*/
 	
 	/*
 	 * Nova versao da busca de pacotes. Retorna dividido por par de comunicação
@@ -729,9 +486,19 @@ pair (source, sink)
 		
 
 		for(int i = iterat; i > 1; i--) {
+			// Caso busque equalização
 			if(c.getClass() == Path.MedWeight.class || c.getClass() == Path.PropWeight.class) {
-				Collections.sort(selec, new RBR.ByDev(c));
-				Collections.sort(p, new RBR.ByDev(c));
+				double[] pw = pathWeightStats(selec);
+				if(c.getClass() == Path.MedWeight.class) {
+					c = new Path().new MedWeight(pw[0]);
+					Collections.sort(selec, new RBR.ByDev(c));
+					Collections.sort(p, new RBR.ByDev(c));
+				}
+				/*
+				System.out.println("pwm "+pw[0]+" pws "+pw[1]);
+				double[] lw = linkWeightStats();
+				System.out.println("lwm "+lw[0]+" lws "+lw[1]);
+			*/
 			}
 			for(int j = 0; j < p.size(); j++) { // each pair
 				ArrayList<Path> pair = selec.get(j);
@@ -751,30 +518,10 @@ pair (source, sink)
 		return selec;
 	}
 	
-	/*
-	public void addRoutingOptions(ArrayList<Path> paths) {
-		for (Path path : paths) {
-			String dest = path.dst().getNome();
-			for (Vertice sw : path) {
-				if (path.indexOf(sw) != path.size() - 1) {
-					String op = sw.getAresta(path.get(path.indexOf(sw) + 1))
-							.getCor();
-					String ip = (path.indexOf(sw) == 0) ? "I" : sw.getAresta(
-							path.get(path.indexOf(sw) - 1)).getCor();
-					sw.addRP(ip, dest, op);
-				}
-			}
-		}
-		for (Vertice atual : graph.getVertices()) {
-			packOutputPort(atual);
-			// packInputPort(atual);
-		}
-	}
-	*/
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
 		
-		//inicializa op\E7\F5es de roteamento
+		//inicializa opcoes de roteamento
 		for(Vertice v : graph.getVertices())
 			v.initRoutingOptions();
 		
@@ -828,10 +575,6 @@ pair (source, sink)
 
 		for(ArrayList<Path> alp : paths) {
 			Path path = alp.get(0);
-			//int sourceX = Integer.parseInt(path.src().getNome().split("\\.")[0]);
-			//int sourceY = Integer.parseInt(path.src().getNome().split("\\.")[1]);
-			//int sinkX = Integer.parseInt(path.dst().getNome().split("\\.")[0]);
-			//int sinkY = Integer.parseInt(path.dst().getNome().split("\\.")[1]);
 			int sourceN = indexOf(path.src().getNome()); //sourceX + sourceY * dimX;
 			int sinkN = indexOf(path.dst().getNome()); //sinkX + sinkY * dimX;
 
@@ -1474,14 +1217,23 @@ pair (source, sink)
 		return acc*linkWeightMean(paths)/(double)paths.size();
 	}
 
+	public double pathWeightStd(ArrayList<ArrayList<Path>> paths) {
+		double acc = 0;
+		double mean = pathWeightMean(paths);
+		double lwm = linkWeightMean(paths);
+		for(ArrayList<Path> alp : paths)
+			acc += (((double)alp.get(0).size()-1.0)*lwm-mean)*(((double)alp.get(0).size()-1.0)*lwm-mean);
+		return Math.sqrt(acc/(double)paths.size());
+	}
+
 	public double[] pathWeightStats(ArrayList<ArrayList<Path>> paths) {
 		double[] stats = new double[2];
 		double acc = 0;
 		int nPaths = 0;
 		for(ArrayList<Path> alp : paths) {
+			nPaths += alp.size();
 			for(Path path: alp)
 				acc += path.getWeight();
-			nPaths += alp.size();
 		}
 		stats[0] = acc/(double)nPaths; // media
 		
@@ -1489,6 +1241,26 @@ pair (source, sink)
 		for(ArrayList<Path> alp : paths) {
 			for(Path path: alp)
 				acc += (stats[0]-path.getWeight())*(stats[0]-path.getWeight());
+		}
+		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
+		return stats;
+	}
+
+	public double[] pathNormWeightStats(ArrayList<ArrayList<Path>> paths) {
+		double[] stats = new double[2];
+		double acc = 0;
+		int nPaths = 0;
+		for(ArrayList<Path> alp : paths) {
+			nPaths += alp.size();
+			for(Path path: alp)
+				acc += path.getWeight()/(double)(path.size()-1);
+		}
+		stats[0] = acc/(double)nPaths; // media
+		
+		acc = 0;
+		for(ArrayList<Path> alp : paths) {
+			for(Path path: alp)
+				acc += (stats[0]-path.getWeight()/(double)(path.size()-1))*(stats[0]-path.getWeight()/(double)(path.size()-1));
 		}
 		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
 		return stats;

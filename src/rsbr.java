@@ -77,6 +77,7 @@ public class rsbr {
 				System.out.println("mw2");
 				System.out.println("Max: "+stats[0]+" Min: "+stats[1]+" Med: "+stats[2]);
 				mw2.add(stats[0]);							
+
 			}
 			
 			rbr.printMontCarl(file, faltPerc, all, mw2);
@@ -84,6 +85,7 @@ public class rsbr {
 		}
 		
 		System.out.println("All done!");
+
 	}
 
 }
