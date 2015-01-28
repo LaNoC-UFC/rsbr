@@ -1,4 +1,7 @@
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import rbr.RBR;
@@ -10,11 +13,17 @@ public class rsbr {
 
 	public static void main(String[] args) {
 		
-		int dimX=4,dimY=4;
-		int montCarl = 5;
-		double[] faltPercs={0.1,0.2};
+		int dimX=8,dimY=8;
+		int montCarl = 1000;
+		double[] faltPercs={0.0,0.05,0.1,0.15,0.2,0,25,0.30};
 		ArrayList<ArrayList<Path>> toSimPaths = null;
-		File file = new File("monteCarlo.txt");
+		BufferedWriter output = null;
+		try {
+			output = new BufferedWriter(new FileWriter(new File("monteCarlo.txt")));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		switch (args.length) 
 		{
@@ -80,8 +89,15 @@ public class rsbr {
 
 			}
 			
-			rbr.printMontCarl(file, faltPerc, all, mw2);
+			rbr.printMontCarl(output, faltPerc, all, mw2);
 						
+		}
+		
+		try {
+			output.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		System.out.println("All done!");

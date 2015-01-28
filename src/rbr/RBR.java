@@ -208,15 +208,15 @@ public class RBR {
 		return stats;
 	}
 	
-	public void printMontCarl(File file,double percent, ArrayList<Double> c1,ArrayList<Double> c2)
+	public void printMontCarl(BufferedWriter output,double percent, ArrayList<Double> c1,ArrayList<Double> c2)
 	{
 		double[] statsC1 = montCarlStats(c1);
 		double[] statsC2 = montCarlStats(c2);
 		try 
 		{
-			BufferedWriter output = new BufferedWriter(new FileWriter(file));
-			output.append(percent+"\t"+statsC1[0]+"\t"+statsC1[1]+"\t"+statsC2[0]+"\t"+statsC2[1]);
-			output.close();
+			
+			output.append(percent+"\t"+statsC1[0]+"\t"+statsC1[1]+"\t"+statsC2[0]+"\t"+statsC2[1]+"\n");
+
 			
 		} 
 		catch (IOException e) 
