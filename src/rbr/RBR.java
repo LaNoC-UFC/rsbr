@@ -319,6 +319,7 @@ public class RBR {
 		}
 		System.out.println("Tamanho: 1"+" - "+lastPaths.size()+" paths.");
 		allPaths.addAll(lastPaths);
+		//savePathInFile("paths 1 hop", lastPaths);
 		
 		int nPairs = graph.dimX() * graph.dimY()
 				* (graph.dimX() * graph.dimY() - 1);
@@ -349,6 +350,8 @@ public class RBR {
 			}
 			System.out.println("Tamanho: "+lastPaths.get(0).size()+" - "+valid.size()+" paths.");
 			allPaths.addAll(valid);
+			//savePathInFile("paths"+lastPaths.get(0).size()+"hops", valid);
+			lastPaths = null;
 			lastPaths = valid;
 			for (Path p : valid) {
 				String pair = p.src().getNome() + ":" + p.dst().getNome();
@@ -357,26 +360,32 @@ public class RBR {
 					//System.out.println(pair + " #"+pairs.size());					
 				}
 			}
+			valid = null;
 		}
 		return divideByPair(allPaths);
 	}
 	
-	public void savePathInFile(String fileName, ArrayList<ArrayList<Path>> paths)
+	/**
+	 * Save in a file all the paths.
+	 * @param fileName File name.
+	 * @param paths Array of all paths.
+	 */
+	public void savePathInFile(String fileName, ArrayList<Path> paths)
 	{
 		try {
 			PrintWriter printer = new PrintWriter(fileName, "UTF-8");
 			
-			for(ArrayList<Path> pathList : paths)
-			{
-				for(Path path : pathList)
+			//for(ArrayList<Path> pathList : paths)
+			//{
+				for(Path path : paths)
 				{
 					printer.println(path.toString());
 				}
-			}
+			//}
 			
 			printer.close();
 			
-			System.out.println("Paths saved in " + fileName);
+			//System.out.println("Paths saved in " + fileName);
 			
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -488,13 +497,14 @@ public class RBR {
 		for(int i = iterat; i > 1; i--) {
 			// Caso busque equalização
 			if(c.getClass() == Path.MedWeight.class || c.getClass() == Path.PropWeight.class) {
-				double[] pw = pathWeightStats(selec);
+				/*
 				if(c.getClass() == Path.MedWeight.class) {
+					double[] pw = pathWeightStats(selec);
+					System.out.println("pwm "+pw[0]+" pws "+pw[1]);
 					c = new Path().new MedWeight(pw[0]);
+				}
 					Collections.sort(selec, new RBR.ByDev(c));
 					Collections.sort(p, new RBR.ByDev(c));
-				}
-				/*
 				System.out.println("pwm "+pw[0]+" pws "+pw[1]);
 				double[] lw = linkWeightStats();
 				System.out.println("lwm "+lw[0]+" lws "+lw[1]);
@@ -1184,7 +1194,8 @@ public class RBR {
 	public ArrayList<ArrayList<Path>> divideByPair(ArrayList<Path> paths) {
 		ArrayList<ArrayList<Path>> paths2 = new ArrayList<ArrayList<Path>>();
 		ArrayList<Path> aux = new ArrayList<Path>();
-		Collections.sort(paths);
+		Collections.sort(paths, new Path.SrcDst()); // por par
+		Collections.sort(paths); // soh pelo comprimento
 		for(int i = 0; i < paths.size(); i++){
 			Path act = paths.get(i);
 			aux.add(act);
@@ -1205,7 +1216,7 @@ public class RBR {
 		double acc = 0;
 		for(ArrayList<Path> alp : paths) {
 			Path path = alp.get(0);
-			acc += (double) (path.size()-1.0)*path.volume();
+			acc += ((double)path.size()-1.0)*path.volume();
 		}
 		return acc/(double)graph.getArestas().size();
 	}
@@ -1213,7 +1224,7 @@ public class RBR {
 	public double pathWeightMean(ArrayList<ArrayList<Path>> paths) {
 		double acc = 0;
 		for(ArrayList<Path> alp : paths)
-			acc += (double) (alp.get(0).size()-1.0);
+			acc += (double) (alp.get(0).size()-1);
 		return acc*linkWeightMean(paths)/(double)paths.size();
 	}
 

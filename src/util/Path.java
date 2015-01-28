@@ -19,7 +19,17 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
 	}
 	
+	public static class SrcDst implements Comparator<Path> {
 
+		@Override
+		public int compare(Path p0, Path p1) {
+			int src = p0.src().getNome().compareTo(p1.src().getNome());
+			int dst = p0.dst().getNome().compareTo(p1.dst().getNome());
+			return (src != 0) ? src : dst;
+		}
+
+	}
+	
 	public static class MaxWeight implements Comparator<Path> {
 
 		@Override
