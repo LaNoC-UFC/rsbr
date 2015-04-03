@@ -22,6 +22,7 @@ public class Graph {
 		vertices = new ArrayList<>();
 		arestas = new ArrayList<>();
 	}
+	
 
 	public Graph(File topology) {
 		System.out.println("from file: "+topology.getName());
@@ -91,6 +92,7 @@ public class Graph {
 	
 	public Graph(int dX,int dY, double perc)
 	{
+		
 		vertices = new ArrayList<>();
 		arestas = new ArrayList<>();
 		
@@ -145,11 +147,11 @@ public class Graph {
 		}
 	}
 	
-	//Checha se existe cores isolados
+	//Checa se existe cores isolados
 	public boolean haveIsolatedCores()
 	{
 		ArrayList<Vertice> alc = new ArrayList<Vertice>();
-		//Escolha do 0.0 para ser o core inicial. Garantido a existencia em todas as topologias
+		//Escolha do 0.0 para ser o core inicial. Garantido a existencia do primeiro nodo em todas as topologias
 		getVertice("0.0").checkIsolation(alc);
 		
 		//Se lista de alcan�aveis for igual ao total de cores n�o existe isolamento

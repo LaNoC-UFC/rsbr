@@ -50,6 +50,7 @@ public class RBR {
 
 	}
 	
+
 	public RBR(Graph g) {
 		graph = g;
 
