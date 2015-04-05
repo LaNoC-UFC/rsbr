@@ -86,6 +86,10 @@ public class Graph {
 		this(dim, dim, perc);
 	}
 	
+	public Graph(int dim) {
+		this(dim, dim, 0);
+	}
+	
 	public Graph(int dX,int dY, double perc)
 	{
 		vertices = new ArrayList<>();
@@ -143,13 +147,12 @@ public class Graph {
 	}
 	
 	//Checha se existe cores isolados
-	public boolean haveIsolatedCores()
-	{
+	public boolean haveIsolatedCores() {
 		ArrayList<Vertice> alc = new ArrayList<Vertice>();
 		//Escolha do 0.0 para ser o core inicial. Garantido a existencia em todas as topologias
 		getVertice("0.0").checkIsolation(alc);
 		
-		//Se lista de alcan�aveis for igual ao total de cores n�o existe isolamento
+		//Se lista de alcancaveis for igual ao total de cores nao existe isolamento
 		if(!(alc.size()==vertices.size())) return true;
 		
     	return false;

@@ -248,9 +248,9 @@ public class Vertice implements Comparable<Vertice> {
 
 	public void checkIsolation(ArrayList<Vertice> alc) {
 		if (!alc.contains(this))
-			alc.add(this); // Adiciona primeiro core analisado aos alcan�aveis
+			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
 		for (Aresta adj : adj) {
-			// So adiciona aos alcan�aveis cores que ainda n�o foram adicionados
+			// So adiciona aos alcancaveis cores que ainda nao foram adicionados
 			if (alc.contains(adj.getDestino()))
 				continue;
 			Vertice neigh = adj.getDestino();
@@ -319,8 +319,7 @@ public class Vertice implements Comparable<Vertice> {
 				int a = this.Regions.size();
 				while (a < maxRegion) {
 					a++;
-					String outLine = "(\"" + IntToBitsString(0, 4 * nBits + 10)
-							+ "\")";
+					String outLine = "(\"" + IntToBitsString(0, 4 * nBits + 10) + "\")";
 					bw.append(outLine);
 
 					if (a < maxRegion)
@@ -334,8 +333,7 @@ public class Vertice implements Comparable<Vertice> {
 			// bw.flush();
 			// bw.close();
 		} catch (IOException ex) {
-			Logger.getLogger(Vertice.class.getName()).log(Level.SEVERE, null,
-					ex);
+			Logger.getLogger(Vertice.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 

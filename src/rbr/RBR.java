@@ -433,6 +433,7 @@ public class RBR {
 	 */
 	public ArrayList<ArrayList<Path>> pathSelection(ArrayList<ArrayList<Path>> p, double perc, Comparator<Path> c, int iterat) {
 		ArrayList<ArrayList<Path>> selec = new ArrayList<ArrayList<Path>>();
+		
 		Collections.sort(p, new RBR.BySize()); // sort by number of paths by pair
 		for(ArrayList<Path> alp: p) {
 			Collections.sort(alp, c);
@@ -448,21 +449,13 @@ public class RBR {
 
 		for(int i = iterat; i > 1; i--) {
 			// Caso busque equalização
-			if(c.getClass() == Path.MedWeight.class || c.getClass() == Path.PropWeight.class) {
-				/*
-				if(c.getClass() == Path.MedWeight.class) {
-					double[] pw = pathWeightStats(selec);
-					System.out.println("pwm "+pw[0]+" pws "+pw[1]);
-					c = new Path().new MedWeight(pw[0]);
-				}
-					Collections.sort(selec, new RBR.ByDev(c));
-					Collections.sort(p, new RBR.ByDev(c));
-				System.out.println("pwm "+pw[0]+" pws "+pw[1]);
-				double[] lw = linkWeightStats();
-				System.out.println("lwm "+lw[0]+" lws "+lw[1]);
-			*/
+			if(c.getClass() == Path.PropWeight.class) {
+				Collections.sort(selec, new RBR.ByDev(c));
+				Collections.sort(p, new RBR.ByDev(c));
 			}
 			for(int j = 0; j < p.size(); j++) { // each pair
+				if(p.get(j).size() == 1)
+					continue;
 				ArrayList<Path> pair = selec.get(j);
 				for(Path path : pair)
 					path.decremWeight();
@@ -1200,10 +1193,12 @@ public class RBR {
 		}
 		stats[0] = acc/(double)nPaths; // media
 		
-		acc = 0;
+		acc = 0; double dev;
 		for(ArrayList<Path> alp : paths) {
-			for(Path path: alp)
-				acc += (stats[0]-path.getWeight())*(stats[0]-path.getWeight());
+			for(Path path: alp) {
+				dev = path.getWeight()-stats[0];
+				acc += dev*dev;
+			}
 		}
 		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
 		return stats;
@@ -1220,10 +1215,12 @@ public class RBR {
 		}
 		stats[0] = acc/(double)nPaths; // media
 		
-		acc = 0;
+		acc = 0; double dev;
 		for(ArrayList<Path> alp : paths) {
-			for(Path path: alp)
-				acc += (stats[0]-path.getWeight()/(double)(path.size()-1))*(stats[0]-path.getWeight()/(double)(path.size()-1));
+			for(Path path: alp) {
+				dev = stats[0]-path.getWeight()/(double)(path.size()-1);
+				acc += dev*dev;
+			}
 		}
 		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
 		return stats;

@@ -17,7 +17,7 @@ public class rsbr {
 		
 		System.out.println("Generating graph");
 		
-		Graph graph = (topologyFile != null) ? new Graph(new File(topologyFile)) :  new Graph(dim, 0.2);
+		Graph graph = (topologyFile != null) ? new Graph(new File(topologyFile)) :  new Graph(dim);
 		System.out.println("Isolado? :"+graph.haveIsolatedCores());
 		//System.out.println(graph);
 
@@ -52,24 +52,30 @@ public class rsbr {
 		double lwm = rbr.linkWeightMean(paths);
 		double pwm = rbr.pathWeightMean(paths);
 
-		int choice = 4;
+		int choice = 2;
 		switch(choice) {
 		case 0 : // Sem seleção
 			simplePaths = paths;
 			break;
 		case 1 : // Selecao aleatoria
 			simplePaths = rbr.pathSelection(paths);
+			System.out.println("Aleatoria");
+			printResults(simplePaths, rbr);
 			break;
 		case 2 : // Peso mínimo
 			simplePaths = rbr.pathSelection(paths, new Path.MinWeight(), 10);
+			System.out.println("Peso Minimo");
+			printResults(simplePaths, rbr);
 			break;
 		case 3 : // Peso proporcional
-			double pws = rbr.pathWeightStd(paths);
-			System.out.println("Path Weight esperado: "+pwm+" ("+pws+")");
 			simplePaths = rbr.pathSelection(paths, new Path().new PropWeight(lwm), 10);
+			System.out.println("Peso proporcional");
+			printResults(simplePaths, rbr);
 			break;
 		case 4 : // Peso médio
 			simplePaths = rbr.pathSelection(paths, new Path().new MedWeight(pwm), 10);
+			System.out.println("Peso médio");
+			printResults(simplePaths, rbr);
 			break;
 		}
 		//rbr.printLengthofPaths(simplePaths);
@@ -89,19 +95,22 @@ public class rsbr {
 			rbr.doRoutingTable(tableFile);
 		}
 		
-		System.out.println("Doing Average Routing Distance and Link Weight\n");
+		//System.out.println("Doing Average Routing Distance and Link Weight\n");
+		//rbr.makeStats(simplePaths);
+		
+		System.out.println("\nAll done!");
+	}
+	
+	private static void printResults(ArrayList<ArrayList<Path>> paths, RBR rbr) {
 		//double[] reg = rbr.getRegionsStats();
 		double[] lw = rbr.linkWeightStats();
-		double[] pw = rbr.pathWeightStats(simplePaths);
-		double[] pnw = rbr.pathNormWeightStats(simplePaths);
-		//rbr.makeStats(simplePaths);
+		double[] pw = rbr.pathWeightStats(paths);
+		double[] pnw = rbr.pathNormWeightStats(paths);
 		
 		//System.out.println("Regions - Min: "+reg[0]+", Med: "+reg[1]+", Max: "+reg[2]);
 		System.out.println("Peso dos caminhos: "+pw[0]+" ("+pw[1]+")");
 		System.out.println("Peso normalizado dos caminhos: "+pnw[0]+" ("+pnw[1]+")");
 		System.out.println("Peso dos links: "+lw[0]+" ("+lw[1]+")");
-
-		System.out.println("\nAll done!");
 	}
 
 }
