@@ -367,6 +367,11 @@ public class SR {
 		}
 
 	}
+	
+	public int getnUnitSeg()
+	{
+		return nUnitSeg;				
+	}
 
 	public void printRegSeg() {
 

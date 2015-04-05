@@ -50,6 +50,7 @@ public class RBR {
 
 	}
 	
+
 	public RBR(Graph g) {
 		graph = g;
 
@@ -99,8 +100,10 @@ public class RBR {
 	}
 
 
-	public void doRoutingTable(String routingTableFile) {
+	public void doRoutingTable(String ext) {
 		double[] stats = getRegionsStats();
+		String routingTableFile = "Table_package_"+ext+".vhd";
+
 		File routingTable = new File(routingTableFile);
 		int size = (graph.dimX() >= graph.dimY()) ? graph.dimX() : graph.dimY();
 		int nBits = (int) Math.ceil(Math.log(size) / Math.log(2));
@@ -203,6 +206,51 @@ public class RBR {
 		stats[0] = (double) regSizes.get(regSizes.size() - 1);
 		stats[1] = (double) regSizes.get(0);
 		stats[2] = (double) average;
+		return stats;
+	}
+	
+	public void printMontCarl(BufferedWriter output,double percent, ArrayList<Double> c1,ArrayList<Double> c2)
+	{
+		double[] statsC1 = montCarlStats(c1);
+		double[] statsC2 = montCarlStats(c2);
+		try 
+		{
+			
+			output.append(percent+"\t"+statsC1[0]+"\t"+statsC1[1]+"\t"+statsC2[0]+"\t"+statsC2[1]+"\n");
+
+			
+		} 
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	private double[] montCarlStats(ArrayList<Double> input)
+	{
+		double[] stats = new double[2]; //0-Mean, 1-Std		
+		double sum=0;
+		double mean=0;
+		double sigma = 0;
+		double variance = 0;
+		double dblmean = 0;		
+		
+		for(double vlr : input)
+			sum+=vlr;
+		mean=sum/input.size();
+		
+		double ArAccum=0;
+		for(double vlr : input)
+			ArAccum+=(vlr*vlr);
+		dblmean= ArAccum/input.size();
+		
+		variance = dblmean-(mean*mean); //Variance
+		sigma=Math.sqrt(variance); //Standard Deviation
+		
+		
+		stats[0] = mean;
+		stats[1] = sigma;
+
 		return stats;
 	}
 
@@ -353,7 +401,6 @@ public class RBR {
 	 * Read an especified file and return a list of paths.
 	 * @param fileName File Name.
 	 * @return Paths list.
-	 */
 	public ArrayList<Path> loadPaths(String fileName)
 	{
 		ArrayList<Path> paths = new ArrayList<>();
@@ -361,6 +408,7 @@ public class RBR {
 		String volume = "";
 		String[] vertices;
 		try {
+			Files.re
 			for(String line : Files.readAllLines(Paths.get("./" + fileName)))
 			{
 				
@@ -388,6 +436,7 @@ public class RBR {
 		
 		return null;
 	}
+	 */
 
 	/*
 	 * Seleciona aleatoriamente 1 caminho para cada par de comunicação.
