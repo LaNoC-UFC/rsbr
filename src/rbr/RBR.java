@@ -309,6 +309,10 @@ public class RBR {
 		for (Vertice src : graph.getVertices()) {
 			for (Aresta e : src.getAdj()) {
 				Vertice dst = e.getDestino();
+				if (src.getRestriction("I").contains(src.getAresta(dst).getCor())){ // nao eh permitido
+//					System.out.println("LOCAL");
+					continue;
+				}
 				Path p = new Path();
 				p.add(src);
 				p.add(dst);
@@ -340,6 +344,10 @@ public class RBR {
 						continue;
 					//if (p.contains(dst)) // esta cruzando
 					//	continue;
+					if (src.getRestriction("I").contains(src.getAresta(dst).getCor())){ // nao eh permitido
+//						System.out.println("LOCAL");
+						continue;
+					}
 					if (src.getRestriction(inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
 						continue;
 					if (pairs.contains(p.src().getNome() + ":" + dst.getNome())) // nao minimo
