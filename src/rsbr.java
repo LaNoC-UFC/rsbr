@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import rbr.RBR;
 import sbr.SR;
 import util.Graph;
+import util.GraphBuilder;
 import util.Path;
 
 public class rsbr {
@@ -53,8 +54,9 @@ public class rsbr {
 
 			for (int s = 0; s < montCarl; s++) {
 				System.out.println("Generating graph");
-				graph = (topologyFile != null) ? new Graph(new File(
-						topologyFile)) : new Graph(dimX, dimY, faltPerc);
+				graph = (topologyFile != null) ?
+						GraphBuilder.generateGraph(topologyFile) :
+						new Graph(dimX, dimY, faltPerc);
 				// graph.printGraph("montCarlo"+montCarl);
 				System.out.println("Isolado?: " + graph.haveIsolatedCores());
 

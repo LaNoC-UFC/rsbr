@@ -249,7 +249,7 @@ public class Vertice implements Comparable<Vertice> {
 	public void checkIsolation(ArrayList<Vertice> alc) {
 		if (!alc.contains(this))
 			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
-		for (Aresta adj : adj) {
+		for (Aresta adj : this.adj) {
 			// So adiciona aos alcancaveis cores que ainda nao foram adicionados
 			if (alc.contains(adj.getDestino()))
 				continue;

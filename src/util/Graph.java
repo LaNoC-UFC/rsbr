@@ -1,14 +1,6 @@
 package util;
 
 import java.util.ArrayList;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Graph {
 	boolean debug = true;
@@ -23,69 +15,6 @@ public class Graph {
 		arestas = new ArrayList<>();
 	}
 	
-
-	public Graph(File topology) {
-		System.out.println("from file: "+topology.getName());
-		vertices = new ArrayList<>();
-		arestas = new ArrayList<>();
-
-		try {
-			Scanner sc = new Scanner(new FileReader(topology));
-
-			String[] lines = null, columns = null;
-			if (sc.hasNextLine())
-				lines = sc.nextLine().split("; ");
-			if (sc.hasNextLine())
-				columns = sc.nextLine().split("; ");
-
-			dimX = lines[0].split(" ").length + 1;
-			dimY = lines.length;
-
-			for (int i = 0; i < dimX; i++) {
-				for (int j = 0; j < dimY; j++) {
-					String vertice = i + "." + j;
-					this.addVertice(vertice);
-
-				}
-			}
-
-			for (int i = 0; i < lines.length; i++) {
-				String[] line = lines[i].split(" ");
-				for (int j = 0; j < line.length; j++) {
-					if (line[j].charAt(0) == '0') // there is a link
-					{
-						Vertice starting = this.getVertice(j + "."
-								+ (columns.length - i));
-						Vertice ending = this.getVertice((j + 1) + "."
-								+ (columns.length - i));
-						this.addAresta(starting, ending, ports[2]);
-						this.addAresta(ending, starting, ports[3]);
-					}
-				}
-			}
-
-			for (int i = 0; i < columns.length; i++) {
-				String[] column = columns[i].split(" ");
-				for (int j = 0; j < column.length; j++) {
-					if (column[j].charAt(0) == '0') // there is a link
-					{
-						Vertice starting = this.getVertice(j + "."
-								+ (columns.length - i));
-						Vertice ending = this.getVertice(j + "."
-								+ (columns.length - 1 - i));
-						this.addAresta(starting, ending, ports[1]);
-						this.addAresta(ending, starting, ports[0]);
-					}
-				}
-			}
-
-			sc.close();
-
-		} catch (Exception ex) {
-			Logger.getLogger(Graph.class.getName()).log(Level.SEVERE, null, ex);
-		}
-	}
-	
 	public Graph(int dim, double perc) {
 		this(dim, dim, perc);
 	}
@@ -94,8 +23,7 @@ public class Graph {
 		this(dim, dim, 0);
 	}
 	
-	public Graph(int dX,int dY, double perc)
-	{
+	public Graph(int dX,int dY, double perc) {
 		
 		vertices = new ArrayList<>();
 		arestas = new ArrayList<>();
@@ -151,7 +79,6 @@ public class Graph {
 		}
 	}
 	
-	//Checha se existe cores isolados
 	public boolean haveIsolatedCores() {
 		ArrayList<Vertice> alc = new ArrayList<Vertice>();
 		//Escolha do 0.0 para ser o core inicial. Garantido a existencia do primeiro nodo em todas as topologias
@@ -162,8 +89,6 @@ public class Graph {
 		
     	return false;
 	}
-	
-	
 
 	private boolean contem(String vertice) {
 
@@ -202,26 +127,23 @@ public class Graph {
 		return vertice;
 	}
 
-	private void addVertice(String nome) {
+	public void addVertice(String nome) {
 		Vertice v = new Vertice(nome);
 		vertices.add(v);
 	}
 	
-	private void addAresta(Vertice origem, Vertice destino, String cor) 
-	{
+	public void addAresta(Vertice origem, Vertice destino, String cor) {
 		Aresta e = new Aresta(origem, destino, cor);
 		origem.addAdj(e);
 		arestas.add(e);
 	}
 	
-	private void AddAresta(Aresta toAdd)
-	{
+	private void AddAresta(Aresta toAdd) {
 		toAdd.getOrigem().getAdj().add(toAdd);
 		arestas.add(toAdd);
 	}
 	
-	private void removeAresta(Aresta toRemove)
-	{
+	private void removeAresta(Aresta toRemove) {
 		toRemove.getOrigem().getAdj().remove(toRemove);
 		arestas.remove(toRemove);		
 	}
@@ -240,52 +162,6 @@ public class Graph {
 		return r;
 	}
 	
-	public void printGraph(String ext)
-	{
-		File graphFile = new File("graph_"+ext);
-		BufferedWriter output;
-		try 
-		{
-			output = new BufferedWriter(new FileWriter(graphFile));
-			
-			String lineL="";
-			String lineC="";
-			for(int y=dimY-1;y>=0;y--)
-			{
-				lineC+="  ";
-				for(int x=0;x<dimX;x++)
-				{
-					String sX="";
-					String sY="";
-					sX = x<10?"0"+x:""+x;
-					sY = y<10?"0"+y:""+y;
-					
-					lineL+=""+sX+sY;
-					if(contem(""+(x+1)+"."+y) && (getVertice(""+x+"."+y).getAresta(getVertice(""+(x+1)+"."+y))!=null))
-						lineL+="-";
-					else lineL+=" ";
-					
-					if(contem(""+x+"."+(y-1)) && (getVertice(""+x+"."+y).getAresta(getVertice(""+x+"."+(y-1)))!=null))
-						lineC+="|    ";					
-					else lineC+="     ";
-				}	
-				output.write(lineL+"\n");
-				output.write(lineC+"\n");
-				lineL="";
-				lineC="";
-			}
-			
-			output.close();
-			
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-		
-		
-	}
-
 	public int dimX() {
 		return dimX;
 	}
