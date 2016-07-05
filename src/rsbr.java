@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import rbr.PathFinder;
 import rbr.RBR;
 import sbr.SR;
 import util.Graph;
@@ -21,7 +22,7 @@ public class rsbr {
 		//String tableFile = null;
 		int dim = 4;
 		int dimX = dim, dimY = dim;
-		int montCarl = 1000;
+		int montCarl = 1;
 		double[] faltPercs = { 0.0, 0.05, 0.1, 0.15, 0.2, 0, 25, 0.30 };
 		ArrayList<ArrayList<Path>> chosenPaths = null;
 		BufferedWriter output = null;
@@ -71,11 +72,11 @@ public class rsbr {
 				sbr.setrestrictions();
 				// sbr.printRestrictions();
 
+				System.out.println("Paths Computation");
+				ArrayList<ArrayList<Path>> paths = new PathFinder(graph).pathsComputation();
+
 				System.out.println(" - RBR Section");
 				rbr = new RBR(graph);
-
-				System.out.println("Paths Computation");
-				ArrayList<ArrayList<Path>> paths = rbr.pathsComputation();
 
 				if (volumePath != null) {
 					File commvol = new File(volumePath);
