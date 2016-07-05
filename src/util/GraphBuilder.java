@@ -1,18 +1,15 @@
 package util;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GraphBuilder {
 
-    static public Graph generateGraph(File topology) {
-        System.out.println("from file: "+topology.getName());
+    static public Graph generateGraph(String topology_file_path) {
+        File topology = new File(topology_file_path);
 
         Graph result = new Graph();
         try {

@@ -55,7 +55,7 @@ public class rsbr {
 			for (int s = 0; s < montCarl; s++) {
 				System.out.println("Generating graph");
 				graph = (topologyFile != null) ?
-						GraphBuilder.generateGraph(new File(topologyFile)) :
+						GraphBuilder.generateGraph(topologyFile) :
 						new Graph(dimX, dimY, faltPerc);
 				// graph.printGraph("montCarlo"+montCarl);
 				System.out.println("Isolado?: " + graph.haveIsolatedCores());
