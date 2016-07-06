@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import rbr.PathFinder;
+import rbr.PathSelector;
 import rbr.RBR;
 import sbr.SR;
 import util.Graph;
@@ -98,30 +99,30 @@ public class rsbr {
 					chosenPaths = paths;
 					break;
 				case 1: // Selecao aleatoria
-					chosenPaths = rbr.pathSelection(paths);
+					chosenPaths = new PathSelector().pathSelection(paths);
 					System.out.println("Aleatoria");
 					printResults(chosenPaths, rbr);
 					break;
 				case 2: // Peso mínimo
-					chosenPaths = rbr.pathSelection(paths,
+					chosenPaths = new PathSelector().pathSelection(paths,
 							new Path.MinWeight(), 10);
 					System.out.println("Peso Minimo");
 					printResults(chosenPaths, rbr);
 					break;
 				case 3: // Peso proporcional
-					chosenPaths = rbr.pathSelection(paths,
+					chosenPaths = new PathSelector().pathSelection(paths,
 							new Path().new PropWeight(lwm), 10);
 					System.out.println("Peso proporcional");
 					printResults(chosenPaths, rbr);
 					break;
 				case 4: // Peso médio
-					chosenPaths = rbr.pathSelection(paths,
+					chosenPaths = new PathSelector().pathSelection(paths,
 							new Path().new MedWeight(pwm), 10);
 					System.out.println("Peso médio");
 					printResults(chosenPaths, rbr);
 					break;
 				case 5: // Peso máximo
-					chosenPaths = rbr.pathSelection(paths,
+					chosenPaths = new PathSelector().pathSelection(paths,
 							new Path.MaxWeight(), 2);
 				}
 
