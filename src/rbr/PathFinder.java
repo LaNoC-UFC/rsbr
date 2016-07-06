@@ -15,102 +15,116 @@ public class PathFinder {
         graph = g;
     }
 
-    /*
-	 * Nova versao da busca de pacotes. Retorna dividido por par de comunicação
-	 * ordenado por tamanho dos caminhos.
-	 */
     public ArrayList<ArrayList<Path>> pathsComputation() {
-        ArrayList<Path> allPaths = new ArrayList<Path>();
-        ArrayList<Path> lastPaths = new ArrayList<Path>();
-        ArrayList<String> pairs = new ArrayList<String>();
+        ArrayList<Path> result = new ArrayList<Path>();
+        ArrayList<String> alreadyFoundPairs = new ArrayList<String>();
         // N = 1 hop
+        ArrayList<Path> oneHopPaths = computeOneHopPaths(alreadyFoundPairs);
+        result.addAll(oneHopPaths);
+        ArrayList<Path> previouslyFoundPaths = oneHopPaths;
+        // N > 1 hop
+        int nPairs = graph.getVertices().size() * (graph.getVertices().size() - 1);
+        while (alreadyFoundPairs.size() < nPairs) {
+            ArrayList<Path> valid = advanceOneHop(previouslyFoundPaths, alreadyFoundPairs);
+            result.addAll(valid);
+            previouslyFoundPaths = valid;
+        }
+        return divideByPair(result);
+    }
+
+    private ArrayList<Path> computeOneHopPaths(ArrayList<String> alreadyFoundPairs) {
+        ArrayList<Path> result = new ArrayList<Path>();
         for (Vertice src : graph.getVertices()) {
             for (Aresta e : src.getAdj()) {
                 Vertice dst = e.getDestino();
-                if (src.getRestriction("I").contains(src.getAresta(dst).getCor())){ // nao eh permitido
-//					System.out.println("LOCAL");
+                if (src.getRestriction("I").contains(src.getAresta(dst).getCor()))
                     continue;
-                }
                 Path p = new Path();
                 p.add(src);
                 p.add(dst);
-                lastPaths.add(p);
-                String pair = src.getNome() + ":" + dst.getNome();
-                pairs.add(pair);
-                //System.out.println(pair + " #"+pairs.size());
+                result.add(p);
+                alreadyFoundPairs.add(pairDescriptor(src, dst));
             }
         }
-        System.out.println("Tamanho: 1"+" - "+lastPaths.size()+" paths.");
-        allPaths.addAll(lastPaths);
-        //savePathInFile("paths 1 hop", lastPaths);
+        return result;
+    }
 
-        int nPairs = graph.dimX() * graph.dimY()
-                * (graph.dimX() * graph.dimY() - 1);
-        // N > 1 hop
-        while (pairs.size() < nPairs) { // pares cadastrados menor que numero de
-            // fluxos
-            ArrayList<Path> valid = new ArrayList<Path>(); // actual mininal paths
-            //System.out.println("Tamanho atual: " + lastPaths.get(0).size());
-            for (Path p : lastPaths) {
-                Vertice src = p.dst(); // fonte atual
-                Vertice pre = p.get(p.size() - 2); // predecessor
-                String inColor = src.getAresta(pre).getCor(); // porta de
-                // entrada
-                for (Aresta e : src.getAdj()) {
-                    Vertice dst = e.getDestino();
-                    if (dst == pre) // esta voltando
-                        continue;
-                    //if (p.contains(dst)) // esta cruzando
-                    //	continue;
-                    if (src.getRestriction("I").contains(src.getAresta(dst).getCor())){ // nao eh permitido
-//						System.out.println("LOCAL");
-                        continue;
-                    }
-                    if (src.getRestriction(inColor).contains(src.getAresta(dst).getCor())) // nao eh permitido
-                        continue;
-                    if (pairs.contains(p.src().getNome() + ":" + dst.getNome())) // nao minimo
-                        continue;
-                    Path q = new Path(p);
-                    q.add(dst);
-                    valid.add(q);
-                }
+    private ArrayList<Path> advanceOneHop(ArrayList<Path> previouslyFoundPaths, ArrayList<String> alreadyFoundPairs) {
+        ArrayList<Path> result = new ArrayList<Path>();
+        for (Path p : previouslyFoundPaths)
+            result.addAll(advanceOneHop(p, alreadyFoundPairs));
+
+        for (Path p : result) {
+            // @ToDo change this to a Set to not worry with duplication
+            if (!alreadyFoundPairs.contains(pairDescriptor(p.src(), p.dst()))) {
+                alreadyFoundPairs.add(pairDescriptor(p.src(), p.dst()));
             }
-            System.out.println("Tamanho: "+lastPaths.get(0).size()+" - "+valid.size()+" paths.");
-            allPaths.addAll(valid);
-            //savePathInFile("paths"+lastPaths.get(0).size()+"hops", valid);
-            lastPaths = null;
-            lastPaths = valid;
-            for (Path p : valid) {
-                String pair = p.src().getNome() + ":" + p.dst().getNome();
-                if (!pairs.contains(pair)) {
-                    pairs.add(pair);
-                    //System.out.println(pair + " #"+pairs.size());
-                }
-            }
-            valid = null;
         }
-        return divideByPair(allPaths);
+        return result;
+    }
+
+    private ArrayList<Path> advanceOneHop(Path p, ArrayList<String> alreadyFoundPairs) {
+        ArrayList<Path> result = new ArrayList<Path>();
+        Vertice currentSrc = p.dst();
+        Vertice predecessor = p.get(p.size() - 2);
+        String inputPort = currentSrc.getAresta(predecessor).getCor();
+        for (Aresta e : currentSrc.getAdj()) {
+            Vertice dst = e.getDestino();
+            // going back
+            if (dst == predecessor)
+                continue;
+            // going to forbidden direction
+            if (currentSrc.getRestriction(inputPort).contains(currentSrc.getAresta(dst).getCor()))
+                continue;
+            // no mininal path
+            if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))
+                continue;
+            Path q = new Path(p);
+            q.add(dst);
+            result.add(q);
+        }
+        return result;
     }
 
     private ArrayList<ArrayList<Path>> divideByPair(ArrayList<Path> paths) {
-        ArrayList<ArrayList<Path>> paths2 = new ArrayList<ArrayList<Path>>();
-        ArrayList<Path> aux = new ArrayList<Path>();
-        Collections.sort(paths, new Path.SrcDst()); // por par
-        Collections.sort(paths); // soh pelo comprimento
-        for(int i = 0; i < paths.size(); i++){
-            Path act = paths.get(i);
-            aux.add(act);
-            if(i < paths.size()-1) {
-                Path next = paths.get(i+1);
-                if(!act.src().equals(next.src()) || !act.dst().equals(next.dst())) {
-                    paths2.add(aux);
-                    aux = new ArrayList<Path>();
-                }
-            }
-            else
-                paths2.add(aux);
+        // Sort by pair
+        Collections.sort(paths, new Path.SrcDst());
+        // Then by length
+        Collections.sort(paths);
+        // Split by pair
+        ArrayList<ArrayList<Path>> result = new ArrayList<>();
+        int i = 0;
+        while(i < paths.size()) {
+            ArrayList<Path> bucket = samePairPaths(paths, i);
+            result.add(bucket);
+            i = paths.indexOf(bucket.get(bucket.size()-1)) + 1;
         }
-        return paths2;
+        return result;
     }
 
+    private ArrayList<Path> samePairPaths(ArrayList<Path> paths, int starting_from) {
+        ArrayList<Path> result = new ArrayList<>();
+        for (int i = starting_from; i < paths.size(); i++) {
+            Path p = paths.get(i);
+            if(!pertainsTo(result, p))
+                break;
+            result.add(p);
+        }
+        return result;
+    }
+
+    private boolean pertainsTo(ArrayList<Path> bucket, Path tac) {
+        if(bucket.isEmpty())
+            return true;
+        Path tic = bucket.get(0);
+        return isSamePair(tic, tac);
+    }
+
+    private boolean isSamePair(Path tic, Path tac) {
+        return tic.src().equals(tac.src()) && tic.dst().equals(tac.dst());
+    }
+
+    private String pairDescriptor(Vertice src, Vertice dst) {
+        return src.getNome() + ":" + dst.getNome();
+    }
 }
