@@ -4,8 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import rbr.PathFinder;
-import rbr.RBR;
+import rbr.*;
 import sbr.SR;
 import util.Graph;
 import util.GraphBuilder;
@@ -98,31 +97,27 @@ public class rsbr {
 					chosenPaths = paths;
 					break;
 				case 1: // Selecao aleatoria
-					chosenPaths = rbr.pathSelection(paths);
+					chosenPaths = new RandomPathSelector(paths).selection();
 					System.out.println("Aleatoria");
 					printResults(chosenPaths, rbr);
 					break;
 				case 2: // Peso mínimo
-					chosenPaths = rbr.pathSelection(paths,
-							new Path.MinWeight(), 10);
+					chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
 					System.out.println("Peso Minimo");
 					printResults(chosenPaths, rbr);
 					break;
 				case 3: // Peso proporcional
-					chosenPaths = rbr.pathSelection(paths,
-							new Path().new PropWeight(lwm), 10);
+					chosenPaths = new ComparativePathSelector(paths, new Path().new PropWeight(lwm), 10).selection();
 					System.out.println("Peso proporcional");
 					printResults(chosenPaths, rbr);
 					break;
 				case 4: // Peso médio
-					chosenPaths = rbr.pathSelection(paths,
-							new Path().new MedWeight(pwm), 10);
+					chosenPaths = new ComparativePathSelector(paths, new Path().new MedWeight(pwm), 10).selection();
 					System.out.println("Peso médio");
 					printResults(chosenPaths, rbr);
 					break;
 				case 5: // Peso máximo
-					chosenPaths = rbr.pathSelection(paths,
-							new Path.MaxWeight(), 2);
+					chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
 				}
 
 				if (tableFile != null) {
