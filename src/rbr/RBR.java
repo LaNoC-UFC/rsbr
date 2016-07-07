@@ -2,10 +2,9 @@ package rbr;
 
 import util.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class RBR {
 	private Graph graph;
@@ -150,12 +149,6 @@ public class RBR {
 		return oPComb;
 	}
 	
-	private int indexOf(String xy) {
-		int x = Integer.parseInt(xy.split("\\.")[0]);
-		int y = Integer.parseInt(xy.split("\\.")[1]);
-		return x + y*graph.dimX();
-	}
-
 	// Compute the regions
 	public void regionsComputation() {
 		ArrayList<String> opComb = getOutputCombinations();
@@ -797,37 +790,5 @@ public class RBR {
 		}
 		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
 		return stats;
-	}
-
-	public void setVolume(ArrayList<ArrayList<Path>> paths, File commvol) {
-		
-		int N = graph.dimX()*graph.dimY();
-		double[][] vol = new double[N][N];
-		double maxVol = 0;
-		
-		try {
-			Scanner sc = new Scanner(new FileReader(commvol));
-			
-			for(int i = 0; i < N; i++) {
-				String[] lines = sc.nextLine().split(" \t");
-				for(int j = 0; j < N; j++) {
-					vol[i][j] = Double.valueOf(lines[j]);
-					maxVol = (vol[i][j] > maxVol) ? vol[i][j] : maxVol;
-				}
-			}
-			sc.close();
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		
-		for(ArrayList<Path> alp : paths) {
-			int i = indexOf(alp.get(0).src().getNome());
-			int j = indexOf(alp.get(0).dst().getNome());
-			double volume = vol[i][j];
-			for(Path path : alp) {
-				path.setVolume(volume/maxVol);
-			}
-		}
 	}
 }

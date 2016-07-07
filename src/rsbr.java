@@ -1,5 +1,8 @@
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import rbr.*;
 import sbr.SR;
@@ -68,7 +71,7 @@ public class rsbr {
 				if (commvol.exists()) {
 					System.out
 							.println("Getting volumes from " + volumePath);
-					rbr.setVolume(paths, commvol);
+					setCommunicationVolume(paths, commvol, graph);
 				}
 			}
 
@@ -176,4 +179,37 @@ public class rsbr {
 		System.out.println("Peso normalizado dos caminhos: "+pnw[0]+" ("+pnw[1]+")");
 		System.out.println("Peso dos links: "+lw[0]+" ("+lw[1]+")");
 	}
+
+	private static void setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
+
+		int N = graph.dimX()*graph.dimY();
+		double[][] vol = new double[N][N];
+		double maxVol = 0;
+
+		try {
+			Scanner sc = new Scanner(new FileReader(commvol));
+
+			for(int i = 0; i < N; i++) {
+				String[] lines = sc.nextLine().split(" \t");
+				for(int j = 0; j < N; j++) {
+					vol[i][j] = Double.valueOf(lines[j]);
+					maxVol = (vol[i][j] > maxVol) ? vol[i][j] : maxVol;
+				}
+			}
+			sc.close();
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		for(ArrayList<Path> alp : paths) {
+			int i = graph.indexOf(alp.get(0).src());
+			int j = graph.indexOf(alp.get(0).dst());
+			double volume = vol[i][j];
+			for(Path path : alp) {
+				path.setVolume(volume/maxVol);
+			}
+		}
+	}
+
 }
