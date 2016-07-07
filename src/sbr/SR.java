@@ -2,10 +2,6 @@ package sbr;
 
 import util.*;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -173,8 +169,8 @@ public class SR {
 		while (!links.isEmpty()) {
 			Aresta ln = getNextLink(links);
 			links.remove(ln);
-			Aresta nl = ln.getDestino().getAresta(ln.getOrigem());
-			if (debug) System.err.println("Link now: "+ln.getOrigem().getNome()+" <-> "+ln.getDestino().getNome());
+			Aresta nl = ln.destination().getAresta(ln.source());
+			if (debug) System.err.println("Link now: "+ln.source().getNome()+" <-> "+ln.destination().getNome());
 			setTVisited(ln);
 			setTVisited(nl);
 			segm.add(ln);
@@ -244,12 +240,12 @@ public class SR {
 	 */
 	protected Vertice nextNotVisited(String min, String max) {
 		for (Aresta b: bridge) {
-			Vertice sw = b.getDestino();
+			Vertice sw = b.destination();
 			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
 				if (debug) System.err.println("nextNotVisited " + sw.getNome());
 				return sw;				
 			}
-			sw = b.getOrigem();
+			sw = b.source();
 			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
 				if (debug) System.err.println("nextNotVisited " + sw.getNome());
 				return sw;				
@@ -294,7 +290,7 @@ public class SR {
 		}
 		while (true) {
 			for (Aresta ln : links) {
-				if (ln.getCor() == RoundRobin[index]) {
+				if (ln.color() == RoundRobin[index]) {
 					got = ln;
 					break;
 				}
@@ -328,20 +324,20 @@ public class SR {
 
 			if (segment.isUnitary()) {
 				// No traffic allowed at link
-				Vertice Starting = segment.getLinks().get(0).getOrigem();
-				Vertice Ending = segment.getLinks().get(0).getDestino();
+				Vertice Starting = segment.getLinks().get(0).source();
+				Vertice Ending = segment.getLinks().get(0).destination();
 				//System.err.println("Start: " + Starting.getNome() + " Ending: "+ Ending.getNome());
 				// Restricted link
-				String opStarting = Starting.getAresta(Ending).getCor();
-				String opEnding = Ending.getAresta(Starting).getCor();
+				String opStarting = Starting.getAresta(Ending).color();
+				String opEnding = Ending.getAresta(Starting).color();
 				// Restrictions at Starting core
 				for (Aresta link : Starting.getAdj())
-					if (link.getCor() != opStarting)
-						Starting.addRestriction(link.getCor(), opStarting);
+					if (link.color() != opStarting)
+						Starting.addRestriction(link.color(), opStarting);
 				// Restrictions at Ending core
 				for (Aresta link : Ending.getAdj())
-					if (link.getCor() != opEnding)
-						Ending.addRestriction(link.getCor(), opEnding);
+					if (link.color() != opEnding)
+						Ending.addRestriction(link.color(), opEnding);
 				continue;
 			}
 			// Put it at first or second link
@@ -349,31 +345,31 @@ public class SR {
 				segment.getSwitchs()
 						.get(0)
 						.addRestriction(
-								segment.getLinks().get(0).getInvColor(),
-								segment.getLinks().get(1).getCor());
+								ArestaColor.getInvColor(segment.getLinks().get(0).color()),
+								segment.getLinks().get(1).color());
 				segment.getSwitchs()
 						.get(0)
-						.addRestriction(segment.getLinks().get(1).getCor(),
-								segment.getLinks().get(0).getInvColor());
+						.addRestriction(segment.getLinks().get(1).color(),
+								ArestaColor.getInvColor(segment.getLinks().get(0).color()));
 				continue;
 			}
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
 				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
-						segment.getLinks().get(1).getInvColor(), segment
-								.getLinks().get(2).getCor());
-				restrict.addRestriction(segment.getLinks().get(2).getCor(),
-						segment.getLinks().get(1).getInvColor());
+						ArestaColor.getInvColor(segment.getLinks().get(1).color()), segment
+								.getLinks().get(2).color());
+				restrict.addRestriction(segment.getLinks().get(2).color(),
+						ArestaColor.getInvColor(segment.getLinks().get(1).color()));
 				continue;
 			}
 			if (segment.isStarting()) {
 				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
-						segment.getLinks().get(0).getInvColor(), segment
-								.getLinks().get(1).getCor());
-				restrict.addRestriction(segment.getLinks().get(1).getCor(),
-						segment.getLinks().get(0).getInvColor());
+						ArestaColor.getInvColor(segment.getLinks().get(0).color()), segment
+								.getLinks().get(1).color());
+				restrict.addRestriction(segment.getLinks().get(1).color(),
+						ArestaColor.getInvColor(segment.getLinks().get(0).color()));
 			}
 		}
 	}
@@ -476,9 +472,9 @@ public class SR {
 		
 		ArrayList<Aresta> slinks = new ArrayList<>();
 		for(Aresta ln : adj) {
-			Vertice dst = ln.getDestino();
+			Vertice dst = ln.destination();
 			boolean cruza = isTVisited(dst) && !isStart(dst);
-			boolean bdg = bridge.contains(ln) || bridge.contains(dst.getAresta(ln.getOrigem()));
+			boolean bdg = bridge.contains(ln) || bridge.contains(dst.getAresta(ln.source()));
 			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(min, max) && !cruza && !bdg)
 				slinks.add(ln);
 		}
@@ -509,7 +505,7 @@ public class SR {
 			assert g != null && u != null && v != null : "Ponteiro(s) nulo(s) para vertice(s) ou grafo!";
 			low[g.indexOf(v)] = pre[g.indexOf(v)] = cnt++;
 			for(Aresta e : v.getAdj()) {
-				Vertice w = e.getDestino();
+				Vertice w = e.destination();
 				if (pre[g.indexOf(w)] == -1) {
 					dfs(g, v, w);
 					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);

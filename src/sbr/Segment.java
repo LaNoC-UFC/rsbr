@@ -19,7 +19,7 @@ public class Segment {
 		if (links.size() == 1)
 			return false;
 
-		if (links.get(links.size() - 1).getDestino().getNome()
+		if (links.get(links.size() - 1).destination().getNome()
 				.equals(switches.get(0).getNome()))
 			return true;
 
@@ -70,8 +70,8 @@ public class Segment {
 		}
 		r += '\n';
 		while (ln < links.size()) {
-			r += (links.get(ln).getOrigem().getNome() + " <=> "
-					+ links.get(ln).getDestino().getNome() + " ");
+			r += (links.get(ln).source().getNome() + " <=> "
+					+ links.get(ln).destination().getNome() + " ");
 			ln++;
 		}
 		return r;

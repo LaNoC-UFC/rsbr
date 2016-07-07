@@ -36,8 +36,8 @@ public class PathFinder {
         ArrayList<Path> result = new ArrayList<Path>();
         for (Vertice src : graph.getVertices()) {
             for (Aresta e : src.getAdj()) {
-                Vertice dst = e.getDestino();
-                if (src.getRestriction("I").contains(src.getAresta(dst).getCor()))
+                Vertice dst = e.destination();
+                if (src.getRestriction("I").contains(src.getAresta(dst).color()))
                     continue;
                 Path p = new Path();
                 p.add(src);
@@ -67,14 +67,14 @@ public class PathFinder {
         ArrayList<Path> result = new ArrayList<Path>();
         Vertice currentSrc = p.dst();
         Vertice predecessor = p.get(p.size() - 2);
-        String inputPort = currentSrc.getAresta(predecessor).getCor();
+        String inputPort = currentSrc.getAresta(predecessor).color();
         for (Aresta e : currentSrc.getAdj()) {
-            Vertice dst = e.getDestino();
+            Vertice dst = e.destination();
             // going back
             if (dst == predecessor)
                 continue;
             // going to forbidden direction
-            if (currentSrc.getRestriction(inputPort).contains(currentSrc.getAresta(dst).getCor()))
+            if (currentSrc.getRestriction(inputPort).contains(currentSrc.getAresta(dst).color()))
                 continue;
             // no mininal path
             if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))

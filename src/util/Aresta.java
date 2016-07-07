@@ -1,69 +1,41 @@
 package util;
 
 public class Aresta {
-	protected Vertice starting;
-	protected Vertice ending;
-	private String cor;
+	private Vertice source;
+	private Vertice destination;
+	private String color;
 	private double weight;
 
-	public Aresta(Vertice ori, Vertice dest, String cor) {
-		this.cor = cor;
-		this.starting = ori;
-		this.ending = dest;
+	Aresta(Vertice src, Vertice dst, String color) {
+		this.color = color;
+		this.source = src;
+		this.destination = dst;
 		this.weight = 0.0;
 	}
 
-	public String getCor() {
-		return this.cor;
+	public String color() {
+		return this.color;
 	}
 
-	public String getInvColor() {
-		switch (this.cor) {
-		case "E":
-			return String.valueOf('W');
-		case "W":
-			return String.valueOf('E');
-		case "N":
-			return String.valueOf('S');
-		case "S":
-			return String.valueOf('N');
-		case "I":
-			return String.valueOf('I');
-		default:
-			System.out.println("ERROR : Wrong port Color.");
-			return null;
-		}
+	public Vertice destination() {
+		return this.destination;
 	}
 
-	public Vertice getDestino() {
-
-		return this.ending;
-
-	}
-
-	public Vertice getOrigem() {
-		return this.starting;
+	public Vertice source() {
+		return this.source;
 	}
 
 	public Vertice other(Vertice v) {
-		if (v == starting)
-			return ending;
-		if (v == ending)
-			return starting;
-		return null; // error condition
+		assert source == v || destination == v : "Vertice is not conected to this Aresta";
+		return (v == source) ? destination : source;
 	}
 
-	public void incremWeight(double vol) {
-		this.weight += vol;
+	void setWeight(double volume) {
+		assert 0 <= volume : "Link Weight should be non-negative.";
+		this.weight = volume;
 	}
 
-	public void decremWeight(double vol) {
-		if (this.weight != 0)
-			this.weight -= vol;
-	}
-
-	public double getWeight() {
+	public double weight() {
 		return this.weight;
 	}
-
 }

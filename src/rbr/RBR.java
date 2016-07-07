@@ -22,15 +22,15 @@ public class RBR {
 		double std = 0.0;
 
 		for (Aresta link : graph.getArestas())
-			linksWeight += (double) link.getWeight();
+			linksWeight += (double) link.weight();
 
 		mean = linksWeight / (double) graph.getArestas().size();
 		stats[0] = mean;
 
 		double temp = 0.0;
 		for (Aresta link : graph.getArestas())
-			temp += ((double) link.getWeight() - mean)
-					* ((double) link.getWeight() - mean);
+			temp += ((double) link.weight() - mean)
+					* ((double) link.weight() - mean);
 
 		double variance = (temp / (double) (graph.getArestas().size()));
 		// size-1 for sample. We have population
@@ -118,9 +118,9 @@ public class RBR {
 				for (Vertice sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
 						String op = sw.getAresta(path.get(path.indexOf(sw) + 1))
-								.getCor();
+								.color();
 						String ip = (path.indexOf(sw) == 0) ? "I" : sw.getAresta(
-								path.get(path.indexOf(sw) - 1)).getCor();
+								path.get(path.indexOf(sw) - 1)).color();
 						sw.addRP(ip, dest, op);
 					}
 				}

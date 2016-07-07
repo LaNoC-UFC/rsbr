@@ -111,19 +111,23 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		double weight = 0;
 
 		for (int i = 0; i < numArestas(); i++)
-			weight += this.get(i).getAresta(this.get(i + 1)).getWeight();
+			weight += this.get(i).getAresta(this.get(i + 1)).weight();
 
 		return weight;
 	}
 
 	public void incremWeight() {
-		for (int i = 0; i < numArestas(); i++)
-			this.get(i).getAresta(this.get(i + 1)).incremWeight(volume);
+		for (int i = 0; i < numArestas(); i++) {
+			Aresta aresta = this.get(i).getAresta(this.get(i + 1));
+			aresta.setWeight(aresta.weight() + volume);
+		}
 	}
 
 	public void decremWeight() {
-		for (int i = 0; i < numArestas(); i++)
-			this.get(i).getAresta(this.get(i + 1)).decremWeight(volume);
+		for (int i = 0; i < numArestas(); i++) {
+			Aresta aresta = this.get(i).getAresta(this.get(i + 1));
+			aresta.setWeight(aresta.weight() - volume);
+		}
 	}
 	
 	public double volume() {
@@ -151,7 +155,7 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
 //		return "src: " + this.src().getNome() + ", dst: "
 //				+ this.dst().getNome() + ", size: " + this.numArestas()
-//				+ ", weight: " + this.getWeight();
+//				+ ", weight: " + this.weight();
 		String pathLine = "" + volume + ":";
 		for(Vertice v : this)
 		{

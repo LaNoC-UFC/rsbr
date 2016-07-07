@@ -84,7 +84,7 @@ public class Vertice implements Comparable<Vertice> {
 
 	public Aresta getAresta(Vertice destino) {
 		for (Aresta v : adj)
-			if (v.getDestino().getNome().equals(destino.getNome()))
+			if (v.destination().getNome().equals(destino.getNome()))
 				return v;
 
 		return null;
@@ -104,7 +104,7 @@ public class Vertice implements Comparable<Vertice> {
 
 	public Aresta getAdj(String color) {
 		for (Aresta a : this.adj)
-			if (a.getCor().equals(color))
+			if (a.color().equals(color))
 				return a;
 
 		System.out.println("ERROR : There isn't a Op " + color + "?");
@@ -199,8 +199,8 @@ public class Vertice implements Comparable<Vertice> {
 		String opColor = this.getOpColor(dest, ipColor);
 		if (opColor == null)
 			return false;
-		return this.getAdj(opColor).getDestino()
-				.reaches(dest, getAdj(opColor).getInvColor());
+		return this.getAdj(opColor).destination()
+				.reaches(dest, ArestaColor.getInvColor(getAdj(opColor).color()));
 	}
 
 	public void checkIsolation(ArrayList<Vertice> alc) {
@@ -208,9 +208,9 @@ public class Vertice implements Comparable<Vertice> {
 			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
 		for (Aresta adj : this.adj) {
 			// So adiciona aos alcancaveis cores que ainda nao foram adicionados
-			if (alc.contains(adj.getDestino()))
+			if (alc.contains(adj.destination()))
 				continue;
-			Vertice neigh = adj.getDestino();
+			Vertice neigh = adj.destination();
 			alc.add(neigh);
 			// checa para vizinhos
 			neigh.checkIsolation(alc);

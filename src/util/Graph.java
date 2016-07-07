@@ -61,10 +61,10 @@ public class Graph {
 			{
 				int idx = (int)(Math.random()*((double)arestas.size()));
 				Aresta toRemoveIndo = arestas.get(idx);
-				Aresta toRemoveVindo = toRemoveIndo.getDestino().getAresta(toRemoveIndo.getOrigem());
+				Aresta toRemoveVindo = toRemoveIndo.destination().getAresta(toRemoveIndo.source());
 				
-				if (debug) System.out.println("Removing: "+toRemoveIndo.getOrigem().getNome()
-						+"->"+toRemoveIndo.getDestino().getNome());
+				if (debug) System.out.println("Removing: "+toRemoveIndo.source().getNome()
+						+"->"+toRemoveIndo.destination().getNome());
 				
 				removeAresta(toRemoveIndo);
 				removeAresta(toRemoveVindo);
@@ -139,12 +139,12 @@ public class Graph {
 	}
 	
 	private void AddAresta(Aresta toAdd) {
-		toAdd.getOrigem().getAdj().add(toAdd);
+		toAdd.source().getAdj().add(toAdd);
 		arestas.add(toAdd);
 	}
 	
 	private void removeAresta(Aresta toRemove) {
-		toRemove.getOrigem().getAdj().remove(toRemove);
+		toRemove.source().getAdj().remove(toRemove);
 		arestas.remove(toRemove);		
 	}
 
@@ -154,8 +154,8 @@ public class Graph {
 		for (Vertice u : vertices) {
 			r += u.getNome() + " -> ";
 			for (Aresta e : u.getAdj()) {
-				Vertice v = e.getDestino();
-				r += v.getNome() + e.getCor() + ", ";
+				Vertice v = e.destination();
+				r += v.getNome() + e.color() + ", ";
 			}
 			r += "\n";
 		}
