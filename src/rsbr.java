@@ -119,7 +119,7 @@ public class rsbr {
 
 				System.out.println("Making Tables");
 				stats = rbr.getRegionsStats();
-				rbr.doRoutingTable("all");
+				new RoutingTableGenerator(graph).doRoutingTable("all");
 				System.out.println("All");
 				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
 						+ " Med: " + stats[2]);
@@ -136,7 +136,7 @@ public class rsbr {
 
 				System.out.println("Making Tables");
 				stats = rbr.getRegionsStats();
-				rbr.doRoutingTable(tableFile);
+				new RoutingTableGenerator(graph).doRoutingTable(tableFile);
 				System.out.println(tableFile);
 				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
 						+ " Med: " + stats[2]);
