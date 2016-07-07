@@ -2,7 +2,6 @@ package rbr;
 
 import util.*;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -63,52 +62,6 @@ public class RBR {
 					ex);
 		}
 
-	}
-
-
-	public void doRoutingTable(String ext) {
-		double[] stats = getRegionsStats();
-		String routingTableFile = "Table_package_"+ext+".vhd";
-
-		File routingTable = new File(routingTableFile);
-		int size = (graph.dimX() >= graph.dimY()) ? graph.dimX() : graph.dimY();
-		int nBits = (int) Math.ceil(Math.log(size) / Math.log(2));
-
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
-			bw.append("library IEEE;\n"
-					+ "use ieee.std_logic_1164.all;\n"
-					+ "use ieee.numeric_std.all;\n"
-					+ "use work.HermesPackage.all;\n\n"
-					+ "package TablePackage is\n\n"
-					+ "constant NREG : integer := "
-					+ (int) stats[0]
-					+ ";\n"
-					+ "constant MEMORY_SIZE : integer := NREG;\n"
-					+ "constant NBITS : integer := "
-					+ nBits
-					+ ";\n"
-					+ "constant CELL_SIZE : integer := 2*NPORT+4*NBITS;\n\n"
-					+ "subtype cell is std_logic_vector(CELL_SIZE-1 downto 0);\n"
-					+ "subtype regAddr is std_logic_vector(2*NBITS-1 downto 0);\n"
-					+ "type memory is array (0 to MEMORY_SIZE-1) of cell;\n"
-					+ "type tables is array (0 to NROT-1) of memory;\n\n"
-					+ "constant TAB: tables :=(");
-
-			for (Vertice router : graph.getVertices()) {
-				router.PrintRegions(stats, bw, nBits);
-				if (graph.getVertices().indexOf(router) != graph.getVertices()
-						.size() - 1)
-					bw.append(",");
-			}
-
-			bw.append("\n);\nend TablePackage;\n\npackage body TablePackage is\n"
-					+ "end TablePackage;\n");
-			bw.flush();
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	// Calculate routing distance -> all paths lengths / #paths
