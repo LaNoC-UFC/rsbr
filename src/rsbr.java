@@ -1,7 +1,4 @@
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import rbr.*;
@@ -21,23 +18,13 @@ public class rsbr {
 		//String tableFile = null;
 		int dim = 4;
 		int dimX = dim, dimY = dim;
-		int montCarl = 1;
 		double[] faltPercs = { 0.0, 0.05, 0.1, 0.15, 0.2, 0, 25, 0.30 };
 		ArrayList<ArrayList<Path>> chosenPaths = null;
-		BufferedWriter output = null;
-		try {
-			output = new BufferedWriter(new FileWriter(new File(dimX + "x"
-					+ dimY + "monteCarlo.txt")));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
 		switch (args.length) {
 		case 4:
 			dimX = Integer.parseInt(args[0]);
 			dimY = Integer.parseInt(args[1]);
-			montCarl = Integer.parseInt(args[3]);
 			break;
 		}
 
@@ -52,47 +39,46 @@ public class rsbr {
 			if (!canHasPerc(dimX, dimY, faltPerc))
 				break;
 
-			for (int s = 0; s < montCarl; s++) {
-				System.out.println("Generating graph");
-				graph = (topologyFile != null) ?
-						GraphBuilder.generateGraph(topologyFile) :
-						new Graph(dimX, dimY, faltPerc);
-				// graph.printGraph("montCarlo"+montCarl);
-				System.out.println("Isolado?: " + graph.haveIsolatedCores());
+			System.out.println("Generating graph");
+			graph = (topologyFile != null) ?
+					GraphBuilder.generateGraph(topologyFile) :
+					new Graph(dimX, dimY, faltPerc);
 
-				System.out.println(" - SR Section");
-				SR sbr = new SR(graph);
+			System.out.println("Isolado?: " + graph.haveIsolatedCores());
 
-				System.out.println("Compute the segments");
-				sbr.computeSegments();
-				// sbr.listSegments();
+			System.out.println(" - SR Section");
+			SR sbr = new SR(graph);
 
-				System.out.println("Set the restrictions");
-				sbr.setrestrictions();
-				// sbr.printRestrictions();
+			System.out.println("Compute the segments");
+			sbr.computeSegments();
+			// sbr.listSegments();
 
-				System.out.println("Paths Computation");
-				ArrayList<ArrayList<Path>> paths = new PathFinder(graph).pathsComputation();
+			System.out.println("Set the restrictions");
+			sbr.setrestrictions();
+			// sbr.printRestrictions();
 
-				System.out.println(" - RBR Section");
-				rbr = new RBR(graph);
+			System.out.println("Paths Computation");
+			ArrayList<ArrayList<Path>> paths = new PathFinder(graph).pathsComputation();
 
-				if (volumePath != null) {
-					File commvol = new File(volumePath);
-					if (commvol.exists()) {
-						System.out
-								.println("Getting volumes from " + volumePath);
-						rbr.setVolume(paths, commvol);
-					}
+			System.out.println(" - RBR Section");
+			rbr = new RBR(graph);
+
+			if (volumePath != null) {
+				File commvol = new File(volumePath);
+				if (commvol.exists()) {
+					System.out
+							.println("Getting volumes from " + volumePath);
+					rbr.setVolume(paths, commvol);
 				}
+			}
 
-				System.out.println("Paths Selection");
+			System.out.println("Paths Selection");
 
-				double lwm = rbr.linkWeightMean(paths);
-				double pwm = rbr.pathWeightMean(paths);
+			double lwm = rbr.linkWeightMean(paths);
+			double pwm = rbr.pathWeightMean(paths);
 
-				int choice = 5;
-				switch (choice) {
+			int choice = 5;
+			switch (choice) {
 				case 0: // Sem seleção
 					chosenPaths = paths;
 					break;
@@ -118,61 +104,45 @@ public class rsbr {
 					break;
 				case 5: // Peso máximo
 					chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
-				}
-
-				if (tableFile != null) {
-
-					System.out.println("Regions Computation");
-					rbr.addRoutingOptions(paths);
-					rbr.regionsComputation();
-
-					if (merge.equals("merge")) {
-						System.out.println("Doing Merge");
-						rbr.merge(reachability);
-					}
-
-					System.out.println("Making Tables");
-					stats = rbr.getRegionsStats();
-					rbr.doRoutingTable("all");
-					System.out.println("All");
-					System.out.println("Max: " + stats[0] + " Min: " + stats[1]
-							+ " Med: " + stats[2]);
-					all.add(stats[0]);
-
-					System.out.println("Regions Computation");
-					rbr.addRoutingOptions(chosenPaths);
-					rbr.regionsComputation();
-
-					if (merge.equals("merge")) {
-						System.out.println("Doing Merge");
-						rbr.merge(reachability);
-					}
-
-					System.out.println("Making Tables");
-					stats = rbr.getRegionsStats();
-					rbr.doRoutingTable(tableFile);
-					System.out.println(tableFile);
-					System.out.println("Max: " + stats[0] + " Min: " + stats[1]
-							+ " Med: " + stats[2]);
-					mw2.add(stats[0]);
-				}
-
 			}
 
-			rbr.printMontCarl(output, faltPerc, all, mw2); // FaltPerc AllPaths
-															// mean allpaths std
-															// MaxWeightx2 mean
-															// MaxWeightx2 std
+			if (tableFile != null) {
 
+				System.out.println("Regions Computation");
+				rbr.addRoutingOptions(paths);
+				rbr.regionsComputation();
+
+				if (merge.equals("merge")) {
+					System.out.println("Doing Merge");
+					rbr.merge(reachability);
+				}
+
+				System.out.println("Making Tables");
+				stats = rbr.getRegionsStats();
+				rbr.doRoutingTable("all");
+				System.out.println("All");
+				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
+						+ " Med: " + stats[2]);
+				all.add(stats[0]);
+
+				System.out.println("Regions Computation");
+				rbr.addRoutingOptions(chosenPaths);
+				rbr.regionsComputation();
+
+				if (merge.equals("merge")) {
+					System.out.println("Doing Merge");
+					rbr.merge(reachability);
+				}
+
+				System.out.println("Making Tables");
+				stats = rbr.getRegionsStats();
+				rbr.doRoutingTable(tableFile);
+				System.out.println(tableFile);
+				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
+						+ " Med: " + stats[2]);
+				mw2.add(stats[0]);
+			}
 		}
-
-		try {
-			output.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 		System.out.println("All done!");
 
 	}
@@ -205,4 +175,5 @@ public class rsbr {
 		System.out.println("Peso dos caminhos: "+pw[0]+" ("+pw[1]+")");
 		System.out.println("Peso normalizado dos caminhos: "+pnw[0]+" ("+pnw[1]+")");
 		System.out.println("Peso dos links: "+lw[0]+" ("+lw[1]+")");
-	}}
+	}
+}
