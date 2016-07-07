@@ -7,55 +7,26 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RoutingTableGenerator {
 
     private Graph graph;
+    private int bitPerCoordinate = 0;
+    private int maxOfRegions = 0;
 
     public RoutingTableGenerator(Graph graph) {
         this.graph = graph;
+        int size = Math.max(graph.dimX(), graph.dimY());
+        this.bitPerCoordinate = (int) Math.ceil(Math.log(size) / Math.log(2));
+        this.maxOfRegions = maxOfRegions();
     }
 
     public void doRoutingTable(String ext) {
-        String routingTableFile = "Table_package_"+ext+".vhd";
-
-        File routingTable = new File(routingTableFile);
-        int size = (graph.dimX() >= graph.dimY()) ? graph.dimX() : graph.dimY();
-        int nBits = (int) Math.ceil(Math.log(size) / Math.log(2));
-        int maxOfRegions = maxOfRegions();
-
+        String fileName = "Table_package_"+ext+".vhd";
+        File routingTable = new File(fileName);
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
-            bw.append("library IEEE;\n"
-                    + "use ieee.std_logic_1164.all;\n"
-                    + "use ieee.numeric_std.all;\n"
-                    + "use work.HermesPackage.all;\n\n"
-                    + "package TablePackage is\n\n"
-                    + "constant NREG : integer := "
-                    + maxOfRegions
-                    + ";\n"
-                    + "constant MEMORY_SIZE : integer := NREG;\n"
-                    + "constant NBITS : integer := "
-                    + nBits
-                    + ";\n"
-                    + "constant CELL_SIZE : integer := 2*NPORT+4*NBITS;\n\n"
-                    + "subtype cell is std_logic_vector(CELL_SIZE-1 downto 0);\n"
-                    + "subtype regAddr is std_logic_vector(2*NBITS-1 downto 0);\n"
-                    + "type memory is array (0 to MEMORY_SIZE-1) of cell;\n"
-                    + "type tables is array (0 to NROT-1) of memory;\n\n"
-                    + "constant TAB: tables :=(");
-
-            for (Vertice router : graph.getVertices()) {
-                PrintRegions(router, maxOfRegions, bw, nBits);
-                if (graph.getVertices().indexOf(router) != graph.getVertices()
-                        .size() - 1)
-                    bw.append(",");
-            }
-
-            bw.append("\n);\nend TablePackage;\n\npackage body TablePackage is\n"
-                    + "end TablePackage;\n");
+            writeRoutingTable(bw);
             bw.flush();
             bw.close();
         } catch (IOException e) {
@@ -63,77 +34,109 @@ public class RoutingTableGenerator {
         }
     }
 
-    private int maxOfRegions()
-    {
-        int result = 0;
-        for(Vertice v : graph.getVertices()) {
-            result = Math.max(result, v.getRegions().size());
+    private void writeRoutingTable(BufferedWriter bw) throws IOException {
+        writeRoutingTableHeader(bw);
+        writeRoutingTableBody(bw);
+        writeRoutingTableTail(bw);
+    }
+
+    private void writeRoutingTableHeader(BufferedWriter bw) throws IOException {
+        bw.append("library IEEE;\n"
+                + "use ieee.std_logic_1164.all;\n"
+                + "use ieee.numeric_std.all;\n"
+                + "use work.HermesPackage.all;\n\n"
+                + "package TablePackage is\n\n"
+                + "constant NREG : integer := "
+                + maxOfRegions
+                + ";\n"
+                + "constant MEMORY_SIZE : integer := NREG;\n"
+                + "constant NBITS : integer := "
+                + bitPerCoordinate
+                + ";\n"
+                + "constant CELL_SIZE : integer := 2*NPORT+4*NBITS;\n\n"
+                + "subtype cell is std_logic_vector(CELL_SIZE-1 downto 0);\n"
+                + "subtype regAddr is std_logic_vector(2*NBITS-1 downto 0);\n"
+                + "type memory is array (0 to MEMORY_SIZE-1) of cell;\n"
+                + "type tables is array (0 to NROT-1) of memory;\n\n");
+    }
+
+    private void writeRoutingTableBody(BufferedWriter bw) throws IOException {
+        bw.append("constant TAB: tables :=(");
+        for (Vertice router : graph.getVertices()) {
+            PrintRegions(router, bw);
+            if (!isLastVertice(router))
+                bw.append(",");
         }
+        bw.append("\n);\n");
+    }
+
+    private void writeRoutingTableTail(BufferedWriter bw) throws IOException {
+        bw.append("end TablePackage;\n"
+                + "\n"
+                + "package body TablePackage is\n"
+                + "end TablePackage;\n");
+    }
+
+    private boolean isLastVertice(Vertice v) {
+        return (graph.getVertices().indexOf(v) == graph.getVertices().size() - 1);
+    }
+
+    private int maxOfRegions() {
+        int result = 0;
+        for(Vertice v : graph.getVertices())
+            result = Math.max(result, v.getRegions().size());
         return result;
     }
 
-    private void PrintRegions(Vertice router, int maxRegion, BufferedWriter bw, int nBits) {
-        try {
-            bw.append("\n -- Router " + router.getNome() + "\n");
-            bw.append("(");
+    private void PrintRegions(Vertice router, BufferedWriter bw) throws IOException {
+        bw.append("\n -- Router " + router.getNome() + "\n");
+        bw.append("(");
 
-            for (int a = 0; a < router.getRegions().size(); a++) {
-                int Xmin = Integer.parseInt(router.getRegions().get(a).getDownLeft()
-                        .split("\\.")[0]);
-                int Ymin = Integer.parseInt(router.getRegions().get(a).getDownLeft()
-                        .split("\\.")[1]);
-                int Xmax = Integer.parseInt(router.getRegions().get(a).getUpRight()
-                        .split("\\.")[0]);
-                int Ymax = Integer.parseInt(router.getRegions().get(a).getUpRight()
-                        .split("\\.")[1]);
+        for (int regionIndex = 0; regionIndex < router.getRegions().size(); regionIndex++) {
+            int Xmin = Integer.parseInt(router.getRegions().get(regionIndex).getDownLeft().split("\\.")[0]);
+            int Ymin = Integer.parseInt(router.getRegions().get(regionIndex).getDownLeft().split("\\.")[1]);
+            int Xmax = Integer.parseInt(router.getRegions().get(regionIndex).getUpRight().split("\\.")[0]);
+            int Ymax = Integer.parseInt(router.getRegions().get(regionIndex).getUpRight().split("\\.")[1]);
 
-                // Write on file
-                String outLine = "(\""
-                        + opToBinary(router.getRegions().get(a).getIp())
-                        + IntToBitsString(Xmin, nBits)
-                        + IntToBitsString(Ymin, nBits)
-                        + IntToBitsString(Xmax, nBits)
-                        + IntToBitsString(Ymax, nBits)
-                        + opToBinary(router.getRegions().get(a).getOp()) + "\")";
+            String region = "(\""
+                    + opToBinary(router.getRegions().get(regionIndex).getIp())
+                    + intToBinary(Xmin, bitPerCoordinate)
+                    + intToBinary(Ymin, bitPerCoordinate)
+                    + intToBinary(Xmax, bitPerCoordinate)
+                    + intToBinary(Ymax, bitPerCoordinate)
+                    + opToBinary(router.getRegions().get(regionIndex).getOp())
+                    + "\")";
 
-                bw.append(outLine);
+            bw.append(region);
+            if (regionIndex < maxOfRegions)
+                bw.append(",");
+            bw.newLine();
+        }
+        paddingToMaxRegions(bw, router);
 
-                if (a != router.getRegions().size() - 1
-                        || (a == router.getRegions().size() - 1)
-                        && (router.getRegions().size() < maxRegion)) {
-                    bw.append(",");
-                }
-                bw.newLine();
-            }
+        bw.append(")");
+    }
 
-            // If less then Max Region
-            if (router.getRegions().size() < maxRegion) {
-                int a = router.getRegions().size();
-                while (a < maxRegion) {
-                    a++;
-                    String outLine = "(\"" + IntToBitsString(0, 4 * nBits + 10) + "\")";
-                    bw.append(outLine);
-
-                    if (a < maxRegion)
-                        bw.append(",");
-
-                    bw.newLine();
-                }
-            }
-
-            bw.append(")");
-            // bw.flush();
-            // bw.close();
-        } catch (IOException ex) {
-            Logger.getLogger(Vertice.class.getName()).log(Level.SEVERE, null, ex);
+    private void paddingToMaxRegions(BufferedWriter bw, Vertice router) throws IOException{
+        int numberOfCoordinates = 4;
+        int numberOfInputPorts = 5;
+        int numberOfOutputPorts = 5;
+        int totalOfPorts = numberOfInputPorts + numberOfOutputPorts;
+        String nullRegion = "(\"" + intToBinary(0, numberOfCoordinates * bitPerCoordinate + totalOfPorts) + "\")";
+        int numberOfRegions = router.getRegions().size();
+        while (numberOfRegions < maxOfRegions) {
+            numberOfRegions++;
+            bw.append(nullRegion);
+            if (numberOfRegions < maxOfRegions)
+                bw.append(",");
+            bw.newLine();
         }
     }
 
-    private String IntToBitsString(int a, int size) {
-        String out = Integer.toBinaryString(a);
-        while (out.length() < size)
+    private String intToBinary(int value, int numberOfDigits) {
+        String out = Integer.toBinaryString(value);
+        while (out.length() < numberOfDigits)
             out = "0" + out;
-
         return out;
     }
 
@@ -160,7 +163,6 @@ public class RoutingTableGenerator {
                     break;
             }
         }
-
         return String.valueOf(outOp);
     }
 }
