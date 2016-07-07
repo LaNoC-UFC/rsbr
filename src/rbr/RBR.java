@@ -1,7 +1,6 @@
 package rbr;
 
 import util.*;
-import util.Path.PropWeight;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -176,51 +175,6 @@ public class RBR {
 		return stats;
 	}
 	
-	public void printMontCarl(BufferedWriter output,double percent, ArrayList<Double> c1,ArrayList<Double> c2)
-	{
-		double[] statsC1 = montCarlStats(c1);
-		double[] statsC2 = montCarlStats(c2);
-		try 
-		{
-			
-			output.append(percent+"\t"+statsC1[0]+"\t"+statsC1[1]+"\t"+statsC2[0]+"\t"+statsC2[1]+"\n");
-
-			
-		} 
-		catch (IOException e) 
-		{
-			e.printStackTrace();
-		}
-	}
-	
-	private double[] montCarlStats(ArrayList<Double> input)
-	{
-		double[] stats = new double[2]; //0-Mean, 1-Std		
-		double sum=0;
-		double mean=0;
-		double sigma = 0;
-		double variance = 0;
-		double dblmean = 0;		
-		
-		for(double vlr : input)
-			sum+=vlr;
-		mean=sum/input.size();
-		
-		double ArAccum=0;
-		for(double vlr : input)
-			ArAccum+=(vlr*vlr);
-		dblmean= ArAccum/input.size();
-		
-		variance = dblmean-(mean*mean); //Variance
-		sigma=Math.sqrt(variance); //Standard Deviation
-		
-		
-		stats[0] = mean;
-		stats[1] = sigma;
-
-		return stats;
-	}
-
 	// Pack routing options if they have the same input port and the same
 	// destination
 	private static void packOutputPort(Vertice atual) {
