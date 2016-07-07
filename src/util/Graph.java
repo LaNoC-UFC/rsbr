@@ -6,13 +6,13 @@ public class Graph {
 	boolean debug = true;
 	static private String[] ports = { "N", "S", "E", "W" };
 	ArrayList<Vertice> vertices;
-	ArrayList<Aresta> arestas;
+	ArrayList<Edge> edges;
 	int dimX;
 	int dimY;
 
 	public Graph() {
 		vertices = new ArrayList<>();
-		arestas = new ArrayList<>();
+		edges = new ArrayList<>();
 	}
 	
 	public Graph(int dim, double perc) {
@@ -26,13 +26,13 @@ public class Graph {
 	public Graph(int dX,int dY, double perc) {
 		
 		vertices = new ArrayList<>();
-		arestas = new ArrayList<>();
+		edges = new ArrayList<>();
 		
 		dimX=dX;
 		dimY=dY;
-		int nArests = (dimX-1)*dimY + dimX*(dimY-1);
-		int nFalts = (int)Math.ceil((double)nArests*perc);
-		System.out.println("#Arestas: "+nArests);
+		int NumberOfEdges = (dimX-1)*dimY + dimX*(dimY-1);
+		int nFalts = (int)Math.ceil((double)NumberOfEdges*perc);
+		System.out.println("#Edges: "+NumberOfEdges);
 		System.out.println("#Faults: "+nFalts);
 			
 		//Adiciona Vertices
@@ -40,18 +40,18 @@ public class Graph {
 			for(int y=0; y<dimY; y++)
 				addVertice(x+"."+y);
 		
-		//Adiciona Arestas
+		//Add Edges
 		for(int y=0; y<dimY; y++)
 			for(int x=0; x<dimX; x++)
 			{
 				if(contem(x+"."+(y+1)))
-					addAresta(getVertice(x+"."+y), getVertice(x+"."+(y+1)), ports[0]);
+					addEdge(getVertice(x+"."+y), getVertice(x+"."+(y+1)), ports[0]);
 				if(contem(x+"."+(y-1)))
-					addAresta(getVertice(x+"."+y), getVertice(x+"."+(y-1)), ports[1]);
+					addEdge(getVertice(x+"."+y), getVertice(x+"."+(y-1)), ports[1]);
 				if(contem((x+1)+"."+y)) 
-					addAresta(getVertice(x+"."+y), getVertice((x+1)+"."+y), ports[2]);	
+					addEdge(getVertice(x+"."+y), getVertice((x+1)+"."+y), ports[2]);
 				if(contem((x-1)+"."+y)) 
-					addAresta(getVertice(x+"."+y), getVertice((x-1)+"."+y), ports[3]);	
+					addEdge(getVertice(x+"."+y), getVertice((x-1)+"."+y), ports[3]);
 			}				
 		
 		//Adiciona Falhas e checa isolamento
@@ -59,20 +59,20 @@ public class Graph {
 		{
 			while(true)
 			{
-				int idx = (int)(Math.random()*((double)arestas.size()));
-				Aresta toRemoveIndo = arestas.get(idx);
-				Aresta toRemoveVindo = toRemoveIndo.getDestino().getAresta(toRemoveIndo.getOrigem());
+				int idx = (int)(Math.random()*((double) edges.size()));
+				Edge toRemoveIndo = edges.get(idx);
+				Edge toRemoveVindo = toRemoveIndo.destination().edge(toRemoveIndo.source());
 				
-				if (debug) System.out.println("Removing: "+toRemoveIndo.getOrigem().getNome()
-						+"->"+toRemoveIndo.getDestino().getNome());
+				if (debug) System.out.println("Removing: "+toRemoveIndo.source().getNome()
+						+"->"+toRemoveIndo.destination().getNome());
 				
-				removeAresta(toRemoveIndo);
-				removeAresta(toRemoveVindo);
+				removeEdge(toRemoveIndo);
+				removeEdge(toRemoveVindo);
 				
 				if(haveIsolatedCores())
 				{
-					AddAresta(toRemoveIndo);
-					AddAresta(toRemoveVindo);
+					addEdge(toRemoveIndo);
+					addEdge(toRemoveVindo);
 				}
 				else break;
 			}
@@ -107,8 +107,8 @@ public class Graph {
 
 	}
 
-	public ArrayList<Aresta> getArestas() {
-		return this.arestas;
+	public ArrayList<Edge> getEdges() {
+		return this.edges;
 	}
 
 	public Vertice getVertice(String nomeVertice) {
@@ -132,20 +132,20 @@ public class Graph {
 		vertices.add(v);
 	}
 	
-	public void addAresta(Vertice origem, Vertice destino, String cor) {
-		Aresta e = new Aresta(origem, destino, cor);
+	public void addEdge(Vertice origem, Vertice destino, String cor) {
+		Edge e = new Edge(origem, destino, cor);
 		origem.addAdj(e);
-		arestas.add(e);
+		edges.add(e);
 	}
 	
-	private void AddAresta(Aresta toAdd) {
-		toAdd.getOrigem().getAdj().add(toAdd);
-		arestas.add(toAdd);
+	private void addEdge(Edge toAdd) {
+		toAdd.source().getAdj().add(toAdd);
+		edges.add(toAdd);
 	}
 	
-	private void removeAresta(Aresta toRemove) {
-		toRemove.getOrigem().getAdj().remove(toRemove);
-		arestas.remove(toRemove);		
+	private void removeEdge(Edge toRemove) {
+		toRemove.source().getAdj().remove(toRemove);
+		edges.remove(toRemove);
 	}
 
 	public String toString() {
@@ -153,9 +153,9 @@ public class Graph {
 		System.out.println("Graph:");
 		for (Vertice u : vertices) {
 			r += u.getNome() + " -> ";
-			for (Aresta e : u.getAdj()) {
-				Vertice v = e.getDestino();
-				r += v.getNome() + e.getCor() + ", ";
+			for (Edge e : u.getAdj()) {
+				Vertice v = e.destination();
+				r += v.getNome() + e.color() + ", ";
 			}
 			r += "\n";
 		}

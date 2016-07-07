@@ -16,14 +16,14 @@ public class Vertice implements Comparable<Vertice> {
 
 	private ArrayList<rbr.RoutingPath> routingPaths = new ArrayList<>();
 	private String nome;
-	private ArrayList<Aresta> adj;
+	private ArrayList<Edge> adj;
 	private ArrayList<rbr.Region> Regions = new ArrayList<>();
 
 	public Vertice(String name) {
 		seg = null;
 		snet = -1;
 		nome = name;
-		adj = new ArrayList<Aresta>();
+		adj = new ArrayList<Edge>();
 		// restrictions = nome + ": I{} N{} S{} E{} W{}";
 	}
 
@@ -82,29 +82,29 @@ public class Vertice implements Comparable<Vertice> {
 		return this.restrictions;
 	}
 
-	public Aresta getAresta(Vertice destino) {
-		for (Aresta v : adj)
-			if (v.getDestino().getNome().equals(destino.getNome()))
+	public Edge edge(Vertice destino) {
+		for (Edge v : adj)
+			if (v.destination().getNome().equals(destino.getNome()))
 				return v;
 
 		return null;
 
 	}
 
-	public void addAdj(Aresta e) {
+	public void addAdj(Edge e) {
 
 		adj.add(e);
 	}
 
-	public ArrayList<Aresta> getAdj() {
+	public ArrayList<Edge> getAdj() {
 
 		return this.adj;
 
 	}
 
-	public Aresta getAdj(String color) {
-		for (Aresta a : this.adj)
-			if (a.getCor().equals(color))
+	public Edge getAdj(String color) {
+		for (Edge a : this.adj)
+			if (a.color().equals(color))
 				return a;
 
 		System.out.println("ERROR : There isn't a Op " + color + "?");
@@ -199,18 +199,18 @@ public class Vertice implements Comparable<Vertice> {
 		String opColor = this.getOpColor(dest, ipColor);
 		if (opColor == null)
 			return false;
-		return this.getAdj(opColor).getDestino()
-				.reaches(dest, getAdj(opColor).getInvColor());
+		return this.getAdj(opColor).destination()
+				.reaches(dest, EdgeColor.getInvColor(getAdj(opColor).color()));
 	}
 
 	public void checkIsolation(ArrayList<Vertice> alc) {
 		if (!alc.contains(this))
 			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
-		for (Aresta adj : this.adj) {
+		for (Edge adj : this.adj) {
 			// So adiciona aos alcancaveis cores que ainda nao foram adicionados
-			if (alc.contains(adj.getDestino()))
+			if (alc.contains(adj.destination()))
 				continue;
-			Vertice neigh = adj.getDestino();
+			Vertice neigh = adj.destination();
 			alc.add(neigh);
 			// checa para vizinhos
 			neigh.checkIsolation(alc);

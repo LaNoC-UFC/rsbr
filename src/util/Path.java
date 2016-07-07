@@ -70,8 +70,8 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		
 		@Override
 		public int compare(Path p0, Path p1) {
-			double err0 = Math.abs(p0.getWeight()-linkWeightMean*(double)p0.numArestas());
-			double err1 = Math.abs(p1.getWeight()-linkWeightMean*(double)p1.numArestas());
+			double err0 = Math.abs(p0.getWeight()-linkWeightMean*(double)p0.edgesCount());
+			double err1 = Math.abs(p1.getWeight()-linkWeightMean*(double)p1.edgesCount());
 			if(err0 < err1) return -1;
 			if(err0 > err1) return +1;
 			return 0;
@@ -89,8 +89,7 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		this.volume = p.volume;
 	}
 
-	// #Arestas
-	private int numArestas() {
+	private int edgesCount() {
 		return this.size() - 1;
 	}
 
@@ -106,24 +105,28 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		return this.size()-1;
 	}
 
-	// Sum of Aresta's weight
+	// Sum of Edge's weight
 	public double getWeight() {
 		double weight = 0;
 
-		for (int i = 0; i < numArestas(); i++)
-			weight += this.get(i).getAresta(this.get(i + 1)).getWeight();
+		for (int i = 0; i < edgesCount(); i++)
+			weight += this.get(i).edge(this.get(i + 1)).weight();
 
 		return weight;
 	}
 
 	public void incremWeight() {
-		for (int i = 0; i < numArestas(); i++)
-			this.get(i).getAresta(this.get(i + 1)).incremWeight(volume);
+		for (int i = 0; i < edgesCount(); i++) {
+			Edge edge = this.get(i).edge(this.get(i + 1));
+			edge.setWeight(edge.weight() + volume);
+		}
 	}
 
 	public void decremWeight() {
-		for (int i = 0; i < numArestas(); i++)
-			this.get(i).getAresta(this.get(i + 1)).decremWeight(volume);
+		for (int i = 0; i < edgesCount(); i++) {
+			Edge edge = this.get(i).edge(this.get(i + 1));
+			edge.setWeight(edge.weight() - volume);
+		}
 	}
 	
 	public double volume() {
@@ -135,10 +138,10 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 	}
 
 	public int compareTo(Path other) {
-		if (this.numArestas() < other.numArestas())
+		if (this.edgesCount() < other.edgesCount())
 			return -1;
 
-		if (this.numArestas() > other.numArestas())
+		if (this.edgesCount() > other.edgesCount())
 			return 1;
 		return 0;
 
@@ -150,8 +153,8 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 	public String toString() {
 
 //		return "src: " + this.src().getNome() + ", dst: "
-//				+ this.dst().getNome() + ", size: " + this.numArestas()
-//				+ ", weight: " + this.getWeight();
+//				+ this.dst().getNome() + ", size: " + this.edgesCount()
+//				+ ", weight: " + this.weight();
 		String pathLine = "" + volume + ":";
 		for(Vertice v : this)
 		{
