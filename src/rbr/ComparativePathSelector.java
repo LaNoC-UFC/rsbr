@@ -11,7 +11,6 @@ public class ComparativePathSelector {
     private ArrayList<ArrayList<Path>> paths;
     private Comparator<Path> comparator;
     private int iterationsCount = 0;
-    private double percentageOfPaths = 0;
 
     private static class ByNumberOfPaths implements Comparator<ArrayList<Path>> {
 
@@ -44,42 +43,50 @@ public class ComparativePathSelector {
     }
 
     public ArrayList<ArrayList<Path>> selection() {
-        ArrayList<ArrayList<Path>> selec = new ArrayList<ArrayList<Path>>();
+        Collections.sort(paths, new ByNumberOfPaths());
 
-        Collections.sort(paths, new ByNumberOfPaths()); // sort by number of paths by pair
-        for(ArrayList<Path> alp: paths) {
-            Collections.sort(alp, comparator);
-            int n = (percentageOfPaths *alp.size() < 1.0) ? 1 : (int) (percentageOfPaths *alp.size());
-            ArrayList<Path> sub = new ArrayList<Path>();
-            for(int i = 0; i < n; i++) {
-                alp.get(i).incremWeight();
-                sub.add(alp.get(i));
-            }
-            selec.add(sub);
+        ArrayList<ArrayList<Path>> result = new ArrayList<>();
+        for(ArrayList<Path> samePairPaths: paths) {
+            result.add(selectPath(samePairPaths));
         }
 
-        for(int i = iterationsCount; i > 1; i--) {
-            // Caso busque equalização
-            if(comparator.getClass() == Path.PropWeight.class) {
-                Collections.sort(selec, new ByStandardDeviation(comparator));
-                Collections.sort(paths, new ByStandardDeviation(comparator));
-            }
-            for(int j = 0; j < paths.size(); j++) { // each pair
-                if(paths.get(j).size() == 1)
-                    continue;
-                ArrayList<Path> pair = selec.get(j);
-                for(Path path : pair)
-                    path.decremWeight();
-                pair.removeAll(pair); // esvazia sublista
-                ArrayList<Path> alp = paths.get(j);
-                Collections.sort(alp, comparator);
-                int n = (percentageOfPaths *alp.size() < 1.0) ? 1 : (int) (percentageOfPaths *alp.size());
-                for(int k = 0; k < n; k++) {
-                    alp.get(k).incremWeight();
-                    pair.add(alp.get(k));
-                }
-            }
+        for(int i = 0; i < iterationsCount - 1; i++) {
+            sortIfEqualization(result);
+            reselectPaths(result);
         }
-        return selec;
+        return result;
+    }
+
+    private void sortIfEqualization(ArrayList<ArrayList<Path>> selectedPaths) {
+        if(comparator.getClass() == Path.PropWeight.class) {
+            Collections.sort(selectedPaths, new ByStandardDeviation(comparator));
+            Collections.sort(paths, new ByStandardDeviation(comparator));
+        }
+    }
+
+    private void reselectPaths(ArrayList<ArrayList<Path>> selectedPaths) {
+        sortIfEqualization(selectedPaths);
+        for(int j = 0; j < paths.size(); j++) {
+            ArrayList<Path> samePairPaths = paths.get(j);
+            if(samePairPaths.size() == 1)
+                continue;
+            unselectPaths(selectedPaths, j);
+            selectedPaths.add(j, selectPath(samePairPaths));
+        }
+    }
+
+    private void unselectPaths(ArrayList<ArrayList<Path>> selectedPaths, int index) {
+        ArrayList<Path> pair = selectedPaths.remove(index);
+        for(Path path : pair)
+            path.decremWeight();
+    }
+
+    private ArrayList<Path> selectPath(ArrayList<Path> samePairPaths) {
+        Collections.sort(samePairPaths, comparator);
+        Path selectedPath = samePairPaths.get(0);
+        selectedPath.incremWeight();
+        ArrayList<Path> result = new ArrayList<>();
+        result.add(selectedPath);
+        return result;
     }
 }
