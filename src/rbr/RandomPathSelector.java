@@ -7,30 +7,26 @@ import java.util.Collections;
 
 public class RandomPathSelector {
 
-    private double percentageOfPaths = 0.0;
     private ArrayList<ArrayList<Path>> paths;
 
     public RandomPathSelector(ArrayList<ArrayList<Path>> paths) {
         this.paths = paths;
     }
 
-    public RandomPathSelector(ArrayList<ArrayList<Path>> paths, double percentageOfPaths) {
-        this.paths = paths;
-        this.percentageOfPaths = percentageOfPaths;
+    public ArrayList<ArrayList<Path>> selection() {
+        ArrayList<ArrayList<Path>> result = new ArrayList<>();
+        for(ArrayList<Path> samePairPaths: paths) {
+            result.add(selectPath(samePairPaths));
+        }
+        return result;
     }
 
-    public ArrayList<ArrayList<Path>> selection() {
-        ArrayList<ArrayList<Path>> selec = new ArrayList<ArrayList<Path>>();
-        for(ArrayList<Path> alp: paths) {
-            Collections.shuffle(alp);
-            int n = (percentageOfPaths *alp.size() < 1.0) ? 1 : (int) Math.round(percentageOfPaths *alp.size());
-            ArrayList<Path> sub = new ArrayList<Path>();
-            for(int i = 0; i < n; i++) {
-                alp.get(i).incremWeight();
-                sub.add(alp.get(i));
-            }
-            selec.add(sub);
-        }
-        return selec;
+    private ArrayList<Path> selectPath(ArrayList<Path> samePairPaths) {
+        Collections.shuffle(samePairPaths);
+        Path randomPath = samePairPaths.get(0);
+        randomPath.incremWeight();
+        ArrayList<Path> result = new ArrayList<>();
+        result.add(randomPath);
+        return result;
     }
 }
