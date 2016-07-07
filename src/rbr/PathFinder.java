@@ -1,6 +1,6 @@
 package rbr;
 
-import util.Aresta;
+import util.Edge;
 import util.Graph;
 import util.Path;
 import util.Vertice;
@@ -35,9 +35,9 @@ public class PathFinder {
     private ArrayList<Path> computeOneHopPaths(ArrayList<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<Path>();
         for (Vertice src : graph.getVertices()) {
-            for (Aresta e : src.getAdj()) {
+            for (Edge e : src.getAdj()) {
                 Vertice dst = e.destination();
-                if (src.getRestriction("I").contains(src.getAresta(dst).color()))
+                if (src.getRestriction("I").contains(src.edge(dst).color()))
                     continue;
                 Path p = new Path();
                 p.add(src);
@@ -67,14 +67,14 @@ public class PathFinder {
         ArrayList<Path> result = new ArrayList<Path>();
         Vertice currentSrc = p.dst();
         Vertice predecessor = p.get(p.size() - 2);
-        String inputPort = currentSrc.getAresta(predecessor).color();
-        for (Aresta e : currentSrc.getAdj()) {
+        String inputPort = currentSrc.edge(predecessor).color();
+        for (Edge e : currentSrc.getAdj()) {
             Vertice dst = e.destination();
             // going back
             if (dst == predecessor)
                 continue;
             // going to forbidden direction
-            if (currentSrc.getRestriction(inputPort).contains(currentSrc.getAresta(dst).color()))
+            if (currentSrc.getRestriction(inputPort).contains(currentSrc.edge(dst).color()))
                 continue;
             // no mininal path
             if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))

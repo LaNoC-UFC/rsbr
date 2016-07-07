@@ -40,8 +40,8 @@ public class GraphBuilder {
                                 + (columns.length - i));
                         Vertice ending = result.getVertice((j + 1) + "."
                                 + (columns.length - i));
-                        result.addAresta(starting, ending, "E");
-                        result.addAresta(ending, starting, "W");
+                        result.addEdge(starting, ending, "E");
+                        result.addEdge(ending, starting, "W");
                     }
                 }
             }
@@ -55,8 +55,8 @@ public class GraphBuilder {
                                 + (columns.length - i));
                         Vertice ending = result.getVertice(j + "."
                                 + (columns.length - 1 - i));
-                        result.addAresta(starting, ending, "S");
-                        result.addAresta(ending, starting, "N");
+                        result.addEdge(starting, ending, "S");
+                        result.addEdge(ending, starting, "N");
                     }
                 }
             }

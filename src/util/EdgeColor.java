@@ -1,6 +1,6 @@
 package util;
 
-public class ArestaColor {
+public class EdgeColor {
     public static String getInvColor(String color) {
         switch (color) {
             case "E":

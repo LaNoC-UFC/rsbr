@@ -21,18 +21,18 @@ public class RBR {
 		double mean = 0.0;
 		double std = 0.0;
 
-		for (Aresta link : graph.getArestas())
+		for (Edge link : graph.getEdges())
 			linksWeight += (double) link.weight();
 
-		mean = linksWeight / (double) graph.getArestas().size();
+		mean = linksWeight / (double) graph.getEdges().size();
 		stats[0] = mean;
 
 		double temp = 0.0;
-		for (Aresta link : graph.getArestas())
+		for (Edge link : graph.getEdges())
 			temp += ((double) link.weight() - mean)
 					* ((double) link.weight() - mean);
 
-		double variance = (temp / (double) (graph.getArestas().size()));
+		double variance = (temp / (double) (graph.getEdges().size()));
 		// size-1 for sample. We have population
 
 		std = Math.sqrt(variance);
@@ -117,9 +117,9 @@ public class RBR {
 				String dest = path.dst().getNome();
 				for (Vertice sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
-						String op = sw.getAresta(path.get(path.indexOf(sw) + 1))
+						String op = sw.edge(path.get(path.indexOf(sw) + 1))
 								.color();
-						String ip = (path.indexOf(sw) == 0) ? "I" : sw.getAresta(
+						String ip = (path.indexOf(sw) == 0) ? "I" : sw.edge(
 								path.get(path.indexOf(sw) - 1)).color();
 						sw.addRP(ip, dest, op);
 					}
@@ -738,7 +738,7 @@ public class RBR {
 			Path path = alp.get(0);
 			acc += ((double)path.size()-1.0)*path.volume();
 		}
-		return acc/(double)graph.getArestas().size();
+		return acc/(double)graph.getEdges().size();
 	}
 
 	public double pathWeightMean(ArrayList<ArrayList<Path>> paths) {

@@ -15,10 +15,10 @@ public class SR {
 
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
-	private ArrayList<Aresta> bridge;
+	private ArrayList<Edge> bridge;
 
 	private List<Vertice> visitedVertices, unvisitedVertices, start, terminal;
-	private List<Aresta> visitedArestas, unvisitedArestas;
+	private List<Edge> visitedEdges, unvisitedEdges;
 	//private List<Vertice> visiteds;
 	//private List<Vertice> nVisiteds;
 
@@ -32,8 +32,8 @@ public class SR {
 		visitedVertices = new ArrayList<>();
 		unvisitedVertices = new ArrayList<>();
 		start = new ArrayList<>();
-		visitedArestas = new ArrayList<>();
-		unvisitedArestas = new ArrayList<>();
+		visitedEdges = new ArrayList<>();
+		unvisitedEdges = new ArrayList<>();
 		bridge = new ArrayList<>();
 		//nVisiteds = new ArrayList<>();
 		RRIndex = new int[2];
@@ -47,7 +47,7 @@ public class SR {
 
 	public void computeSegments() {
 		// fill not visiteds' list
-		unvisitedArestas.addAll(graph.getArestas());
+		unvisitedEdges.addAll(graph.getEdges());
 		unvisitedVertices.addAll(graph.getVertices());
 		int Nx = graph.dimX()-1;
 		int Ny = graph.dimY()-1;
@@ -157,7 +157,7 @@ public class SR {
 			
 		if (debug) System.err.println("Switch now: " + sw.getNome());
 		
-		ArrayList<Aresta> links = suitableLinks(sw, min, max);
+		ArrayList<Edge> links = suitableLinks(sw, min, max);
 		if (links == null) {
 			if (debug) System.err.println("No Suitable Links found.");
 			if(isTVisited(sw)) unsetTVisited(sw);
@@ -167,9 +167,9 @@ public class SR {
 		}
 		
 		while (!links.isEmpty()) {
-			Aresta ln = getNextLink(links);
+			Edge ln = getNextLink(links);
 			links.remove(ln);
-			Aresta nl = ln.destination().getAresta(ln.source());
+			Edge nl = ln.destination().edge(ln.source());
 			if (debug) System.err.println("Link now: "+ln.source().getNome()+" <-> "+ln.destination().getNome());
 			setTVisited(ln);
 			setTVisited(nl);
@@ -239,7 +239,7 @@ public class SR {
 	 * and attached to a terminal switch.
 	 */
 	protected Vertice nextNotVisited(String min, String max) {
-		for (Aresta b: bridge) {
+		for (Edge b: bridge) {
 			Vertice sw = b.destination();
 			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
 				if (debug) System.err.println("nextNotVisited " + sw.getNome());
@@ -273,8 +273,8 @@ public class SR {
 	 * try to make a small segment by choosing a link for close a cycle making a
 	 * turn every time. RRIndex keeps track of the last turn
 	 */
-	protected Aresta getNextLink(ArrayList<Aresta> links) {
-		Aresta got = null;
+	protected Edge getNextLink(ArrayList<Edge> links) {
+		Edge got = null;
 		int index;
 		if (RRIndex[0] == -1) {
 			if (RRIndex[1] == -1) { // first choice of this computation
@@ -289,7 +289,7 @@ public class SR {
 			}
 		}
 		while (true) {
-			for (Aresta ln : links) {
+			for (Edge ln : links) {
 				if (ln.color() == RoundRobin[index]) {
 					got = ln;
 					break;
@@ -328,14 +328,14 @@ public class SR {
 				Vertice Ending = segment.getLinks().get(0).destination();
 				//System.err.println("Start: " + Starting.getNome() + " Ending: "+ Ending.getNome());
 				// Restricted link
-				String opStarting = Starting.getAresta(Ending).color();
-				String opEnding = Ending.getAresta(Starting).color();
+				String opStarting = Starting.edge(Ending).color();
+				String opEnding = Ending.edge(Starting).color();
 				// Restrictions at Starting core
-				for (Aresta link : Starting.getAdj())
+				for (Edge link : Starting.getAdj())
 					if (link.color() != opStarting)
 						Starting.addRestriction(link.color(), opStarting);
 				// Restrictions at Ending core
-				for (Aresta link : Ending.getAdj())
+				for (Edge link : Ending.getAdj())
 					if (link.color() != opEnding)
 						Ending.addRestriction(link.color(), opEnding);
 				continue;
@@ -345,31 +345,31 @@ public class SR {
 				segment.getSwitchs()
 						.get(0)
 						.addRestriction(
-								ArestaColor.getInvColor(segment.getLinks().get(0).color()),
+								EdgeColor.getInvColor(segment.getLinks().get(0).color()),
 								segment.getLinks().get(1).color());
 				segment.getSwitchs()
 						.get(0)
 						.addRestriction(segment.getLinks().get(1).color(),
-								ArestaColor.getInvColor(segment.getLinks().get(0).color()));
+								EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 				continue;
 			}
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
 				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
-						ArestaColor.getInvColor(segment.getLinks().get(1).color()), segment
+						EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment
 								.getLinks().get(2).color());
 				restrict.addRestriction(segment.getLinks().get(2).color(),
-						ArestaColor.getInvColor(segment.getLinks().get(1).color()));
+						EdgeColor.getInvColor(segment.getLinks().get(1).color()));
 				continue;
 			}
 			if (segment.isStarting()) {
 				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
-						ArestaColor.getInvColor(segment.getLinks().get(0).color()), segment
+						EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment
 								.getLinks().get(1).color());
 				restrict.addRestriction(segment.getLinks().get(1).color(),
-						ArestaColor.getInvColor(segment.getLinks().get(0).color()));
+						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 			}
 		}
 	}
@@ -386,16 +386,16 @@ public class SR {
 		unvisitedVertices.remove(v);
 	}
 
-	private boolean isVisited(Aresta a) {
-		return visitedArestas.contains(a);
+	private boolean isVisited(Edge a) {
+		return visitedEdges.contains(a);
 	}
 
-	private void visit(Aresta a) {
-		assert !visitedArestas.contains(a) : "Aresta jah visitada?";
-		//assert unvisitedArestas.contains(a) : "Aresta (t)visitada?";
+	private void visit(Edge a) {
+		assert !visitedEdges.contains(a) : "Edge jah visitada?";
+		//assert unvisitedEdges.contains(a) : "Edge (t)visitada?";
 		
-		visitedArestas.add(a);
-		unvisitedArestas.remove(a);
+		visitedEdges.add(a);
+		unvisitedEdges.remove(a);
 	}
 
 	private boolean isTVisited(Vertice v) {
@@ -409,20 +409,20 @@ public class SR {
 		unvisitedVertices.remove(v);
 	}
 
-	private boolean isTVisited(Aresta a) {
-		return !visitedArestas.contains(a) && !unvisitedArestas.contains(a);
+	private boolean isTVisited(Edge a) {
+		return !visitedEdges.contains(a) && !unvisitedEdges.contains(a);
 	}
 
-	private void setTVisited(Aresta a) {
-		assert unvisitedArestas.contains(a) : "Aresta jah tvisitada?";
+	private void setTVisited(Edge a) {
+		assert unvisitedEdges.contains(a) : "Edge jah tvisitada?";
 		
-		unvisitedArestas.remove(a);
+		unvisitedEdges.remove(a);
 	}
 
-	private void unsetTVisited(Aresta a) {
-		assert !unvisitedArestas.contains(a) : "Aresta nao tvisitada?";
+	private void unsetTVisited(Edge a) {
+		assert !unvisitedEdges.contains(a) : "Edge nao tvisitada?";
 		
-		unvisitedArestas.add(a);
+		unvisitedEdges.add(a);
 	}
 
 	private void unsetTVisited(Vertice v) {
@@ -464,17 +464,17 @@ public class SR {
 		terminal.remove(v);
 	}
 
-	public ArrayList<Aresta> suitableLinks(Vertice v, String min, String max) 
+	public ArrayList<Edge> suitableLinks(Vertice v, String min, String max)
 	{
-		ArrayList<Aresta> adj = v.getAdj(); 
+		ArrayList<Edge> adj = v.getAdj();
 		if(adj.isEmpty())
 			return null;
 		
-		ArrayList<Aresta> slinks = new ArrayList<>();
-		for(Aresta ln : adj) {
+		ArrayList<Edge> slinks = new ArrayList<>();
+		for(Edge ln : adj) {
 			Vertice dst = ln.destination();
 			boolean cruza = isTVisited(dst) && !isStart(dst);
-			boolean bdg = bridge.contains(ln) || bridge.contains(dst.getAresta(ln.source()));
+			boolean bdg = bridge.contains(ln) || bridge.contains(dst.edge(ln.source()));
 			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(min, max) && !cruza && !bdg)
 				slinks.add(ln);
 		}
@@ -504,7 +504,7 @@ public class SR {
 		private void dfs(Graph g, Vertice u, Vertice v) {
 			assert g != null && u != null && v != null : "Ponteiro(s) nulo(s) para vertice(s) ou grafo!";
 			low[g.indexOf(v)] = pre[g.indexOf(v)] = cnt++;
-			for(Aresta e : v.getAdj()) {
+			for(Edge e : v.getAdj()) {
 				Vertice w = e.destination();
 				if (pre[g.indexOf(w)] == -1) {
 					dfs(g, v, w);

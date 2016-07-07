@@ -1,12 +1,12 @@
 package util;
 
-public class Aresta {
+public class Edge {
 	private Vertice source;
 	private Vertice destination;
 	private String color;
 	private double weight;
 
-	Aresta(Vertice src, Vertice dst, String color) {
+	Edge(Vertice src, Vertice dst, String color) {
 		this.color = color;
 		this.source = src;
 		this.destination = dst;
@@ -26,7 +26,7 @@ public class Aresta {
 	}
 
 	public Vertice other(Vertice v) {
-		assert source == v || destination == v : "Vertice is not conected to this Aresta";
+		assert source == v || destination == v : "Vertice is not conected to this Edge";
 		return (v == source) ? destination : source;
 	}
 

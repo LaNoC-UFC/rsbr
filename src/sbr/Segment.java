@@ -4,7 +4,7 @@ import util.*;
 import java.util.ArrayList;
 
 public class Segment {
-	private ArrayList<Aresta> links;
+	private ArrayList<Edge> links;
 	private ArrayList<Vertice> switches;
 
 	public Segment() {
@@ -36,7 +36,7 @@ public class Segment {
 		return (!this.isUnitary() && !this.isStarting());
 	}
 
-	public void add(Aresta ln) {
+	public void add(Edge ln) {
 		links.add(ln);
 		// ln.setSegment(this);
 	}
@@ -46,7 +46,7 @@ public class Segment {
 		sw.setSegment(this);
 	}
 
-	public void remove(Aresta ln) {
+	public void remove(Edge ln) {
 		// ln.setSegment(null);
 		links.remove(ln);
 	}
@@ -81,7 +81,7 @@ public class Segment {
 		return this.switches;
 	}
 
-	public ArrayList<Aresta> getLinks() {
+	public ArrayList<Edge> getLinks() {
 		return this.links;
 	}
 
