@@ -91,10 +91,6 @@ public class Vertice implements Comparable<Vertice> {
 
 	}
 
-	public ArrayList<Aresta> getArestas() {
-		return adj;
-	}
-
 	public void addAdj(Aresta e) {
 
 		adj.add(e);

@@ -41,7 +41,6 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		
 	}
 	
-
 	public class MedWeight implements Comparator<Path> {
 
 		private double med; // peso total dividido pelo numero de paths
@@ -143,14 +142,6 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 			return 1;
 		return 0;
 
-	}
-
-	public void printArestaWeight() {
-		for (int i = 0; i < numArestas(); i++) {
-			System.out.println(this.get(i).getNome());
-			System.out.println(this.get(i).getAresta(this.get(i + 1))
-					.getWeight());
-		}
 	}
 
 	/**

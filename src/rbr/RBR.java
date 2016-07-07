@@ -5,13 +5,7 @@ import util.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RBR {
 	private Graph graph;
@@ -19,62 +13,6 @@ public class RBR {
 	public RBR(Graph g) {
 		graph = g;
 
-	}
-
-	// Make log file for each input file
-	public void makeLog() {
-		// Print all regions of all routers
-		for (Vertice router : graph.getVertices()) {
-			System.out.println("");
-			System.out.println("Router " + router.getNome() + ":\n");
-			for (Region r : router.getRegions()) {
-				System.out.println(r.getUpRight() + " " + r.getDownLeft()
-						+ " Ip: " + r.getIp() + " Op: " + r.getOp());
-			}
-		}
-	}
-
-	// Make stats files
-	public void makeStats(ArrayList<ArrayList<Path>> paths) {
-		// double[] hopCount = getHopCountStats(paths);
-		double[] Regions = getRegionsStats();
-		double ard = getRoutingDistance(paths);
-		double[] linkWeight = linkWeightStats();
-		try {
-
-			FileWriter ardfs = new FileWriter(new File("ard"));
-			FileWriter lwMeanfs = new FileWriter(new File("lw-Mean"));
-			FileWriter lwStdfs = new FileWriter(new File("lw-Std"));
-			FileWriter regionMaxfs = new FileWriter(new File("region-max"));
-
-			ardfs.write("" + ard);
-			lwMeanfs.write("" + linkWeight[0]);
-			lwStdfs.write("" + linkWeight[1]);
-			regionMaxfs.write("" + Regions[0]);
-
-			ardfs.close();
-			lwMeanfs.close();
-			lwStdfs.close();
-			regionMaxfs.close();
-
-		} catch (IOException ex) {
-			Logger.getLogger(RBR.class.getName()).log(Level.SEVERE, null,
-					ex);
-		}
-
-	}
-
-	// Calculate routing distance -> all paths lengths / #paths
-	private double getRoutingDistance(ArrayList<ArrayList<Path>> paths) {
-		double routingDistance = 0.0;
-
-		for (ArrayList<Path> alp : paths)
-			routingDistance += alp.get(0).size();
-
-		// Cover paths with the same source and destination
-		routingDistance += graph.getVertices().size();
-
-		return routingDistance / (paths.size() + graph.getVertices().size());
 	}
 
 	// Link weight stats [0] - mean / [1] - standard deviation
@@ -169,78 +107,6 @@ public class RBR {
 		}
 	}
 
-	/**
-	 * Save in a file all the paths.
-	 * @param fileName File name.
-	 * @param paths Array of all paths.
-	 */
-	public void savePathInFile(String fileName, ArrayList<Path> paths)
-	{
-		try {
-			PrintWriter printer = new PrintWriter(fileName, "UTF-8");
-			
-			//for(ArrayList<Path> pathList : paths)
-			//{
-				for(Path path : paths)
-				{
-					printer.println(path.toString());
-				}
-			//}
-			
-			printer.close();
-			
-			//System.out.println("Paths saved in " + fileName);
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			System.out.println("Could not create the file.");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-			System.out.println("UTF-8 encode format unssuported.");
-		}
-	}
-	
-	/**
-	 * Read an especified file and return a list of paths.
-	 * @param fileName File Name.
-	 * @return Paths list.
-	public ArrayList<Path> loadPaths(String fileName)
-	{
-		ArrayList<Path> paths = new ArrayList<>();
-		Path path;
-		String volume = "";
-		String[] vertices;
-		try {
-			Files.re
-			for(String line : Files.readAllLines(Paths.get("./" + fileName)))
-			{
-				
-				volume = line.substring(0, line.lastIndexOf(":"));
-				vertices = line.substring(line.lastIndexOf(":") + 2).split(" ");
-				path = new Path();
-				
-				for(String vertice : vertices)
-				{
-					path.add(graph.getVertice(vertice));
-				}
-				
-				path.setVolume(Double.parseDouble(volume));
-				paths.add(path);
-			}
-			
-			System.out.println("All paths loaded from " + fileName);
-						
-			return paths;
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Could not open the paths file.");
-		}
-		
-		return null;
-	}
-	 */
-
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
 		
 		//inicializa opcoes de roteamento
@@ -288,36 +154,6 @@ public class RBR {
 		int x = Integer.parseInt(xy.split("\\.")[0]);
 		int y = Integer.parseInt(xy.split("\\.")[1]);
 		return x + y*graph.dimX();
-	}
-
-	public void printLengthofPaths(ArrayList<ArrayList<Path>> paths) {
-		int dimX = graph.dimX();
-		int dimY = graph.dimY();
-		int[][] sizePath = new int[dimX * dimY][dimX * dimY];
-
-		for(ArrayList<Path> alp : paths) {
-			Path path = alp.get(0);
-			int sourceN = indexOf(path.src().getNome()); //sourceX + sourceY * dimX;
-			int sinkN = indexOf(path.dst().getNome()); //sinkX + sinkY * dimX;
-
-			sizePath[sourceN][sinkN] = path.size();
-		}
-		
-		try {
-			Formatter output = new Formatter("sizeOfPaths.txt");
-
-			for (int x = 0; x < dimX * dimY; x++) {
-				for (int y = 0; y < dimX * dimY; y++) {
-					output.format("%d \t", sizePath[x][y]);
-				}
-				output.format("\r\n");
-			}
-
-			output.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	// Compute the regions
@@ -917,15 +753,6 @@ public class RBR {
 		for(ArrayList<Path> alp : paths)
 			acc += (double) (alp.get(0).size()-1);
 		return acc*linkWeightMean(paths)/(double)paths.size();
-	}
-
-	public double pathWeightStd(ArrayList<ArrayList<Path>> paths) {
-		double acc = 0;
-		double mean = pathWeightMean(paths);
-		double lwm = linkWeightMean(paths);
-		for(ArrayList<Path> alp : paths)
-			acc += (((double)alp.get(0).size()-1.0)*lwm-mean)*(((double)alp.get(0).size()-1.0)*lwm-mean);
-		return Math.sqrt(acc/(double)paths.size());
 	}
 
 	public double[] pathWeightStats(ArrayList<ArrayList<Path>> paths) {

@@ -16,8 +16,6 @@ public class SR {
 	private static int RRIndex[];
 
 	private Graph graph;
-	private int nUnitSeg;
-	private int nRegSeg;
 
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
@@ -42,8 +40,6 @@ public class SR {
 		unvisitedArestas = new ArrayList<>();
 		bridge = new ArrayList<>();
 		//nVisiteds = new ArrayList<>();
-		nUnitSeg = 0;
-		nRegSeg = 0;
 		RRIndex = new int[2];
 		RRIndex[0] = -1;
 		RRIndex[1] = -1;
@@ -325,74 +321,12 @@ public class SR {
 		RRIndex[1] = -1;
 	}
 
-	public void listSegments() {
-		int i = 1;
-		for (Segment seg : segments) {
-			System.err.println("Segment ns" + i++ + ": " + seg);
-		}
-	}
-
-	public void printRestrictions() {
-		File restrictions = new File("Restriction.txt");
-
-		try {
-			FileWriter wRestrictions = new FileWriter(restrictions);
-			BufferedWriter bw = new BufferedWriter(wRestrictions);
-
-			for (Vertice sw : graph.getVertices()) 
-			{
-				bw.write(sw.getNome()+": ");
-				for(String rest : sw.getRestrictions())
-					bw.write(rest+" ");
-				
-				bw.newLine();
-			}
-
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void printUnitSeg() {
-
-		try {
-			FileWriter unitSeg = new FileWriter(new File("unitSeg"));
-			unitSeg.write(Integer.toString(nUnitSeg));
-
-			unitSeg.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-	
-	public int getnUnitSeg()
-	{
-		return nUnitSeg;				
-	}
-
-	public void printRegSeg() {
-
-		try {
-			FileWriter regSeg = new FileWriter(new File("RegSeg"));
-			regSeg.write(Integer.toString(nRegSeg));
-
-			regSeg.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
 	public void setrestrictions() {
 		for (Segment segment : segments) {
 			if (segment.getLinks().isEmpty())
 				continue;
 
 			if (segment.isUnitary()) {
-				nUnitSeg++;
 				// No traffic allowed at link
 				Vertice Starting = segment.getLinks().get(0).getOrigem();
 				Vertice Ending = segment.getLinks().get(0).getDestino();
@@ -412,7 +346,6 @@ public class SR {
 			}
 			// Put it at first or second link
 			if (segment.getSwitchs().size() == 1) {
-				nRegSeg++;
 				segment.getSwitchs()
 						.get(0)
 						.addRestriction(
@@ -426,7 +359,6 @@ public class SR {
 			}
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
-				nRegSeg++;
 				Vertice restrict = segment.getSwitchs().get(1);
 				restrict.addRestriction(
 						segment.getLinks().get(1).getInvColor(), segment
