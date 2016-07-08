@@ -27,7 +27,7 @@ public class GraphBuilder {
             for (int i = 0; i < dimX; i++) {
                 for (int j = 0; j < dimY; j++) {
                     String vertex = i + "." + j;
-                    result.addVertice(vertex);
+                    result.addVertex(vertex);
                 }
             }
 
@@ -36,9 +36,9 @@ public class GraphBuilder {
                 for (int j = 0; j < line.length; j++) {
                     if (line[j].charAt(0) == '0') // there is a link
                     {
-                        Vertex starting = result.getVertice(j + "."
+                        Vertex starting = result.vertex(j + "."
                                 + (columns.length - i));
-                        Vertex ending = result.getVertice((j + 1) + "."
+                        Vertex ending = result.vertex((j + 1) + "."
                                 + (columns.length - i));
                         result.addEdge(starting, ending, "E");
                         result.addEdge(ending, starting, "W");
@@ -51,9 +51,9 @@ public class GraphBuilder {
                 for (int j = 0; j < column.length; j++) {
                     if (column[j].charAt(0) == '0') // there is a link
                     {
-                        Vertex starting = result.getVertice(j + "."
+                        Vertex starting = result.vertex(j + "."
                                 + (columns.length - i));
-                        Vertex ending = result.getVertice(j + "."
+                        Vertex ending = result.vertex(j + "."
                                 + (columns.length - 1 - i));
                         result.addEdge(starting, ending, "S");
                         result.addEdge(ending, starting, "N");

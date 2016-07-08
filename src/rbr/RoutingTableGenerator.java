@@ -13,13 +13,13 @@ import java.util.HashMap;
 public class RoutingTableGenerator {
 
     private Graph graph;
-    private HashMap<Vertex, ArrayList<Region>> regionsForVertice;
+    private HashMap<Vertex, ArrayList<Region>> regionsForVertex;
     private int bitPerCoordinate = 0;
     private int maxOfRegions = 0;
 
-    public RoutingTableGenerator(Graph graph, HashMap<Vertex, ArrayList<Region>> regionsForVertice) {
+    public RoutingTableGenerator(Graph graph, HashMap<Vertex, ArrayList<Region>> regionsForVertex) {
         this.graph = graph;
-        this.regionsForVertice = regionsForVertice;
+        this.regionsForVertex = regionsForVertex;
         int size = Math.max(graph.dimX(), graph.dimY());
         this.bitPerCoordinate = (int) Math.ceil(Math.log(size) / Math.log(2));
         this.maxOfRegions = maxOfRegions();
@@ -68,7 +68,7 @@ public class RoutingTableGenerator {
         bw.append("constant TAB: tables :=(");
         for (Vertex router : graph.getVertices()) {
             PrintRegions(router, bw);
-            if (!isLastVertice(router))
+            if (!isLastVertex(router))
                 bw.append(",");
         }
         bw.append("\n);\n");
@@ -81,14 +81,14 @@ public class RoutingTableGenerator {
                 + "end TablePackage;\n");
     }
 
-    private boolean isLastVertice(Vertex v) {
+    private boolean isLastVertex(Vertex v) {
         return (graph.getVertices().indexOf(v) == graph.getVertices().size() - 1);
     }
 
     private int maxOfRegions() {
         int result = 0;
         for(Vertex v : graph.getVertices())
-            result = Math.max(result, regionsForVertice.get(v).size());
+            result = Math.max(result, regionsForVertex.get(v).size());
         return result;
     }
 
@@ -96,19 +96,19 @@ public class RoutingTableGenerator {
         bw.append("\n -- Router " + router.name() + "\n");
         bw.append("(");
 
-        for (int regionIndex = 0; regionIndex < regionsForVertice.get(router).size(); regionIndex++) {
-            int Xmin = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getDownLeft().split("\\.")[0]);
-            int Ymin = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getDownLeft().split("\\.")[1]);
-            int Xmax = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getUpRight().split("\\.")[0]);
-            int Ymax = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getUpRight().split("\\.")[1]);
+        for (int regionIndex = 0; regionIndex < regionsForVertex.get(router).size(); regionIndex++) {
+            int Xmin = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getDownLeft().split("\\.")[0]);
+            int Ymin = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getDownLeft().split("\\.")[1]);
+            int Xmax = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getUpRight().split("\\.")[0]);
+            int Ymax = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getUpRight().split("\\.")[1]);
 
             String region = "(\""
-                    + opToBinary(regionsForVertice.get(router).get(regionIndex).getIp())
+                    + opToBinary(regionsForVertex.get(router).get(regionIndex).getIp())
                     + intToBinary(Xmin, bitPerCoordinate)
                     + intToBinary(Ymin, bitPerCoordinate)
                     + intToBinary(Xmax, bitPerCoordinate)
                     + intToBinary(Ymax, bitPerCoordinate)
-                    + opToBinary(regionsForVertice.get(router).get(regionIndex).getOp())
+                    + opToBinary(regionsForVertex.get(router).get(regionIndex).getOp())
                     + "\")";
 
             bw.append(region);
@@ -127,7 +127,7 @@ public class RoutingTableGenerator {
         int numberOfOutputPorts = 5;
         int totalOfPorts = numberOfInputPorts + numberOfOutputPorts;
         String nullRegion = "(\"" + intToBinary(0, numberOfCoordinates * bitPerCoordinate + totalOfPorts) + "\")";
-        int numberOfRegions = regionsForVertice.get(router).size();
+        int numberOfRegions = regionsForVertex.get(router).size();
         while (numberOfRegions < maxOfRegions) {
             numberOfRegions++;
             bw.append(nullRegion);

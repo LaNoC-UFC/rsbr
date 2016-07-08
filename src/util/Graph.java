@@ -38,20 +38,20 @@ public class Graph {
 		//Adiciona Vertices
 		for(int x=0; x<dimX; x++)
 			for(int y=0; y<dimY; y++)
-				addVertice(x+"."+y);
+				addVertex(x+"."+y);
 		
 		//Add Edges
 		for(int y=0; y<dimY; y++)
 			for(int x=0; x<dimX; x++)
 			{
 				if(contem(x+"."+(y+1)))
-					addEdge(getVertice(x+"."+y), getVertice(x+"."+(y+1)), ports[0]);
+					addEdge(vertex(x+"."+y), vertex(x+"."+(y+1)), ports[0]);
 				if(contem(x+"."+(y-1)))
-					addEdge(getVertice(x+"."+y), getVertice(x+"."+(y-1)), ports[1]);
+					addEdge(vertex(x+"."+y), vertex(x+"."+(y-1)), ports[1]);
 				if(contem((x+1)+"."+y)) 
-					addEdge(getVertice(x+"."+y), getVertice((x+1)+"."+y), ports[2]);
+					addEdge(vertex(x+"."+y), vertex((x+1)+"."+y), ports[2]);
 				if(contem((x-1)+"."+y)) 
-					addEdge(getVertice(x+"."+y), getVertice((x-1)+"."+y), ports[3]);
+					addEdge(vertex(x+"."+y), vertex((x-1)+"."+y), ports[3]);
 			}				
 		
 		//Adiciona Falhas e checa isolamento
@@ -82,7 +82,7 @@ public class Graph {
 	public boolean haveIsolatedCores() {
 		ArrayList<Vertex> alc = new ArrayList<Vertex>();
 		//Escolha do 0.0 para ser o core inicial. Garantido a existencia do primeiro nodo em todas as topologias
-		getVertice("0.0").checkIsolation(alc);
+		vertex("0.0").checkIsolation(alc);
 		
 		//Se lista de alcancaveis for igual ao total de cores nao existe isolamento
 		if(!(alc.size()==vertices.size())) return true;
@@ -111,23 +111,23 @@ public class Graph {
 		return this.edges;
 	}
 
-	public Vertex getVertice(String nomeVertice) {
+	public Vertex vertex(String name) {
 		Vertex vertex = null;
 
 		for (Vertex v : this.vertices) {
-			if (v.name().equals(nomeVertice))
+			if (v.name().equals(name))
 				vertex = v;
 		}
 
 		if (vertex == null) {
-			System.out.println("Vertex: " + nomeVertice + " nao encontrado");
+			System.out.println("Vertex: " + name + " nao encontrado");
 			return null;
 		}
 
 		return vertex;
 	}
 
-	public void addVertice(String nome) {
+	public void addVertex(String nome) {
 		Vertex v = new Vertex(nome);
 		vertices.add(v);
 	}

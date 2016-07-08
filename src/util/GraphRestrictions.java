@@ -12,39 +12,39 @@ public class GraphRestrictions {
     }
 
     public void addRestriction(Vertex v, String op, String rest) {
-        String[] verticeRestrictions = restrictions.get(v);
+        String[] vertexRestrictions = restrictions.get(v);
         switch (op) {
             case "I":
-                verticeRestrictions[0] = verticeRestrictions[0] + "" + rest;
+                vertexRestrictions[0] = vertexRestrictions[0] + "" + rest;
                 break;
             case "N":
-                verticeRestrictions[1] = verticeRestrictions[1] + "" + rest;
+                vertexRestrictions[1] = vertexRestrictions[1] + "" + rest;
                 break;
             case "S":
-                verticeRestrictions[2] = verticeRestrictions[2] + "" + rest;
+                vertexRestrictions[2] = vertexRestrictions[2] + "" + rest;
                 break;
             case "E":
-                verticeRestrictions[3] = verticeRestrictions[3] + "" + rest;
+                vertexRestrictions[3] = vertexRestrictions[3] + "" + rest;
                 break;
             case "W":
-                verticeRestrictions[4] = verticeRestrictions[4] + "" + rest;
+                vertexRestrictions[4] = vertexRestrictions[4] + "" + rest;
                 break;
         }
     }
 
     public String getRestriction(Vertex v, String op) {
-        String[] verticeRestrictions = restrictions.get(v);
+        String[] vertexRestrictions = restrictions.get(v);
         switch (op) {
             case "I":
-                return verticeRestrictions[0];
+                return vertexRestrictions[0];
             case "N":
-                return verticeRestrictions[1];
+                return vertexRestrictions[1];
             case "S":
-                return verticeRestrictions[2];
+                return vertexRestrictions[2];
             case "E":
-                return verticeRestrictions[3];
+                return vertexRestrictions[3];
             case "W":
-                return verticeRestrictions[4];
+                return vertexRestrictions[4];
             default:
                 return null;
         }
