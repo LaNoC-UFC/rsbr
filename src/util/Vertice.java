@@ -1,24 +1,16 @@
 package util;
 
-import rbr.Region;
-
 import java.util.ArrayList;
 
 public class Vertice implements Comparable<Vertice> {
-															// [3]-E [4]-W
-	private int distancia;
 
+	private int distancia;
 	private String nome;
 	private ArrayList<Edge> adj;
-	private ArrayList<rbr.Region> Regions = new ArrayList<>();
 
 	public Vertice(String name) {
 		nome = name;
 		adj = new ArrayList<Edge>();
-	}
-
-	public void initRegions() {
-		this.Regions = new ArrayList<>();
 	}
 
 	public Edge edge(Vertice destino) {
@@ -63,33 +55,6 @@ public class Vertice implements Comparable<Vertice> {
 		return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
 	}
 
-	public ArrayList<Region> getRegions() {
-		return Regions;
-	}
-
-	public void setRegions(ArrayList<Region> Regions) {
-		this.Regions = Regions;
-	}
-
-	public void addRegion(String ip, ArrayList<String> dsts, String op) {
-		rbr.Region region = new rbr.Region(ip, dsts, op);
-		this.Regions.add(region);
-	}
-
-	public boolean reaches(Vertice dest) {
-		return this.reaches(dest, "I");
-	}
-
-	private boolean reaches(Vertice dest, String ipColor) {
-		if (dest == this)
-			return true;
-		String opColor = this.getOpColor(dest, ipColor);
-		if (opColor == null)
-			return false;
-		return this.getAdj(opColor).destination()
-				.reaches(dest, EdgeColor.getInvColor(getAdj(opColor).color()));
-	}
-
 	public void checkIsolation(ArrayList<Vertice> alc) {
 		if (!alc.contains(this))
 			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
@@ -102,17 +67,6 @@ public class Vertice implements Comparable<Vertice> {
 			// checa para vizinhos
 			neigh.checkIsolation(alc);
 		}
-	}
-
-	private String getOpColor(Vertice dest, String ipColor) {
-		String router = dest.getNome();
-		for (rbr.Region reg : this.Regions)
-			if (reg.contains(router) && reg.getIp().contains(ipColor))
-				return (reg.getOp().substring(0, 1));
-
-		System.err.println("ERROR : There isn't Op on " + this.getNome()
-				+ " for " + dest.getNome() + " " + ipColor);
-		return null;
 	}
 
 	public int compareTo(Vertice outroVertice) {

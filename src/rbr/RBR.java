@@ -7,13 +7,18 @@ import java.util.*;
 public class RBR {
 	private Graph graph;
 
-	private HashMap<Vertice, ArrayList<rbr.RoutingPath>> routingPathForVertice;
+	private HashMap<Vertice, ArrayList<RoutingPath>> routingPathForVertice;
+	private HashMap<Vertice, ArrayList<Region>> regionsForVertice;
 
 	public RBR(Graph g) {
 		graph = g;
 		routingPathForVertice = new HashMap<>();
+		regionsForVertice = new HashMap<>();
 	}
 
+	public HashMap<Vertice, ArrayList<Region>> regions() {
+		return this.regionsForVertice;
+	}
 	// Link weight stats [0] - mean / [1] - standard deviation
 	public double[] linkWeightStats() {
 		double linksWeight = 0.0;
@@ -49,7 +54,7 @@ public class RBR {
 		List<Integer> regSizes = new ArrayList<>();
 
 		for (Vertice r : graph.getVertices()) {
-			regSizes.add(r.getRegions().size());
+			regSizes.add(regionsForVertice.get(r).size());
 		}
 		Collections.sort(regSizes);
 
@@ -150,8 +155,8 @@ public class RBR {
 	// Compute the regions
 	public void regionsComputation() {
 		ArrayList<String> opComb = getOutputCombinations();
-		for (Vertice sw : graph.getVertices()) {			
-			sw.initRegions();
+		for (Vertice sw : graph.getVertices()) {
+			regionsForVertice.put(sw, new ArrayList<>());
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
@@ -163,11 +168,11 @@ public class RBR {
 					}
 				}
 				if (destinations.size() != 0) {
-					sw.addRegion(ip, destinations, op);
+					regionsForVertice.get(sw).add(new Region(ip, destinations, op));
 				}
 			}
 
-			for (Region reg : sw.getRegions()) {
+			for (Region reg : regionsForVertice.get(sw)) {
 				reg.setextrems();
 			}
 		}
@@ -180,7 +185,7 @@ public class RBR {
 		for (Vertice sw : graph.getVertices()) {
 			ArrayList<Region> regionsTemp = new ArrayList<>();
 			ArrayList<Region> regionsRemov = new ArrayList<>();
-			for (Region reg : sw.getRegions()) {
+			for (Region reg : regionsForVertice.get(sw)) {
 				ArrayList<String> strgs = getStranges(reg);
 
 				if (strgs != null) {
@@ -218,8 +223,8 @@ public class RBR {
 								reg.getOp()));
 				}
 			}
-			sw.getRegions().removeAll(regionsRemov);
-			sw.getRegions().addAll(regionsTemp);
+			regionsForVertice.get(sw).removeAll(regionsRemov);
+			regionsForVertice.get(sw).addAll(regionsTemp);
 		}
 	}
 
@@ -539,14 +544,38 @@ public class RBR {
 		double reaches = 0, total = graph.getVertices().size() - 1;
 		for (Vertice dest : graph.getVertices()) {
 			if (orig != dest) {
-				if (orig.reaches(dest)) {
+				if (reaches(orig, dest)) {
 					reaches++;
 				}
 			}
 		}
 		return (reaches / total);
 	}
-	
+
+	private boolean reaches(Vertice src, Vertice dest) {
+		return reaches(src, dest, "I");
+	}
+
+	private boolean reaches(Vertice src, Vertice dest, String ipColor) {
+		if (dest == src)
+			return true;
+		String opColor = getOpColor(src, dest, ipColor);
+		if (opColor == null)
+			return false;
+		return reaches(src.getAdj(opColor).destination(), dest, EdgeColor.getInvColor(src.getAdj(opColor).color()));
+	}
+
+	private String getOpColor(Vertice src, Vertice dest, String ipColor) {
+		String router = dest.getNome();
+		for (rbr.Region reg : regionsForVertice.get(src))
+			if (reg.contains(router) && reg.getIp().contains(ipColor))
+				return (reg.getOp().substring(0, 1));
+
+		System.err.println("ERROR : There isn't Op on " + src.getNome()
+				+ " for " + dest.getNome() + " " + ipColor);
+		return null;
+	}
+
 	public void merge(double reachability) {
 		for (Vertice vertice : graph.getVertices())
 			merge(vertice, reachability);
@@ -558,11 +587,12 @@ public class RBR {
 		boolean wasPossible = true;
 
 		while (reachability(router) >= reachability && wasPossible) {
-			bkpListRegion = new ArrayList<Region>(router.getRegions());
+			bkpListRegion = new ArrayList<>(regionsForVertice.get(router));
 			wasPossible = mergeUnitary(router);
 		}
-		if (bkpListRegion != null)
-			router.setRegions(bkpListRegion);
+		if (bkpListRegion != null) {
+			regionsForVertice.put(router, bkpListRegion);
+		}
 
 	}
 
@@ -570,11 +600,11 @@ public class RBR {
 	 * Tries to make one (and only one) merge and returns true in case of
 	 * success
 	 */
-	private static boolean mergeUnitary(Vertice router) {
-		for (int a = 0; a < router.getRegions().size(); a++) {
-			Region ra = router.getRegions().get(a);
-			for (int b = a + 1; b < router.getRegions().size(); b++) {
-				Region rb = router.getRegions().get(b);
+	private boolean mergeUnitary(Vertice router) {
+		for (int a = 0; a < regionsForVertice.get(router).size(); a++) {
+			Region ra = regionsForVertice.get(router).get(a);
+			for (int b = a + 1; b < regionsForVertice.get(router).size(); b++) {
+				Region rb = regionsForVertice.get(router).get(b);
 
 				if (CanBeMerged(ra, rb)) {
 					String upRight = getUpRightMerged(ra, rb);
@@ -588,11 +618,11 @@ public class RBR {
 					reg.getDst().addAll(rb.getDst());
 					reg.setSize();
 
-					router.getRegions().add(reg);
-					router.getRegions().remove(ra);
-					router.getRegions().remove(rb);
+					regionsForVertice.get(router).add(reg);
+					regionsForVertice.get(router).remove(ra);
+					regionsForVertice.get(router).remove(rb);
 
-					Collections.sort(router.getRegions());
+					Collections.sort(regionsForVertice.get(router));
 
 					return true;
 				}
@@ -802,5 +832,4 @@ public class RBR {
 		Arrays.sort(ip1);
 		return String.valueOf(ip1);
 	}
-
 }

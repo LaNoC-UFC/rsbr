@@ -7,15 +7,19 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class RoutingTableGenerator {
 
     private Graph graph;
+    private HashMap<Vertice, ArrayList<Region>> regionsForVertice;
     private int bitPerCoordinate = 0;
     private int maxOfRegions = 0;
 
-    public RoutingTableGenerator(Graph graph) {
+    public RoutingTableGenerator(Graph graph, HashMap<Vertice, ArrayList<Region>> regionsForVertice) {
         this.graph = graph;
+        this.regionsForVertice = regionsForVertice;
         int size = Math.max(graph.dimX(), graph.dimY());
         this.bitPerCoordinate = (int) Math.ceil(Math.log(size) / Math.log(2));
         this.maxOfRegions = maxOfRegions();
@@ -84,7 +88,7 @@ public class RoutingTableGenerator {
     private int maxOfRegions() {
         int result = 0;
         for(Vertice v : graph.getVertices())
-            result = Math.max(result, v.getRegions().size());
+            result = Math.max(result, regionsForVertice.get(v).size());
         return result;
     }
 
@@ -92,19 +96,19 @@ public class RoutingTableGenerator {
         bw.append("\n -- Router " + router.getNome() + "\n");
         bw.append("(");
 
-        for (int regionIndex = 0; regionIndex < router.getRegions().size(); regionIndex++) {
-            int Xmin = Integer.parseInt(router.getRegions().get(regionIndex).getDownLeft().split("\\.")[0]);
-            int Ymin = Integer.parseInt(router.getRegions().get(regionIndex).getDownLeft().split("\\.")[1]);
-            int Xmax = Integer.parseInt(router.getRegions().get(regionIndex).getUpRight().split("\\.")[0]);
-            int Ymax = Integer.parseInt(router.getRegions().get(regionIndex).getUpRight().split("\\.")[1]);
+        for (int regionIndex = 0; regionIndex < regionsForVertice.get(router).size(); regionIndex++) {
+            int Xmin = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getDownLeft().split("\\.")[0]);
+            int Ymin = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getDownLeft().split("\\.")[1]);
+            int Xmax = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getUpRight().split("\\.")[0]);
+            int Ymax = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getUpRight().split("\\.")[1]);
 
             String region = "(\""
-                    + opToBinary(router.getRegions().get(regionIndex).getIp())
+                    + opToBinary(regionsForVertice.get(router).get(regionIndex).getIp())
                     + intToBinary(Xmin, bitPerCoordinate)
                     + intToBinary(Ymin, bitPerCoordinate)
                     + intToBinary(Xmax, bitPerCoordinate)
                     + intToBinary(Ymax, bitPerCoordinate)
-                    + opToBinary(router.getRegions().get(regionIndex).getOp())
+                    + opToBinary(regionsForVertice.get(router).get(regionIndex).getOp())
                     + "\")";
 
             bw.append(region);
@@ -123,7 +127,7 @@ public class RoutingTableGenerator {
         int numberOfOutputPorts = 5;
         int totalOfPorts = numberOfInputPorts + numberOfOutputPorts;
         String nullRegion = "(\"" + intToBinary(0, numberOfCoordinates * bitPerCoordinate + totalOfPorts) + "\")";
-        int numberOfRegions = router.getRegions().size();
+        int numberOfRegions = regionsForVertice.get(router).size();
         while (numberOfRegions < maxOfRegions) {
             numberOfRegions++;
             bw.append(nullRegion);
