@@ -1,7 +1,6 @@
 package util;
 
 import rbr.Region;
-import sbr.Segment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +8,6 @@ import java.util.Arrays;
 public class Vertice implements Comparable<Vertice> {
 	private String[] restrictions = { "", "", "", "", "" }; // [0]-I [1]-N [2]-S
 															// [3]-E [4]-W
-	private Segment seg;
 	private int snet;
 
 	private int distancia;
@@ -20,7 +18,6 @@ public class Vertice implements Comparable<Vertice> {
 	private ArrayList<rbr.Region> Regions = new ArrayList<>();
 
 	public Vertice(String name) {
-		seg = null;
 		snet = -1;
 		nome = name;
 		adj = new ArrayList<Edge>();
@@ -115,14 +112,6 @@ public class Vertice implements Comparable<Vertice> {
 
 		return this.nome;
 
-	}
-
-	public Segment getSegment() {
-		return this.seg;
-	}
-
-	public void setSegment(Segment sg) {
-		seg = sg;
 	}
 
 	public int getSubNet() {

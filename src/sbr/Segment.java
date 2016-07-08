@@ -43,7 +43,6 @@ public class Segment {
 
 	public void add(Vertice sw) {
 		switches.add(sw);
-		sw.setSegment(this);
 	}
 
 	public void remove(Edge ln) {
@@ -52,7 +51,6 @@ public class Segment {
 	}
 
 	public void remove(Vertice sw) {
-		sw.setSegment(null);
 		/* @RM */
 		// Remove the last occurrence instead of the first
 		if (switches.lastIndexOf(sw) != -1)

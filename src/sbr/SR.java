@@ -3,6 +3,7 @@ package sbr;
 import util.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SR {
@@ -22,6 +23,7 @@ public class SR {
 	//private List<Vertice> visiteds;
 	//private List<Vertice> nVisiteds;
 
+	private HashMap<Vertice, Segment>  segmentForVertice;
 
 	public SR(Graph graph) 
 	{
@@ -43,6 +45,7 @@ public class SR {
 		maxSN = 0;
 		new Bridge(graph);
 		System.out.println(bridge.size()+" bridges.");
+		segmentForVertice = new HashMap<>();
 	}
 
 	public void computeSegments() {
@@ -131,6 +134,7 @@ public class SR {
 					subNet = ++maxSN;
 					if (debug) System.err.println("Subnet now: " + subNet);
 					segments.get(segments.size()-1).add(sw);// sg.add(sw);
+					segmentForVertice.put(sw, segments.get(segments.size()-1));
 					setStart(sw);
 					if (debug)
 						System.err.println(sw.getNome() + " is Start.");
@@ -150,7 +154,7 @@ public class SR {
 		Segment segm = segments.get(segments.size()-1);
 		if (!isVisited(sw)) {
 			segm.add(sw);
-			//sw.setSegment(segm);
+			segmentForVertice.put(sw, segm);
 			setTVisited(sw);
 		} else if (!sw.belongsTo(subNet) && !(isStart(sw) && isTerminal(sw)))
 			return false;
@@ -161,8 +165,8 @@ public class SR {
 		if (links == null) {
 			if (debug) System.err.println("No Suitable Links found.");
 			if(isTVisited(sw)) unsetTVisited(sw);
-			//sw.setSegment(null);
 			segm.remove(sw);
+			segmentForVertice.remove(sw);
 			return false;
 		}
 		
@@ -181,11 +185,11 @@ public class SR {
 					visit(nl);
 					if(!isVisited(sw)) visit(sw);
 					if(!isVisited(nsw)) visit(nsw);
-					if (isTerminal(nsw) && isStart(nsw) && !nsw.belongsTo(subNet) && (nsw.getSegment() == null)) {
+					if (isTerminal(nsw) && isStart(nsw) && !nsw.belongsTo(subNet) && !segmentForVertice.containsKey(nsw)) {
 						unsetTerminal(nsw);
 						unsetStart(nsw);
-						//nsw.setSegment(segm);
 						segm.add(nsw);
+						segmentForVertice.put(nsw, segm);
 					}
 					nsw.setSubNet(subNet);
 					return true;
@@ -196,7 +200,7 @@ public class SR {
 			segm.remove(ln);
 		}
 		segm.remove(sw);
-		//sw.setSegment(null);
+		segmentForVertice.remove(sw);
 		if(isTVisited(sw)) unsetTVisited(sw);
 
 		return false;
