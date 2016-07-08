@@ -3,14 +3,12 @@ package util;
 import rbr.Region;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Vertice implements Comparable<Vertice> {
 	private String[] restrictions = { "", "", "", "", "" }; // [0]-I [1]-N [2]-S
 															// [3]-E [4]-W
 	private int distancia;
 
-	private ArrayList<rbr.RoutingPath> routingPaths = new ArrayList<>();
 	private String nome;
 	private ArrayList<Edge> adj;
 	private ArrayList<rbr.Region> Regions = new ArrayList<>();
@@ -19,10 +17,6 @@ public class Vertice implements Comparable<Vertice> {
 		nome = name;
 		adj = new ArrayList<Edge>();
 		// restrictions = nome + ": I{} N{} S{} E{} W{}";
-	}
-
-	public void initRoutingOptions() {
-		this.routingPaths = new ArrayList<>();
 	}
 
 	public void initRegions() {
@@ -131,32 +125,6 @@ public class Vertice implements Comparable<Vertice> {
 		this.Regions.add(region);
 	}
 
-	public void addRP(String ip, String dst, String op) {
-		ip = sortStrAlf(ip);
-		op = sortStrAlf(op);
-		if (!this.AlreadyExists(ip, dst, op)) {
-			rbr.RoutingPath RP = new rbr.RoutingPath(ip, dst, op);
-			this.routingPaths.add(RP);
-		}
-	}
-
-	private boolean AlreadyExists(String ip, String dst, String op) {
-		for (int a = 0; a < this.routingPaths.size(); a++)
-			if (this.routingPaths.get(a).getIp().equals(ip)
-					&& this.routingPaths.get(a).getDst().equals(dst)
-					&& this.routingPaths.get(a).getOp().equals(op))
-				return true;
-
-		return false;
-	}
-
-	public static String sortStrAlf(String input) {
-		char[] ip1 = input.toCharArray();
-		Arrays.sort(ip1);
-
-		return String.valueOf(ip1);
-	}
-
 	public boolean reaches(Vertice dest) {
 		return this.reaches(dest, "I");
 	}
@@ -194,14 +162,6 @@ public class Vertice implements Comparable<Vertice> {
 		System.err.println("ERROR : There isn't Op on " + this.getNome()
 				+ " for " + dest.getNome() + " " + ipColor);
 		return null;
-	}
-
-	public ArrayList<rbr.RoutingPath> getRoutingPaths() {
-		return routingPaths;
-	}
-
-	public void setRoutingPaths(ArrayList<rbr.RoutingPath> routingPaths) {
-		this.routingPaths = routingPaths;
 	}
 
 	public int compareTo(Vertice outroVertice) {

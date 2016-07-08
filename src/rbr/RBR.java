@@ -2,16 +2,16 @@ package rbr;
 
 import util.*;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 public class RBR {
 	private Graph graph;
 
+	private HashMap<Vertice, ArrayList<rbr.RoutingPath>> routingPathForVertice;
+
 	public RBR(Graph g) {
 		graph = g;
-
+		routingPathForVertice = new HashMap<>();
 	}
 
 	// Link weight stats [0] - mean / [1] - standard deviation
@@ -67,10 +67,9 @@ public class RBR {
 	
 	// Pack routing options if they have the same input port and the same
 	// destination
-	private static void packOutputPort(Vertice atual) {
-
-		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
-		atual.setRoutingPaths(new ArrayList<RoutingPath>());
+	private void packOutputPort(Vertice atual) {
+		ArrayList<RoutingPath> actRP = routingPathForVertice.get(atual);
+		routingPathForVertice.put(atual, new ArrayList<>());
 		for (RoutingPath a : actRP) {
 			String op = a.getOp();
 			String dst = a.getDst();
@@ -82,15 +81,15 @@ public class RBR {
 						op = op.concat(b.getOp());
 				}
 			}
-			atual.addRP(ip, dst, op);
+			addRoutingPath(atual, ip, dst, op);
 		}
 	}
 
 	// Pack routing options if they have the same output port and the same
 	// destination
-	public static void packInputPort(Vertice atual) {
-		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
-		atual.setRoutingPaths(new ArrayList<RoutingPath>());
+	public void packInputPort(Vertice atual) {
+		ArrayList<RoutingPath> actRP = routingPathForVertice.get(atual);
+		routingPathForVertice.put(atual, new ArrayList<>());
 		for (RoutingPath a : actRP) {
 			String op = a.getOp();
 			String dst = a.getDst();
@@ -102,16 +101,15 @@ public class RBR {
 						ip = ip.concat(b.getIp());
 				}
 			}
-			atual.addRP(ip, dst, op);
+			addRoutingPath(atual, ip, dst, op);
 		}
 	}
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
-		
-		//inicializa opcoes de roteamento
+
 		for(Vertice v : graph.getVertices())
-			v.initRoutingOptions();
-		
+			routingPathForVertice.put(v, new ArrayList<>());
+
 		for(ArrayList<Path> alp : paths) {			
 			for (Path path : alp) {
 				String dest = path.dst().getNome();
@@ -121,7 +119,7 @@ public class RBR {
 								.color();
 						String ip = (path.indexOf(sw) == 0) ? "I" : sw.edge(
 								path.get(path.indexOf(sw) - 1)).color();
-						sw.addRP(ip, dest, op);
+						addRoutingPath(sw, ip, dest, op);
 					}
 				}
 			}
@@ -157,7 +155,7 @@ public class RBR {
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
-				for (RoutingPath rp : sw.getRoutingPaths()) {
+				for (RoutingPath rp : routingPathForVertice.get(sw)) {
 					if (rp.getOp().equals(op)) {
 						if (!destinations.contains(rp.getDst()))
 							destinations.add(rp.getDst());
@@ -723,8 +721,8 @@ public class RBR {
 	// Check if output port are subsets
 	private static boolean OpIsSub(Region r1, Region r2) {
 
-		String r1Op = Vertice.sortStrAlf(r1.getOp());
-		String r2Op = Vertice.sortStrAlf(r2.getOp());
+		String r1Op = sortStrAlf(r1.getOp());
+		String r2Op = sortStrAlf(r2.getOp());
 		if (r1Op.contains(r2Op) || r2Op.contains(r1Op)) {
 			return true;
 		}
@@ -791,4 +789,18 @@ public class RBR {
 		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
 		return stats;
 	}
+
+	private void addRoutingPath(Vertice v, String ip, String dst, String op) {
+		RoutingPath rp = new RoutingPath(sortStrAlf(ip), dst, sortStrAlf(op));
+		// @Todo replace this by a Set to not worry with duplication
+		if(!routingPathForVertice.get(v).contains(rp))
+			routingPathForVertice.get(v).add(rp);
+	}
+
+	private static String sortStrAlf(String input) {
+		char[] ip1 = input.toCharArray();
+		Arrays.sort(ip1);
+		return String.valueOf(ip1);
+	}
+
 }
