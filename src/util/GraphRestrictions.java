@@ -3,15 +3,15 @@ package util;
 import java.util.HashMap;
 
 public class GraphRestrictions {
-    private HashMap<Vertice, String[]> restrictions;
+    private HashMap<Vertex, String[]> restrictions;
 
     public GraphRestrictions(Graph g) {
         restrictions = new HashMap<>();
-        for(Vertice v : g.getVertices())
+        for(Vertex v : g.getVertices())
             restrictions.put(v, new String[]{"", "", "", "", ""});
     }
 
-    public void addRestriction(Vertice v, String op, String rest) {
+    public void addRestriction(Vertex v, String op, String rest) {
         String[] verticeRestrictions = restrictions.get(v);
         switch (op) {
             case "I":
@@ -32,7 +32,7 @@ public class GraphRestrictions {
         }
     }
 
-    public String getRestriction(Vertice v, String op) {
+    public String getRestriction(Vertex v, String op) {
         String[] verticeRestrictions = restrictions.get(v);
         switch (op) {
             case "I":

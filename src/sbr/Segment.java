@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class Segment {
 	private ArrayList<Edge> links;
-	private ArrayList<Vertice> switches;
+	private ArrayList<Vertex> switches;
 
 	public Segment() {
 		links = new ArrayList<>();
@@ -19,8 +19,8 @@ public class Segment {
 		if (links.size() == 1)
 			return false;
 
-		if (links.get(links.size() - 1).destination().getNome()
-				.equals(switches.get(0).getNome()))
+		if (links.get(links.size() - 1).destination().name()
+				.equals(switches.get(0).name()))
 			return true;
 
 		return false;
@@ -41,7 +41,7 @@ public class Segment {
 		// ln.setSegment(this);
 	}
 
-	public void add(Vertice sw) {
+	public void add(Vertex sw) {
 		switches.add(sw);
 	}
 
@@ -50,7 +50,7 @@ public class Segment {
 		links.remove(ln);
 	}
 
-	public void remove(Vertice sw) {
+	public void remove(Vertex sw) {
 		/* @RM */
 		// Remove the last occurrence instead of the first
 		if (switches.lastIndexOf(sw) != -1)
@@ -64,18 +64,18 @@ public class Segment {
 		String r = "";
 		int sw = 0, ln = 0;
 		while (sw < switches.size()) {
-			r += (switches.get(sw++).getNome() + " ");
+			r += (switches.get(sw++).name() + " ");
 		}
 		r += '\n';
 		while (ln < links.size()) {
-			r += (links.get(ln).source().getNome() + " <=> "
-					+ links.get(ln).destination().getNome() + " ");
+			r += (links.get(ln).source().name() + " <=> "
+					+ links.get(ln).destination().name() + " ");
 			ln++;
 		}
 		return r;
 	}
 
-	public ArrayList<Vertice> getSwitchs() {
+	public ArrayList<Vertex> getSwitchs() {
 		return this.switches;
 	}
 

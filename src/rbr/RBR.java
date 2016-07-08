@@ -7,8 +7,8 @@ import java.util.*;
 public class RBR {
 	private Graph graph;
 
-	private HashMap<Vertice, ArrayList<RoutingPath>> routingPathForVertice;
-	private HashMap<Vertice, ArrayList<Region>> regionsForVertice;
+	private HashMap<Vertex, ArrayList<RoutingPath>> routingPathForVertice;
+	private HashMap<Vertex, ArrayList<Region>> regionsForVertice;
 
 	public RBR(Graph g) {
 		graph = g;
@@ -16,7 +16,7 @@ public class RBR {
 		regionsForVertice = new HashMap<>();
 	}
 
-	public HashMap<Vertice, ArrayList<Region>> regions() {
+	public HashMap<Vertex, ArrayList<Region>> regions() {
 		return this.regionsForVertice;
 	}
 	// Link weight stats [0] - mean / [1] - standard deviation
@@ -53,7 +53,7 @@ public class RBR {
 		double average;
 		List<Integer> regSizes = new ArrayList<>();
 
-		for (Vertice r : graph.getVertices()) {
+		for (Vertex r : graph.getVertices()) {
 			regSizes.add(regionsForVertice.get(r).size());
 		}
 		Collections.sort(regSizes);
@@ -72,7 +72,7 @@ public class RBR {
 	
 	// Pack routing options if they have the same input port and the same
 	// destination
-	private void packOutputPort(Vertice atual) {
+	private void packOutputPort(Vertex atual) {
 		ArrayList<RoutingPath> actRP = routingPathForVertice.get(atual);
 		routingPathForVertice.put(atual, new ArrayList<>());
 		for (RoutingPath a : actRP) {
@@ -92,7 +92,7 @@ public class RBR {
 
 	// Pack routing options if they have the same output port and the same
 	// destination
-	public void packInputPort(Vertice atual) {
+	public void packInputPort(Vertex atual) {
 		ArrayList<RoutingPath> actRP = routingPathForVertice.get(atual);
 		routingPathForVertice.put(atual, new ArrayList<>());
 		for (RoutingPath a : actRP) {
@@ -112,13 +112,13 @@ public class RBR {
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
 
-		for(Vertice v : graph.getVertices())
+		for(Vertex v : graph.getVertices())
 			routingPathForVertice.put(v, new ArrayList<>());
 
 		for(ArrayList<Path> alp : paths) {			
 			for (Path path : alp) {
-				String dest = path.dst().getNome();
-				for (Vertice sw : path) {
+				String dest = path.dst().name();
+				for (Vertex sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
 						String op = sw.edge(path.get(path.indexOf(sw) + 1))
 								.color();
@@ -129,7 +129,7 @@ public class RBR {
 				}
 			}
 		}
-		for (Vertice atual : graph.getVertices()) {
+		for (Vertex atual : graph.getVertices()) {
 			packOutputPort(atual);
 			// packInputPort(atual);
 		}
@@ -155,7 +155,7 @@ public class RBR {
 	// Compute the regions
 	public void regionsComputation() {
 		ArrayList<String> opComb = getOutputCombinations();
-		for (Vertice sw : graph.getVertices()) {
+		for (Vertex sw : graph.getVertices()) {
 			regionsForVertice.put(sw, new ArrayList<>());
 			for (String op : opComb) {
 				String ip = new String();
@@ -182,7 +182,7 @@ public class RBR {
 
 	// Adjust the regions to avoid overlap
 	private void adjustsRegions() {
-		for (Vertice sw : graph.getVertices()) {
+		for (Vertex sw : graph.getVertices()) {
 			ArrayList<Region> regionsTemp = new ArrayList<>();
 			ArrayList<Region> regionsRemov = new ArrayList<>();
 			for (Region reg : regionsForVertice.get(sw)) {
@@ -540,9 +540,9 @@ public class RBR {
 	}
 
 	// Calculates reachability
-	private double reachability(Vertice orig) {
+	private double reachability(Vertex orig) {
 		double reaches = 0, total = graph.getVertices().size() - 1;
-		for (Vertice dest : graph.getVertices()) {
+		for (Vertex dest : graph.getVertices()) {
 			if (orig != dest) {
 				if (reaches(orig, dest)) {
 					reaches++;
@@ -552,37 +552,37 @@ public class RBR {
 		return (reaches / total);
 	}
 
-	private boolean reaches(Vertice src, Vertice dest) {
+	private boolean reaches(Vertex src, Vertex dest) {
 		return reaches(src, dest, "I");
 	}
 
-	private boolean reaches(Vertice src, Vertice dest, String ipColor) {
+	private boolean reaches(Vertex src, Vertex dest, String ipColor) {
 		if (dest == src)
 			return true;
 		String opColor = getOpColor(src, dest, ipColor);
 		if (opColor == null)
 			return false;
-		return reaches(src.getAdj(opColor).destination(), dest, EdgeColor.getInvColor(src.getAdj(opColor).color()));
+		return reaches(src.adjunct(opColor).destination(), dest, EdgeColor.getInvColor(src.adjunct(opColor).color()));
 	}
 
-	private String getOpColor(Vertice src, Vertice dest, String ipColor) {
-		String router = dest.getNome();
+	private String getOpColor(Vertex src, Vertex dest, String ipColor) {
+		String router = dest.name();
 		for (rbr.Region reg : regionsForVertice.get(src))
 			if (reg.contains(router) && reg.getIp().contains(ipColor))
 				return (reg.getOp().substring(0, 1));
 
-		System.err.println("ERROR : There isn't Op on " + src.getNome()
-				+ " for " + dest.getNome() + " " + ipColor);
+		System.err.println("ERROR : There isn't Op on " + src.name()
+				+ " for " + dest.name() + " " + ipColor);
 		return null;
 	}
 
 	public void merge(double reachability) {
-		for (Vertice vertice : graph.getVertices())
-			merge(vertice, reachability);
+		for (Vertex vertex : graph.getVertices())
+			merge(vertex, reachability);
 	}
 
 	// Merge the regions of a router
-	private void merge(Vertice router, double reachability) {
+	private void merge(Vertex router, double reachability) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 
@@ -600,7 +600,7 @@ public class RBR {
 	 * Tries to make one (and only one) merge and returns true in case of
 	 * success
 	 */
-	private boolean mergeUnitary(Vertice router) {
+	private boolean mergeUnitary(Vertex router) {
 		for (int a = 0; a < regionsForVertice.get(router).size(); a++) {
 			Region ra = regionsForVertice.get(router).get(a);
 			for (int b = a + 1; b < regionsForVertice.get(router).size(); b++) {
@@ -820,7 +820,7 @@ public class RBR {
 		return stats;
 	}
 
-	private void addRoutingPath(Vertice v, String ip, String dst, String op) {
+	private void addRoutingPath(Vertex v, String ip, String dst, String op) {
 		RoutingPath rp = new RoutingPath(sortStrAlf(ip), dst, sortStrAlf(op));
 		// @Todo replace this by a Set to not worry with duplication
 		if(!routingPathForVertice.get(v).contains(rp))

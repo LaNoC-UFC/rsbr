@@ -2,42 +2,41 @@ package util;
 
 import java.util.ArrayList;
 
-public class Vertice {
+public class Vertex {
 
-	private String nome;
-	private ArrayList<Edge> adj;
+	private String name;
+	private ArrayList<Edge> adjuncts;
 
-	public Vertice(String name) {
-		nome = name;
-		adj = new ArrayList<>();
+	public Vertex(String name) {
+		this.name = name;
+		adjuncts = new ArrayList<>();
 	}
 
-	public Edge edge(Vertice destino) {
-		for (Edge v : adj)
-			if (v.destination().getNome().equals(destino.getNome()))
+	public Edge edge(Vertex dst) {
+		for (Edge v : adjuncts)
+			if (v.destination().name().equals(dst.name()))
 				return v;
 		return null;
 	}
 
-	public void addAdj(Edge e) {
-		adj.add(e);
+	public void addAdjunct(Edge e) {
+		adjuncts.add(e);
 	}
 
-	public ArrayList<Edge> getAdj() {
-		return this.adj;
+	public ArrayList<Edge> adjuncts() {
+		return this.adjuncts;
 	}
 
-	public Edge getAdj(String color) {
-		for (Edge a : this.adj)
+	public Edge adjunct(String color) {
+		for (Edge a : this.adjuncts)
 			if (a.color().equals(color))
 				return a;
-
 		System.out.println("ERROR : There isn't a Op " + color + "?");
 		return null;
 	}
 
-	public String getNome() {
-		return this.nome;
+	public String name() {
+		return this.name;
 	}
 
 	public boolean isIn(String min, String max) {
@@ -46,20 +45,20 @@ public class Vertice {
 		int xMax = Integer.valueOf(max.split("\\.")[0]);
 		int yMax = Integer.valueOf(max.split("\\.")[1]);
 
-		int x = Integer.valueOf(nome.split("\\.")[0]);
-		int y = Integer.valueOf(nome.split("\\.")[1]);
+		int x = Integer.valueOf(name.split("\\.")[0]);
+		int y = Integer.valueOf(name.split("\\.")[1]);
 
 		return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
 	}
 
-	public void checkIsolation(ArrayList<Vertice> alc) {
+	public void checkIsolation(ArrayList<Vertex> alc) {
 		if (!alc.contains(this))
 			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
-		for (Edge adj : this.adj) {
+		for (Edge adj : this.adjuncts) {
 			// So adiciona aos alcancaveis cores que ainda nao foram adicionados
 			if (alc.contains(adj.destination()))
 				continue;
-			Vertice neigh = adj.destination();
+			Vertex neigh = adj.destination();
 			alc.add(neigh);
 			// checa para vizinhos
 			neigh.checkIsolation(alc);
