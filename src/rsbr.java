@@ -8,6 +8,7 @@ import rbr.*;
 import sbr.SR;
 import util.Graph;
 import util.GraphBuilder;
+import util.GraphRestrictions;
 import util.Path;
 
 public class rsbr {
@@ -58,10 +59,11 @@ public class rsbr {
 
 			System.out.println("Set the restrictions");
 			sbr.setrestrictions();
+			GraphRestrictions restrictions = sbr.restrictions();
 			// sbr.printRestrictions();
 
 			System.out.println("Paths Computation");
-			ArrayList<ArrayList<Path>> paths = new PathFinder(graph).pathsComputation();
+			ArrayList<ArrayList<Path>> paths = new PathFinder(graph, restrictions).pathsComputation();
 
 			System.out.println(" - RBR Section");
 			rbr = new RBR(graph);
@@ -122,7 +124,7 @@ public class rsbr {
 
 				System.out.println("Making Tables");
 				stats = rbr.getRegionsStats();
-				new RoutingTableGenerator(graph).doRoutingTable("all");
+				new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable("all");
 				System.out.println("All");
 				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
 						+ " Med: " + stats[2]);
@@ -139,7 +141,7 @@ public class rsbr {
 
 				System.out.println("Making Tables");
 				stats = rbr.getRegionsStats();
-				new RoutingTableGenerator(graph).doRoutingTable(tableFile);
+				new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable(tableFile);
 				System.out.println(tableFile);
 				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
 						+ " Med: " + stats[2]);

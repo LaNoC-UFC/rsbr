@@ -2,18 +2,23 @@ package rbr;
 
 import util.*;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
 public class RBR {
 	private Graph graph;
 
+	private HashMap<Vertex, ArrayList<RoutingPath>> routingPathForVertice;
+	private HashMap<Vertex, ArrayList<Region>> regionsForVertice;
+
 	public RBR(Graph g) {
 		graph = g;
-
+		routingPathForVertice = new HashMap<>();
+		regionsForVertice = new HashMap<>();
 	}
 
+	public HashMap<Vertex, ArrayList<Region>> regions() {
+		return this.regionsForVertice;
+	}
 	// Link weight stats [0] - mean / [1] - standard deviation
 	public double[] linkWeightStats() {
 		double linksWeight = 0.0;
@@ -48,8 +53,8 @@ public class RBR {
 		double average;
 		List<Integer> regSizes = new ArrayList<>();
 
-		for (Vertice r : graph.getVertices()) {
-			regSizes.add(r.getRegions().size());
+		for (Vertex r : graph.getVertices()) {
+			regSizes.add(regionsForVertice.get(r).size());
 		}
 		Collections.sort(regSizes);
 
@@ -67,10 +72,9 @@ public class RBR {
 	
 	// Pack routing options if they have the same input port and the same
 	// destination
-	private static void packOutputPort(Vertice atual) {
-
-		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
-		atual.setRoutingPaths(new ArrayList<RoutingPath>());
+	private void packOutputPort(Vertex atual) {
+		ArrayList<RoutingPath> actRP = routingPathForVertice.get(atual);
+		routingPathForVertice.put(atual, new ArrayList<>());
 		for (RoutingPath a : actRP) {
 			String op = a.getOp();
 			String dst = a.getDst();
@@ -82,15 +86,15 @@ public class RBR {
 						op = op.concat(b.getOp());
 				}
 			}
-			atual.addRP(ip, dst, op);
+			addRoutingPath(atual, ip, dst, op);
 		}
 	}
 
 	// Pack routing options if they have the same output port and the same
 	// destination
-	public static void packInputPort(Vertice atual) {
-		ArrayList<RoutingPath> actRP = atual.getRoutingPaths();
-		atual.setRoutingPaths(new ArrayList<RoutingPath>());
+	public void packInputPort(Vertex atual) {
+		ArrayList<RoutingPath> actRP = routingPathForVertice.get(atual);
+		routingPathForVertice.put(atual, new ArrayList<>());
 		for (RoutingPath a : actRP) {
 			String op = a.getOp();
 			String dst = a.getDst();
@@ -102,31 +106,30 @@ public class RBR {
 						ip = ip.concat(b.getIp());
 				}
 			}
-			atual.addRP(ip, dst, op);
+			addRoutingPath(atual, ip, dst, op);
 		}
 	}
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
-		
-		//inicializa opcoes de roteamento
-		for(Vertice v : graph.getVertices())
-			v.initRoutingOptions();
-		
+
+		for(Vertex v : graph.getVertices())
+			routingPathForVertice.put(v, new ArrayList<>());
+
 		for(ArrayList<Path> alp : paths) {			
 			for (Path path : alp) {
-				String dest = path.dst().getNome();
-				for (Vertice sw : path) {
+				String dest = path.dst().name();
+				for (Vertex sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
 						String op = sw.edge(path.get(path.indexOf(sw) + 1))
 								.color();
 						String ip = (path.indexOf(sw) == 0) ? "I" : sw.edge(
 								path.get(path.indexOf(sw) - 1)).color();
-						sw.addRP(ip, dest, op);
+						addRoutingPath(sw, ip, dest, op);
 					}
 				}
 			}
 		}
-		for (Vertice atual : graph.getVertices()) {
+		for (Vertex atual : graph.getVertices()) {
 			packOutputPort(atual);
 			// packInputPort(atual);
 		}
@@ -152,12 +155,12 @@ public class RBR {
 	// Compute the regions
 	public void regionsComputation() {
 		ArrayList<String> opComb = getOutputCombinations();
-		for (Vertice sw : graph.getVertices()) {			
-			sw.initRegions();
+		for (Vertex sw : graph.getVertices()) {
+			regionsForVertice.put(sw, new ArrayList<>());
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
-				for (RoutingPath rp : sw.getRoutingPaths()) {
+				for (RoutingPath rp : routingPathForVertice.get(sw)) {
 					if (rp.getOp().equals(op)) {
 						if (!destinations.contains(rp.getDst()))
 							destinations.add(rp.getDst());
@@ -165,11 +168,11 @@ public class RBR {
 					}
 				}
 				if (destinations.size() != 0) {
-					sw.addRegion(ip, destinations, op);
+					regionsForVertice.get(sw).add(new Region(ip, destinations, op));
 				}
 			}
 
-			for (Region reg : sw.getRegions()) {
+			for (Region reg : regionsForVertice.get(sw)) {
 				reg.setextrems();
 			}
 		}
@@ -179,10 +182,10 @@ public class RBR {
 
 	// Adjust the regions to avoid overlap
 	private void adjustsRegions() {
-		for (Vertice sw : graph.getVertices()) {
+		for (Vertex sw : graph.getVertices()) {
 			ArrayList<Region> regionsTemp = new ArrayList<>();
 			ArrayList<Region> regionsRemov = new ArrayList<>();
-			for (Region reg : sw.getRegions()) {
+			for (Region reg : regionsForVertice.get(sw)) {
 				ArrayList<String> strgs = getStranges(reg);
 
 				if (strgs != null) {
@@ -220,8 +223,8 @@ public class RBR {
 								reg.getOp()));
 				}
 			}
-			sw.getRegions().removeAll(regionsRemov);
-			sw.getRegions().addAll(regionsTemp);
+			regionsForVertice.get(sw).removeAll(regionsRemov);
+			regionsForVertice.get(sw).addAll(regionsTemp);
 		}
 	}
 
@@ -537,34 +540,59 @@ public class RBR {
 	}
 
 	// Calculates reachability
-	private double reachability(Vertice orig) {
+	private double reachability(Vertex orig) {
 		double reaches = 0, total = graph.getVertices().size() - 1;
-		for (Vertice dest : graph.getVertices()) {
+		for (Vertex dest : graph.getVertices()) {
 			if (orig != dest) {
-				if (orig.reaches(dest)) {
+				if (reaches(orig, dest)) {
 					reaches++;
 				}
 			}
 		}
 		return (reaches / total);
 	}
-	
+
+	private boolean reaches(Vertex src, Vertex dest) {
+		return reaches(src, dest, "I");
+	}
+
+	private boolean reaches(Vertex src, Vertex dest, String ipColor) {
+		if (dest == src)
+			return true;
+		String opColor = getOpColor(src, dest, ipColor);
+		if (opColor == null)
+			return false;
+		return reaches(src.adjunct(opColor).destination(), dest, EdgeColor.getInvColor(src.adjunct(opColor).color()));
+	}
+
+	private String getOpColor(Vertex src, Vertex dest, String ipColor) {
+		String router = dest.name();
+		for (rbr.Region reg : regionsForVertice.get(src))
+			if (reg.contains(router) && reg.getIp().contains(ipColor))
+				return (reg.getOp().substring(0, 1));
+
+		System.err.println("ERROR : There isn't Op on " + src.name()
+				+ " for " + dest.name() + " " + ipColor);
+		return null;
+	}
+
 	public void merge(double reachability) {
-		for (Vertice vertice : graph.getVertices())
-			merge(vertice, reachability);
+		for (Vertex vertex : graph.getVertices())
+			merge(vertex, reachability);
 	}
 
 	// Merge the regions of a router
-	private void merge(Vertice router, double reachability) {
+	private void merge(Vertex router, double reachability) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 
 		while (reachability(router) >= reachability && wasPossible) {
-			bkpListRegion = new ArrayList<Region>(router.getRegions());
+			bkpListRegion = new ArrayList<>(regionsForVertice.get(router));
 			wasPossible = mergeUnitary(router);
 		}
-		if (bkpListRegion != null)
-			router.setRegions(bkpListRegion);
+		if (bkpListRegion != null) {
+			regionsForVertice.put(router, bkpListRegion);
+		}
 
 	}
 
@@ -572,11 +600,11 @@ public class RBR {
 	 * Tries to make one (and only one) merge and returns true in case of
 	 * success
 	 */
-	private static boolean mergeUnitary(Vertice router) {
-		for (int a = 0; a < router.getRegions().size(); a++) {
-			Region ra = router.getRegions().get(a);
-			for (int b = a + 1; b < router.getRegions().size(); b++) {
-				Region rb = router.getRegions().get(b);
+	private boolean mergeUnitary(Vertex router) {
+		for (int a = 0; a < regionsForVertice.get(router).size(); a++) {
+			Region ra = regionsForVertice.get(router).get(a);
+			for (int b = a + 1; b < regionsForVertice.get(router).size(); b++) {
+				Region rb = regionsForVertice.get(router).get(b);
 
 				if (CanBeMerged(ra, rb)) {
 					String upRight = getUpRightMerged(ra, rb);
@@ -590,11 +618,11 @@ public class RBR {
 					reg.getDst().addAll(rb.getDst());
 					reg.setSize();
 
-					router.getRegions().add(reg);
-					router.getRegions().remove(ra);
-					router.getRegions().remove(rb);
+					regionsForVertice.get(router).add(reg);
+					regionsForVertice.get(router).remove(ra);
+					regionsForVertice.get(router).remove(rb);
 
-					Collections.sort(router.getRegions());
+					Collections.sort(regionsForVertice.get(router));
 
 					return true;
 				}
@@ -723,8 +751,8 @@ public class RBR {
 	// Check if output port are subsets
 	private static boolean OpIsSub(Region r1, Region r2) {
 
-		String r1Op = Vertice.sortStrAlf(r1.getOp());
-		String r2Op = Vertice.sortStrAlf(r2.getOp());
+		String r1Op = sortStrAlf(r1.getOp());
+		String r2Op = sortStrAlf(r2.getOp());
 		if (r1Op.contains(r2Op) || r2Op.contains(r1Op)) {
 			return true;
 		}
@@ -790,5 +818,18 @@ public class RBR {
 		}
 		stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
 		return stats;
+	}
+
+	private void addRoutingPath(Vertex v, String ip, String dst, String op) {
+		RoutingPath rp = new RoutingPath(sortStrAlf(ip), dst, sortStrAlf(op));
+		// @Todo replace this by a Set to not worry with duplication
+		if(!routingPathForVertice.get(v).contains(rp))
+			routingPathForVertice.get(v).add(rp);
+	}
+
+	private static String sortStrAlf(String input) {
+		char[] ip1 = input.toCharArray();
+		Arrays.sort(ip1);
+		return String.valueOf(ip1);
 	}
 }

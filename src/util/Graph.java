@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Graph {
 	boolean debug = true;
 	static private String[] ports = { "N", "S", "E", "W" };
-	ArrayList<Vertice> vertices;
+	ArrayList<Vertex> vertices;
 	ArrayList<Edge> edges;
 	int dimX;
 	int dimY;
@@ -63,8 +63,8 @@ public class Graph {
 				Edge toRemoveIndo = edges.get(idx);
 				Edge toRemoveVindo = toRemoveIndo.destination().edge(toRemoveIndo.source());
 				
-				if (debug) System.out.println("Removing: "+toRemoveIndo.source().getNome()
-						+"->"+toRemoveIndo.destination().getNome());
+				if (debug) System.out.println("Removing: "+toRemoveIndo.source().name()
+						+"->"+toRemoveIndo.destination().name());
 				
 				removeEdge(toRemoveIndo);
 				removeEdge(toRemoveVindo);
@@ -80,7 +80,7 @@ public class Graph {
 	}
 	
 	public boolean haveIsolatedCores() {
-		ArrayList<Vertice> alc = new ArrayList<Vertice>();
+		ArrayList<Vertex> alc = new ArrayList<Vertex>();
 		//Escolha do 0.0 para ser o core inicial. Garantido a existencia do primeiro nodo em todas as topologias
 		getVertice("0.0").checkIsolation(alc);
 		
@@ -90,18 +90,18 @@ public class Graph {
     	return false;
 	}
 
-	private boolean contem(String vertice) {
+	private boolean contem(String vertex) {
 
 		for (int i = 0; i < vertices.size(); i++) {
 
-			if (vertice.equals(vertices.get(i).getNome())) {
+			if (vertex.equals(vertices.get(i).name())) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public ArrayList<Vertice> getVertices() {
+	public ArrayList<Vertex> getVertices() {
 
 		return this.vertices;
 
@@ -111,51 +111,51 @@ public class Graph {
 		return this.edges;
 	}
 
-	public Vertice getVertice(String nomeVertice) {
-		Vertice vertice = null;
+	public Vertex getVertice(String nomeVertice) {
+		Vertex vertex = null;
 
-		for (Vertice v : this.vertices) {
-			if (v.getNome().equals(nomeVertice))
-				vertice = v;
+		for (Vertex v : this.vertices) {
+			if (v.name().equals(nomeVertice))
+				vertex = v;
 		}
 
-		if (vertice == null) {
-			System.out.println("Vertice: " + nomeVertice + " nao encontrado");
+		if (vertex == null) {
+			System.out.println("Vertex: " + nomeVertice + " nao encontrado");
 			return null;
 		}
 
-		return vertice;
+		return vertex;
 	}
 
 	public void addVertice(String nome) {
-		Vertice v = new Vertice(nome);
+		Vertex v = new Vertex(nome);
 		vertices.add(v);
 	}
 	
-	public void addEdge(Vertice origem, Vertice destino, String cor) {
+	public void addEdge(Vertex origem, Vertex destino, String cor) {
 		Edge e = new Edge(origem, destino, cor);
-		origem.addAdj(e);
+		origem.addAdjunct(e);
 		edges.add(e);
 	}
 	
 	private void addEdge(Edge toAdd) {
-		toAdd.source().getAdj().add(toAdd);
+		toAdd.source().adjuncts().add(toAdd);
 		edges.add(toAdd);
 	}
 	
 	private void removeEdge(Edge toRemove) {
-		toRemove.source().getAdj().remove(toRemove);
+		toRemove.source().adjuncts().remove(toRemove);
 		edges.remove(toRemove);
 	}
 
 	public String toString() {
 		String r = "";
 		System.out.println("Graph:");
-		for (Vertice u : vertices) {
-			r += u.getNome() + " -> ";
-			for (Edge e : u.getAdj()) {
-				Vertice v = e.destination();
-				r += v.getNome() + e.color() + ", ";
+		for (Vertex u : vertices) {
+			r += u.name() + " -> ";
+			for (Edge e : u.adjuncts()) {
+				Vertex v = e.destination();
+				r += v.name() + e.color() + ", ";
 			}
 			r += "\n";
 		}
@@ -170,8 +170,8 @@ public class Graph {
 		return dimY;
 	}
 
-	public int indexOf(Vertice v) {
-		return indexOf(v.getNome());
+	public int indexOf(Vertex v) {
+		return indexOf(v.name());
 	}
 
 	private int indexOf(String xy) {

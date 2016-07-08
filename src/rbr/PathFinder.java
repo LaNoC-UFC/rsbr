@@ -1,18 +1,17 @@
 package rbr;
 
-import util.Edge;
-import util.Graph;
-import util.Path;
-import util.Vertice;
+import util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class PathFinder {
     private Graph graph;
+    private GraphRestrictions restrictions;
 
-    public PathFinder(Graph g){
-        graph = g;
+    public PathFinder(Graph g, GraphRestrictions restrictions){
+        this.graph = g;
+        this.restrictions = restrictions;
     }
 
     public ArrayList<ArrayList<Path>> pathsComputation() {
@@ -34,10 +33,10 @@ public class PathFinder {
 
     private ArrayList<Path> computeOneHopPaths(ArrayList<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<Path>();
-        for (Vertice src : graph.getVertices()) {
-            for (Edge e : src.getAdj()) {
-                Vertice dst = e.destination();
-                if (src.getRestriction("I").contains(src.edge(dst).color()))
+        for (Vertex src : graph.getVertices()) {
+            for (Edge e : src.adjuncts()) {
+                Vertex dst = e.destination();
+                if (restrictions.getRestriction(src, "I").contains(src.edge(dst).color()))
                     continue;
                 Path p = new Path();
                 p.add(src);
@@ -65,16 +64,16 @@ public class PathFinder {
 
     private ArrayList<Path> advanceOneHop(Path p, ArrayList<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<Path>();
-        Vertice currentSrc = p.dst();
-        Vertice predecessor = p.get(p.size() - 2);
+        Vertex currentSrc = p.dst();
+        Vertex predecessor = p.get(p.size() - 2);
         String inputPort = currentSrc.edge(predecessor).color();
-        for (Edge e : currentSrc.getAdj()) {
-            Vertice dst = e.destination();
+        for (Edge e : currentSrc.adjuncts()) {
+            Vertex dst = e.destination();
             // going back
             if (dst == predecessor)
                 continue;
             // going to forbidden direction
-            if (currentSrc.getRestriction(inputPort).contains(currentSrc.edge(dst).color()))
+            if ( restrictions.getRestriction(currentSrc, inputPort).contains(currentSrc.edge(dst).color()))
                 continue;
             // no mininal path
             if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))
@@ -124,7 +123,7 @@ public class PathFinder {
         return tic.src().equals(tac.src()) && tic.dst().equals(tac.dst());
     }
 
-    private String pairDescriptor(Vertice src, Vertice dst) {
-        return src.getNome() + ":" + dst.getNome();
+    private String pairDescriptor(Vertex src, Vertex dst) {
+        return src.name() + ":" + dst.name();
     }
 }

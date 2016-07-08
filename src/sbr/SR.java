@@ -3,6 +3,7 @@ package sbr;
 import util.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SR {
@@ -12,21 +13,25 @@ public class SR {
 	private static int RRIndex[];
 
 	private Graph graph;
+	private GraphRestrictions restrictions;
 
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
 	private ArrayList<Edge> bridge;
 
-	private List<Vertice> visitedVertices, unvisitedVertices, start, terminal;
+	private List<Vertex> visitedVertices, unvisitedVertices, start, terminal;
 	private List<Edge> visitedEdges, unvisitedEdges;
-	//private List<Vertice> visiteds;
-	//private List<Vertice> nVisiteds;
+	//private List<Vertex> visiteds;
+	//private List<Vertex> nVisiteds;
 
+	private HashMap<Vertex, Segment>  segmentForVertice;
+	private HashMap<Vertex, Integer> subnetForVertice;
 
 	public SR(Graph graph) 
 	{
 		//graph = new Graph(fileName);
 		this.graph = graph;
+		this.restrictions = new GraphRestrictions(graph);
 		if(debug) System.err.println(graph);
 		segments = new ArrayList<>();
 		visitedVertices = new ArrayList<>();
@@ -43,6 +48,8 @@ public class SR {
 		maxSN = 0;
 		new Bridge(graph);
 		System.out.println(bridge.size()+" bridges.");
+		segmentForVertice = new HashMap<>();
+		subnetForVertice = new HashMap<>();
 	}
 
 	public void computeSegments() {
@@ -73,18 +80,18 @@ public class SR {
 		// Choose the start switch
 		boolean first = (yMin + 1 == yMax);
 		boolean pair = ((yMin + 1) % 2 == 0);
-		Vertice sw;
-		Vertice left = graph.getVertice(xMin + "." + (yMin + 1));
-		Vertice right = graph.getVertice(xMax + "." + (yMin + 1));
+		Vertex sw;
+		Vertex left = graph.getVertice(xMin + "." + (yMin + 1));
+		Vertex right = graph.getVertice(xMax + "." + (yMin + 1));
 		
 		if(first) {
 			sw = (pair) ? left : right;
 			setStart(sw);
-			sw.setSubNet(subNet);
+			subnetForVertice.put(sw, subNet);
 		}
 		else if(isVisited(left) || isVisited(right)){
 			sw = (isVisited(left)) ? left : right;
-			subNet = sw.getSubNet();
+			subNet = subnetForVertice.get(sw);
 		}
 		else {
 			sw = nextVisited(min, max);
@@ -93,15 +100,15 @@ public class SR {
 				if(sw == null) return;
 				setStart(sw);
 				subNet = ++maxSN;
-				sw.setSubNet(subNet);
+				subnetForVertice.put(sw, subNet);
 			}
-			subNet = sw.getSubNet();
+			subNet = subnetForVertice.get(sw);
 		}
 
 		Segment sg = new Segment();
 		segments.add(sg);
 
-		if (debug) System.err.println("#starting: " + sw.getNome());
+		if (debug) System.err.println("#starting: " + sw.name());
 
 		do {
 			this.resetRRIndex();
@@ -113,12 +120,12 @@ public class SR {
 				if (debug) System.err.println("New Segment.");
 			} else if (isVisited(sw)) {
 				setTerminal(sw);
-				if (debug) System.err.println(sw.getNome() + " is Terminal.");
+				if (debug) System.err.println(sw.name() + " is Terminal.");
 
 			} else if (xMin == 0 && yMin == 0) { // eh a ultima rodada
 				visit(sw);
 				setTerminal(sw);
-				if (debug) System.err.println(sw.getNome() + " is Terminal.");
+				if (debug) System.err.println(sw.name() + " is Terminal.");
 					
 			} else {
 				unsetStart(sw);
@@ -131,11 +138,12 @@ public class SR {
 					subNet = ++maxSN;
 					if (debug) System.err.println("Subnet now: " + subNet);
 					segments.get(segments.size()-1).add(sw);// sg.add(sw);
+					segmentForVertice.put(sw, segments.get(segments.size()-1));
 					setStart(sw);
 					if (debug)
-						System.err.println(sw.getNome() + " is Start.");
+						System.err.println(sw.name() + " is Start.");
 					visit(sw);
-					sw.setSubNet(subNet);
+					subnetForVertice.put(sw, subNet);
 				} else {
 					if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
 						segments.remove(sg);
@@ -146,23 +154,23 @@ public class SR {
 
 	}
 
-	protected boolean find(Vertice sw, String min, String max) {
+	protected boolean find(Vertex sw, String min, String max) {
 		Segment segm = segments.get(segments.size()-1);
 		if (!isVisited(sw)) {
 			segm.add(sw);
-			//sw.setSegment(segm);
+			segmentForVertice.put(sw, segm);
 			setTVisited(sw);
-		} else if (!sw.belongsTo(subNet) && !(isStart(sw) && isTerminal(sw)))
+		} else if (subnetForVertice.get(sw) != subNet && !(isStart(sw) && isTerminal(sw)))
 			return false;
 			
-		if (debug) System.err.println("Switch now: " + sw.getNome());
+		if (debug) System.err.println("Switch now: " + sw.name());
 		
 		ArrayList<Edge> links = suitableLinks(sw, min, max);
 		if (links == null) {
 			if (debug) System.err.println("No Suitable Links found.");
 			if(isTVisited(sw)) unsetTVisited(sw);
-			//sw.setSegment(null);
 			segm.remove(sw);
+			segmentForVertice.remove(sw);
 			return false;
 		}
 		
@@ -170,24 +178,24 @@ public class SR {
 			Edge ln = getNextLink(links);
 			links.remove(ln);
 			Edge nl = ln.destination().edge(ln.source());
-			if (debug) System.err.println("Link now: "+ln.source().getNome()+" <-> "+ln.destination().getNome());
+			if (debug) System.err.println("Link now: "+ln.source().name()+" <-> "+ln.destination().name());
 			setTVisited(ln);
 			setTVisited(nl);
 			segm.add(ln);
-			Vertice nsw = ln.other(sw);
+			Vertex nsw = ln.other(sw);
 			if (nsw.isIn(min, max)) {
-				if (((isVisited(nsw) || isStart(nsw)) && nsw.belongsTo(subNet)) || find(nsw, min, max)) {
+				if (((isVisited(nsw) || isStart(nsw)) && subnetForVertice.get(nsw) == subNet) || find(nsw, min, max)) {
 					visit(ln);
 					visit(nl);
 					if(!isVisited(sw)) visit(sw);
 					if(!isVisited(nsw)) visit(nsw);
-					if (isTerminal(nsw) && isStart(nsw) && !nsw.belongsTo(subNet) && (nsw.getSegment() == null)) {
+					if (isTerminal(nsw) && isStart(nsw) && subnetForVertice.get(nsw) != subNet && !segmentForVertice.containsKey(nsw)) {
 						unsetTerminal(nsw);
 						unsetStart(nsw);
-						//nsw.setSegment(segm);
 						segm.add(nsw);
+						segmentForVertice.put(nsw, segm);
 					}
-					nsw.setSubNet(subNet);
+					subnetForVertice.put(nsw, subNet);
 					return true;
 				}
 			}
@@ -196,7 +204,7 @@ public class SR {
 			segm.remove(ln);
 		}
 		segm.remove(sw);
-		//sw.setSegment(null);
+		segmentForVertice.remove(sw);
 		if(isTVisited(sw)) unsetTVisited(sw);
 
 		return false;
@@ -206,11 +214,11 @@ public class SR {
 	 * search for a switch marked as visited, belonging to the current subnet,
 	 * and with at least one link not marked as visited.
 	 */
-	protected Vertice nextVisited(String min, String max) {
-		ArrayList<Vertice> next = new ArrayList<>();
+	protected Vertex nextVisited(String min, String max) {
+		ArrayList<Vertex> next = new ArrayList<>();
 		// get switches from visiteds' list
 		for (int i = visitedVertices.size() - 1; i >= 0; i--) {
-			Vertice sw = visitedVertices.get(i);
+			Vertex sw = visitedVertices.get(i);
 			if (!isTerminal(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
 				
 				// agora só retorna se existir mais de um visitado com links
@@ -218,10 +226,10 @@ public class SR {
 				if(next.isEmpty())
 					next.add(sw);
 				else {
-					for(Vertice n : next) {
-						if(n.getSubNet() == sw.getSubNet()) {
-							if (debug) System.err.println("nextVisited " + n.getNome());
-							subNet = n.getSubNet();
+					for(Vertex n : next) {
+						if(subnetForVertice.get(n) == subnetForVertice.get(sw)) {
+							if (debug) System.err.println("nextVisited " + n.name());
+							subNet = subnetForVertice.get(n);
 							return n;							
 						}
 					}
@@ -238,26 +246,26 @@ public class SR {
 	 * look for a switch that is not marked as visited not marked as terminal,
 	 * and attached to a terminal switch.
 	 */
-	protected Vertice nextNotVisited(String min, String max) {
+	protected Vertex nextNotVisited(String min, String max) {
 		for (Edge b: bridge) {
-			Vertice sw = b.destination();
+			Vertex sw = b.destination();
 			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
-				if (debug) System.err.println("nextNotVisited " + sw.getNome());
+				if (debug) System.err.println("nextNotVisited " + sw.name());
 				return sw;				
 			}
 			sw = b.source();
 			if(!isVisited(sw) && sw.isIn(min, max) && suitableLinks(sw, min, max) != null) {
-				if (debug) System.err.println("nextNotVisited " + sw.getNome());
+				if (debug) System.err.println("nextNotVisited " + sw.name());
 				return sw;				
 			}
 		}
 		/*
-		for (Vertice sw : unvisitedVertices) {
+		for (Vertex sw : unvisitedVertices) {
 			if (sw.isIn(min, max) && isTerminal(sw)) {
-				List<Vertice> lS = sw.getNeighbors();
-				for (Vertice s : lS) {
+				List<Vertex> lS = sw.getNeighbors();
+				for (Vertex s : lS) {
 					if (!isVisited(s) && !isTerminal(s) && s.isIn(min, max)) {
-						if (debug) System.err.println("nextNotVisited " + s.getNome());
+						if (debug) System.err.println("nextNotVisited " + s.name());
 						return s;
 					}
 				}
@@ -317,6 +325,9 @@ public class SR {
 		RRIndex[1] = -1;
 	}
 
+	public GraphRestrictions restrictions() {
+		return this.restrictions;
+	}
 	public void setrestrictions() {
 		for (Segment segment : segments) {
 			if (segment.getLinks().isEmpty())
@@ -324,63 +335,60 @@ public class SR {
 
 			if (segment.isUnitary()) {
 				// No traffic allowed at link
-				Vertice Starting = segment.getLinks().get(0).source();
-				Vertice Ending = segment.getLinks().get(0).destination();
-				//System.err.println("Start: " + Starting.getNome() + " Ending: "+ Ending.getNome());
+				Vertex Starting = segment.getLinks().get(0).source();
+				Vertex Ending = segment.getLinks().get(0).destination();
+				//System.err.println("Start: " + Starting.name() + " Ending: "+ Ending.name());
 				// Restricted link
 				String opStarting = Starting.edge(Ending).color();
 				String opEnding = Ending.edge(Starting).color();
 				// Restrictions at Starting core
-				for (Edge link : Starting.getAdj())
-					if (link.color() != opStarting)
-						Starting.addRestriction(link.color(), opStarting);
+				for (Edge link : Starting.adjuncts())
+					if (link.color() != opStarting) {
+						restrictions.addRestriction(Starting, link.color(), opStarting);
+					}
 				// Restrictions at Ending core
-				for (Edge link : Ending.getAdj())
-					if (link.color() != opEnding)
-						Ending.addRestriction(link.color(), opEnding);
+				for (Edge link : Ending.adjuncts())
+					if (link.color() != opEnding) {
+						restrictions.addRestriction(Ending, link.color(), opEnding);
+					}
 				continue;
 			}
 			// Put it at first or second link
 			if (segment.getSwitchs().size() == 1) {
-				segment.getSwitchs()
-						.get(0)
-						.addRestriction(
-								EdgeColor.getInvColor(segment.getLinks().get(0).color()),
-								segment.getLinks().get(1).color());
-				segment.getSwitchs()
-						.get(0)
-						.addRestriction(segment.getLinks().get(1).color(),
-								EdgeColor.getInvColor(segment.getLinks().get(0).color()));
+				Vertex sw = segment.getSwitchs().get(0);
+
+				restrictions.addRestriction(sw, EdgeColor.getInvColor(segment.getLinks().get(0).color()),
+						segment.getLinks().get(1).color());
+				restrictions.addRestriction(sw, segment.getLinks().get(1).color(),
+						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 				continue;
 			}
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
-				Vertice restrict = segment.getSwitchs().get(1);
-				restrict.addRestriction(
-						EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment
-								.getLinks().get(2).color());
-				restrict.addRestriction(segment.getLinks().get(2).color(),
+				Vertex restrict = segment.getSwitchs().get(1);
+				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment
+						.getLinks().get(2).color());
+				restrictions.addRestriction(restrict, segment.getLinks().get(2).color(),
 						EdgeColor.getInvColor(segment.getLinks().get(1).color()));
 				continue;
 			}
 			if (segment.isStarting()) {
-				Vertice restrict = segment.getSwitchs().get(1);
-				restrict.addRestriction(
-						EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment
-								.getLinks().get(1).color());
-				restrict.addRestriction(segment.getLinks().get(1).color(),
+				Vertex restrict = segment.getSwitchs().get(1);
+				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment
+						.getLinks().get(1).color());
+				restrictions.addRestriction(restrict, segment.getLinks().get(1).color(),
 						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 			}
 		}
 	}
 	
-	private boolean isVisited(Vertice v) {
+	private boolean isVisited(Vertex v) {
 		return visitedVertices.contains(v);
 	}
 
-	private void visit(Vertice v) {
-		assert !visitedVertices.contains(v) : "Vertice jah visitado?";
-		//assert unvisitedVertices.contains(v) : "Vertice (t)visitado?";
+	private void visit(Vertex v) {
+		assert !visitedVertices.contains(v) : "Vertex jah visitado?";
+		//assert unvisitedVertices.contains(v) : "Vertex (t)visitado?";
 		
 		visitedVertices.add(v);
 		unvisitedVertices.remove(v);
@@ -398,13 +406,13 @@ public class SR {
 		unvisitedEdges.remove(a);
 	}
 
-	private boolean isTVisited(Vertice v) {
+	private boolean isTVisited(Vertex v) {
 		return !visitedVertices.contains(v) && !unvisitedVertices.contains(v);
 	}
 
-	private void setTVisited(Vertice v) {
-		assert !visitedVertices.contains(v) : "Vertice jah visitado?";
-		assert unvisitedVertices.contains(v) : "Vertice jah tvisitado?";
+	private void setTVisited(Vertex v) {
+		assert !visitedVertices.contains(v) : "Vertex jah visitado?";
+		assert unvisitedVertices.contains(v) : "Vertex jah tvisitado?";
 		
 		unvisitedVertices.remove(v);
 	}
@@ -425,54 +433,54 @@ public class SR {
 		unvisitedEdges.add(a);
 	}
 
-	private void unsetTVisited(Vertice v) {
-		assert !unvisitedVertices.contains(v) : "Vertice nao tvisitado?";
+	private void unsetTVisited(Vertex v) {
+		assert !unvisitedVertices.contains(v) : "Vertex nao tvisitado?";
 		
 		unvisitedVertices.add(v);
 	}
 
-	private boolean isStart(Vertice v) {
+	private boolean isStart(Vertex v) {
 		return start.contains(v);
 	}
 
-	private void setStart(Vertice v) {
-		assert !start.contains(v) : "Vertice jah start?";
+	private void setStart(Vertex v) {
+		assert !start.contains(v) : "Vertex jah start?";
 		
 		start.add(v);
 	}
 
-	private void unsetStart(Vertice v) {
-		assert start.contains(v) : "Vertice nao start?";
+	private void unsetStart(Vertex v) {
+		assert start.contains(v) : "Vertex nao start?";
 		
 		start.remove(v);
 	}
 
-	private boolean isTerminal(Vertice v) {
+	private boolean isTerminal(Vertex v) {
 		return terminal.contains(v);
 	}
 
-	private void setTerminal(Vertice v) {
-		assert !terminal.contains(v) : "Vertice jah terminal?";
-		assert visitedVertices.contains(v) : "Vertice nao tvisitado?";
+	private void setTerminal(Vertex v) {
+		assert !terminal.contains(v) : "Vertex jah terminal?";
+		assert visitedVertices.contains(v) : "Vertex nao tvisitado?";
 
 		terminal.add(v);
 	}
 
-	private void unsetTerminal(Vertice v) {
-		assert terminal.contains(v) : "Vertice nao terminal?";
+	private void unsetTerminal(Vertex v) {
+		assert terminal.contains(v) : "Vertex nao terminal?";
 		
 		terminal.remove(v);
 	}
 
-	public ArrayList<Edge> suitableLinks(Vertice v, String min, String max)
+	public ArrayList<Edge> suitableLinks(Vertex v, String min, String max)
 	{
-		ArrayList<Edge> adj = v.getAdj();
+		ArrayList<Edge> adj = v.adjuncts();
 		if(adj.isEmpty())
 			return null;
 		
 		ArrayList<Edge> slinks = new ArrayList<>();
 		for(Edge ln : adj) {
-			Vertice dst = ln.destination();
+			Vertex dst = ln.destination();
 			boolean cruza = isTVisited(dst) && !isStart(dst);
 			boolean bdg = bridge.contains(ln) || bridge.contains(dst.edge(ln.source()));
 			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(min, max) && !cruza && !bdg)
@@ -495,17 +503,17 @@ public class SR {
 			for (int v = 0; v < G.getVertices().size(); v++)
 				low[v] = pre[v] = -1;
 
-			for (Vertice v: G.getVertices())
+			for (Vertex v: G.getVertices())
 				
 				if (pre[G.indexOf(v)] == -1)
 					dfs(G, v, v);
 		}
 
-		private void dfs(Graph g, Vertice u, Vertice v) {
-			assert g != null && u != null && v != null : "Ponteiro(s) nulo(s) para vertice(s) ou grafo!";
+		private void dfs(Graph g, Vertex u, Vertex v) {
+			assert g != null && u != null && v != null : "Null pointer to vertices or graph!";
 			low[g.indexOf(v)] = pre[g.indexOf(v)] = cnt++;
-			for(Edge e : v.getAdj()) {
-				Vertice w = e.destination();
+			for(Edge e : v.adjuncts()) {
+				Vertex w = e.destination();
 				if (pre[g.indexOf(w)] == -1) {
 					dfs(g, v, w);
 					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);

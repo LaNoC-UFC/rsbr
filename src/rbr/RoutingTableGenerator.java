@@ -1,21 +1,25 @@
 package rbr;
 
 import util.Graph;
-import util.Vertice;
+import util.Vertex;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class RoutingTableGenerator {
 
     private Graph graph;
+    private HashMap<Vertex, ArrayList<Region>> regionsForVertice;
     private int bitPerCoordinate = 0;
     private int maxOfRegions = 0;
 
-    public RoutingTableGenerator(Graph graph) {
+    public RoutingTableGenerator(Graph graph, HashMap<Vertex, ArrayList<Region>> regionsForVertice) {
         this.graph = graph;
+        this.regionsForVertice = regionsForVertice;
         int size = Math.max(graph.dimX(), graph.dimY());
         this.bitPerCoordinate = (int) Math.ceil(Math.log(size) / Math.log(2));
         this.maxOfRegions = maxOfRegions();
@@ -62,7 +66,7 @@ public class RoutingTableGenerator {
 
     private void writeRoutingTableBody(BufferedWriter bw) throws IOException {
         bw.append("constant TAB: tables :=(");
-        for (Vertice router : graph.getVertices()) {
+        for (Vertex router : graph.getVertices()) {
             PrintRegions(router, bw);
             if (!isLastVertice(router))
                 bw.append(",");
@@ -77,34 +81,34 @@ public class RoutingTableGenerator {
                 + "end TablePackage;\n");
     }
 
-    private boolean isLastVertice(Vertice v) {
+    private boolean isLastVertice(Vertex v) {
         return (graph.getVertices().indexOf(v) == graph.getVertices().size() - 1);
     }
 
     private int maxOfRegions() {
         int result = 0;
-        for(Vertice v : graph.getVertices())
-            result = Math.max(result, v.getRegions().size());
+        for(Vertex v : graph.getVertices())
+            result = Math.max(result, regionsForVertice.get(v).size());
         return result;
     }
 
-    private void PrintRegions(Vertice router, BufferedWriter bw) throws IOException {
-        bw.append("\n -- Router " + router.getNome() + "\n");
+    private void PrintRegions(Vertex router, BufferedWriter bw) throws IOException {
+        bw.append("\n -- Router " + router.name() + "\n");
         bw.append("(");
 
-        for (int regionIndex = 0; regionIndex < router.getRegions().size(); regionIndex++) {
-            int Xmin = Integer.parseInt(router.getRegions().get(regionIndex).getDownLeft().split("\\.")[0]);
-            int Ymin = Integer.parseInt(router.getRegions().get(regionIndex).getDownLeft().split("\\.")[1]);
-            int Xmax = Integer.parseInt(router.getRegions().get(regionIndex).getUpRight().split("\\.")[0]);
-            int Ymax = Integer.parseInt(router.getRegions().get(regionIndex).getUpRight().split("\\.")[1]);
+        for (int regionIndex = 0; regionIndex < regionsForVertice.get(router).size(); regionIndex++) {
+            int Xmin = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getDownLeft().split("\\.")[0]);
+            int Ymin = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getDownLeft().split("\\.")[1]);
+            int Xmax = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getUpRight().split("\\.")[0]);
+            int Ymax = Integer.parseInt(regionsForVertice.get(router).get(regionIndex).getUpRight().split("\\.")[1]);
 
             String region = "(\""
-                    + opToBinary(router.getRegions().get(regionIndex).getIp())
+                    + opToBinary(regionsForVertice.get(router).get(regionIndex).getIp())
                     + intToBinary(Xmin, bitPerCoordinate)
                     + intToBinary(Ymin, bitPerCoordinate)
                     + intToBinary(Xmax, bitPerCoordinate)
                     + intToBinary(Ymax, bitPerCoordinate)
-                    + opToBinary(router.getRegions().get(regionIndex).getOp())
+                    + opToBinary(regionsForVertice.get(router).get(regionIndex).getOp())
                     + "\")";
 
             bw.append(region);
@@ -117,13 +121,13 @@ public class RoutingTableGenerator {
         bw.append(")");
     }
 
-    private void paddingToMaxRegions(BufferedWriter bw, Vertice router) throws IOException{
+    private void paddingToMaxRegions(BufferedWriter bw, Vertex router) throws IOException{
         int numberOfCoordinates = 4;
         int numberOfInputPorts = 5;
         int numberOfOutputPorts = 5;
         int totalOfPorts = numberOfInputPorts + numberOfOutputPorts;
         String nullRegion = "(\"" + intToBinary(0, numberOfCoordinates * bitPerCoordinate + totalOfPorts) + "\")";
-        int numberOfRegions = router.getRegions().size();
+        int numberOfRegions = regionsForVertice.get(router).size();
         while (numberOfRegions < maxOfRegions) {
             numberOfRegions++;
             bw.append(nullRegion);

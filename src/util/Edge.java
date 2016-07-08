@@ -1,12 +1,12 @@
 package util;
 
 public class Edge {
-	private Vertice source;
-	private Vertice destination;
+	private Vertex source;
+	private Vertex destination;
 	private String color;
 	private double weight;
 
-	Edge(Vertice src, Vertice dst, String color) {
+	Edge(Vertex src, Vertex dst, String color) {
 		this.color = color;
 		this.source = src;
 		this.destination = dst;
@@ -17,16 +17,16 @@ public class Edge {
 		return this.color;
 	}
 
-	public Vertice destination() {
+	public Vertex destination() {
 		return this.destination;
 	}
 
-	public Vertice source() {
+	public Vertex source() {
 		return this.source;
 	}
 
-	public Vertice other(Vertice v) {
-		assert source == v || destination == v : "Vertice is not conected to this Edge";
+	public Vertex other(Vertex v) {
+		assert source == v || destination == v : "Vertex is not conected to this Edge";
 		return (v == source) ? destination : source;
 	}
 

@@ -3,7 +3,7 @@ package util;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-public class Path extends ArrayList<Vertice> implements Comparable<Path> {
+public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 
 	private static final long serialVersionUID = 1L;
 	private double volume;
@@ -23,8 +23,8 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 
 		@Override
 		public int compare(Path p0, Path p1) {
-			int src = p0.src().getNome().compareTo(p1.src().getNome());
-			int dst = p0.dst().getNome().compareTo(p1.dst().getNome());
+			int src = p0.src().name().compareTo(p1.src().name());
+			int dst = p0.dst().name().compareTo(p1.dst().name());
 			return (src != 0) ? src : dst;
 		}
 
@@ -93,11 +93,11 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 		return this.size() - 1;
 	}
 
-	public Vertice dst() {
+	public Vertex dst() {
 		return (this.size() != 0) ? this.get(this.size() - 1) : null;
 	}
 
-	public Vertice src() {
+	public Vertex src() {
 		return (this.size() != 0) ? this.get(0) : null;
 	}
 	
@@ -152,13 +152,13 @@ public class Path extends ArrayList<Vertice> implements Comparable<Path> {
 	 */
 	public String toString() {
 
-//		return "src: " + this.src().getNome() + ", dst: "
-//				+ this.dst().getNome() + ", size: " + this.edgesCount()
+//		return "src: " + this.src().name() + ", dst: "
+//				+ this.dst().name() + ", size: " + this.edgesCount()
 //				+ ", weight: " + this.weight();
 		String pathLine = "" + volume + ":";
-		for(Vertice v : this)
+		for(Vertex v : this)
 		{
-			pathLine += " " + v.getNome();
+			pathLine += " " + v.name();
 		}
 		return pathLine;
 
