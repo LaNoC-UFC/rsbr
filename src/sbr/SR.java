@@ -24,6 +24,7 @@ public class SR {
 	//private List<Vertice> nVisiteds;
 
 	private HashMap<Vertice, Segment>  segmentForVertice;
+	private HashMap<Vertice, Integer> subnetForVertice;
 
 	public SR(Graph graph) 
 	{
@@ -46,6 +47,7 @@ public class SR {
 		new Bridge(graph);
 		System.out.println(bridge.size()+" bridges.");
 		segmentForVertice = new HashMap<>();
+		subnetForVertice = new HashMap<>();
 	}
 
 	public void computeSegments() {
@@ -83,11 +85,11 @@ public class SR {
 		if(first) {
 			sw = (pair) ? left : right;
 			setStart(sw);
-			sw.setSubNet(subNet);
+			subnetForVertice.put(sw, subNet);
 		}
 		else if(isVisited(left) || isVisited(right)){
 			sw = (isVisited(left)) ? left : right;
-			subNet = sw.getSubNet();
+			subNet = subnetForVertice.get(sw);
 		}
 		else {
 			sw = nextVisited(min, max);
@@ -96,9 +98,9 @@ public class SR {
 				if(sw == null) return;
 				setStart(sw);
 				subNet = ++maxSN;
-				sw.setSubNet(subNet);
+				subnetForVertice.put(sw, subNet);
 			}
-			subNet = sw.getSubNet();
+			subNet = subnetForVertice.get(sw);
 		}
 
 		Segment sg = new Segment();
@@ -139,7 +141,7 @@ public class SR {
 					if (debug)
 						System.err.println(sw.getNome() + " is Start.");
 					visit(sw);
-					sw.setSubNet(subNet);
+					subnetForVertice.put(sw, subNet);
 				} else {
 					if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
 						segments.remove(sg);
@@ -156,7 +158,7 @@ public class SR {
 			segm.add(sw);
 			segmentForVertice.put(sw, segm);
 			setTVisited(sw);
-		} else if (!sw.belongsTo(subNet) && !(isStart(sw) && isTerminal(sw)))
+		} else if (subnetForVertice.get(sw) != subNet && !(isStart(sw) && isTerminal(sw)))
 			return false;
 			
 		if (debug) System.err.println("Switch now: " + sw.getNome());
@@ -180,18 +182,18 @@ public class SR {
 			segm.add(ln);
 			Vertice nsw = ln.other(sw);
 			if (nsw.isIn(min, max)) {
-				if (((isVisited(nsw) || isStart(nsw)) && nsw.belongsTo(subNet)) || find(nsw, min, max)) {
+				if (((isVisited(nsw) || isStart(nsw)) && subnetForVertice.get(nsw) == subNet) || find(nsw, min, max)) {
 					visit(ln);
 					visit(nl);
 					if(!isVisited(sw)) visit(sw);
 					if(!isVisited(nsw)) visit(nsw);
-					if (isTerminal(nsw) && isStart(nsw) && !nsw.belongsTo(subNet) && !segmentForVertice.containsKey(nsw)) {
+					if (isTerminal(nsw) && isStart(nsw) && subnetForVertice.get(nsw) != subNet && !segmentForVertice.containsKey(nsw)) {
 						unsetTerminal(nsw);
 						unsetStart(nsw);
 						segm.add(nsw);
 						segmentForVertice.put(nsw, segm);
 					}
-					nsw.setSubNet(subNet);
+					subnetForVertice.put(nsw, subNet);
 					return true;
 				}
 			}
@@ -223,9 +225,9 @@ public class SR {
 					next.add(sw);
 				else {
 					for(Vertice n : next) {
-						if(n.getSubNet() == sw.getSubNet()) {
+						if(subnetForVertice.get(n) == subnetForVertice.get(sw)) {
 							if (debug) System.err.println("nextVisited " + n.getNome());
-							subNet = n.getSubNet();
+							subNet = subnetForVertice.get(n);
 							return n;							
 						}
 					}

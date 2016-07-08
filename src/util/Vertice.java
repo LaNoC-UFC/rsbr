@@ -8,8 +8,6 @@ import java.util.Arrays;
 public class Vertice implements Comparable<Vertice> {
 	private String[] restrictions = { "", "", "", "", "" }; // [0]-I [1]-N [2]-S
 															// [3]-E [4]-W
-	private int snet;
-
 	private int distancia;
 
 	private ArrayList<rbr.RoutingPath> routingPaths = new ArrayList<>();
@@ -18,7 +16,6 @@ public class Vertice implements Comparable<Vertice> {
 	private ArrayList<rbr.Region> Regions = new ArrayList<>();
 
 	public Vertice(String name) {
-		snet = -1;
 		nome = name;
 		adj = new ArrayList<Edge>();
 		// restrictions = nome + ": I{} N{} S{} E{} W{}";
@@ -89,14 +86,11 @@ public class Vertice implements Comparable<Vertice> {
 	}
 
 	public void addAdj(Edge e) {
-
 		adj.add(e);
 	}
 
 	public ArrayList<Edge> getAdj() {
-
 		return this.adj;
-
 	}
 
 	public Edge getAdj(String color) {
@@ -109,22 +103,7 @@ public class Vertice implements Comparable<Vertice> {
 	}
 
 	public String getNome() {
-
 		return this.nome;
-
-	}
-
-	public int getSubNet() {
-		return this.snet;
-	}
-
-	public void setSubNet(int sn) {
-		snet = sn;
-
-	}
-
-	public boolean belongsTo(int sn) {
-		return (sn == snet);
 	}
 
 	public boolean isIn(String min, String max) {
@@ -234,5 +213,4 @@ public class Vertice implements Comparable<Vertice> {
 		}
 		return 0;
 	}
-
 }
