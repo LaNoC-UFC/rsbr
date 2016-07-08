@@ -2,24 +2,21 @@ package util;
 
 import java.util.ArrayList;
 
-public class Vertice implements Comparable<Vertice> {
+public class Vertice {
 
-	private int distancia;
 	private String nome;
 	private ArrayList<Edge> adj;
 
 	public Vertice(String name) {
 		nome = name;
-		adj = new ArrayList<Edge>();
+		adj = new ArrayList<>();
 	}
 
 	public Edge edge(Vertice destino) {
 		for (Edge v : adj)
 			if (v.destination().getNome().equals(destino.getNome()))
 				return v;
-
 		return null;
-
 	}
 
 	public void addAdj(Edge e) {
@@ -67,15 +64,5 @@ public class Vertice implements Comparable<Vertice> {
 			// checa para vizinhos
 			neigh.checkIsolation(alc);
 		}
-	}
-
-	public int compareTo(Vertice outroVertice) {
-		if (this.distancia < outroVertice.distancia) {
-			return -1;
-		}
-		if (this.distancia > outroVertice.distancia) {
-			return 1;
-		}
-		return 0;
 	}
 }
