@@ -8,6 +8,7 @@ import rbr.*;
 import sbr.SR;
 import util.Graph;
 import util.GraphBuilder;
+import util.GraphRestrictions;
 import util.Path;
 
 public class rsbr {
@@ -58,10 +59,11 @@ public class rsbr {
 
 			System.out.println("Set the restrictions");
 			sbr.setrestrictions();
+			GraphRestrictions restrictions = sbr.restrictions();
 			// sbr.printRestrictions();
 
 			System.out.println("Paths Computation");
-			ArrayList<ArrayList<Path>> paths = new PathFinder(graph).pathsComputation();
+			ArrayList<ArrayList<Path>> paths = new PathFinder(graph, restrictions).pathsComputation();
 
 			System.out.println(" - RBR Section");
 			rbr = new RBR(graph);

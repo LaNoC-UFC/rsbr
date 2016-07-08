@@ -1,18 +1,17 @@
 package rbr;
 
-import util.Edge;
-import util.Graph;
-import util.Path;
-import util.Vertice;
+import util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class PathFinder {
     private Graph graph;
+    private GraphRestrictions restrictions;
 
-    public PathFinder(Graph g){
-        graph = g;
+    public PathFinder(Graph g, GraphRestrictions restrictions){
+        this.graph = g;
+        this.restrictions = restrictions;
     }
 
     public ArrayList<ArrayList<Path>> pathsComputation() {
@@ -37,7 +36,7 @@ public class PathFinder {
         for (Vertice src : graph.getVertices()) {
             for (Edge e : src.getAdj()) {
                 Vertice dst = e.destination();
-                if (src.getRestriction("I").contains(src.edge(dst).color()))
+                if (restrictions.getRestriction(src, "I").contains(src.edge(dst).color()))
                     continue;
                 Path p = new Path();
                 p.add(src);
@@ -74,7 +73,7 @@ public class PathFinder {
             if (dst == predecessor)
                 continue;
             // going to forbidden direction
-            if (currentSrc.getRestriction(inputPort).contains(currentSrc.edge(dst).color()))
+            if ( restrictions.getRestriction(currentSrc, inputPort).contains(currentSrc.edge(dst).color()))
                 continue;
             // no mininal path
             if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))

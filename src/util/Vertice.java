@@ -5,7 +5,6 @@ import rbr.Region;
 import java.util.ArrayList;
 
 public class Vertice implements Comparable<Vertice> {
-	private String[] restrictions = { "", "", "", "", "" }; // [0]-I [1]-N [2]-S
 															// [3]-E [4]-W
 	private int distancia;
 
@@ -16,58 +15,10 @@ public class Vertice implements Comparable<Vertice> {
 	public Vertice(String name) {
 		nome = name;
 		adj = new ArrayList<Edge>();
-		// restrictions = nome + ": I{} N{} S{} E{} W{}";
 	}
 
 	public void initRegions() {
 		this.Regions = new ArrayList<>();
-	}
-
-	public void addRestriction(String op, String rest) {
-		/*
-		 * String op1 = op+"{"; this.restrictions =
-		 * restrictions.substring(0,restrictions
-		 * .indexOf(op1)+2)+rest+restrictions
-		 * .substring(restrictions.indexOf(op1)+2);
-		 */
-		switch (op) {
-		case "I":
-			restrictions[0] = restrictions[0] + "" + rest;
-			break;
-		case "N":
-			restrictions[1] = restrictions[1] + "" + rest;
-			break;
-		case "S":
-			restrictions[2] = restrictions[2] + "" + rest;
-			break;
-		case "E":
-			restrictions[3] = restrictions[3] + "" + rest;
-			break;
-		case "W":
-			restrictions[4] = restrictions[4] + "" + rest;
-			break;
-		}
-	}
-
-	public String getRestriction(String op) {
-		switch (op) {
-		case "I":
-			return restrictions[0];
-		case "N":
-			return restrictions[1];
-		case "S":
-			return restrictions[2];
-		case "E":
-			return restrictions[3];
-		case "W":
-			return restrictions[4];
-		default:
-			return null;
-		}
-	}
-
-	public String[] getRestrictions() {
-		return this.restrictions;
 	}
 
 	public Edge edge(Vertice destino) {

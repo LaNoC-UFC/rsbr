@@ -13,6 +13,7 @@ public class SR {
 	private static int RRIndex[];
 
 	private Graph graph;
+	private GraphRestrictions restrictions;
 
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
@@ -30,6 +31,7 @@ public class SR {
 	{
 		//graph = new Graph(fileName);
 		this.graph = graph;
+		this.restrictions = new GraphRestrictions(graph);
 		if(debug) System.err.println(graph);
 		segments = new ArrayList<>();
 		visitedVertices = new ArrayList<>();
@@ -323,6 +325,9 @@ public class SR {
 		RRIndex[1] = -1;
 	}
 
+	public GraphRestrictions restrictions() {
+		return this.restrictions;
+	}
 	public void setrestrictions() {
 		for (Segment segment : segments) {
 			if (segment.getLinks().isEmpty())
@@ -338,43 +343,40 @@ public class SR {
 				String opEnding = Ending.edge(Starting).color();
 				// Restrictions at Starting core
 				for (Edge link : Starting.getAdj())
-					if (link.color() != opStarting)
-						Starting.addRestriction(link.color(), opStarting);
+					if (link.color() != opStarting) {
+						restrictions.addRestriction(Starting, link.color(), opStarting);
+					}
 				// Restrictions at Ending core
 				for (Edge link : Ending.getAdj())
-					if (link.color() != opEnding)
-						Ending.addRestriction(link.color(), opEnding);
+					if (link.color() != opEnding) {
+						restrictions.addRestriction(Ending, link.color(), opEnding);
+					}
 				continue;
 			}
 			// Put it at first or second link
 			if (segment.getSwitchs().size() == 1) {
-				segment.getSwitchs()
-						.get(0)
-						.addRestriction(
-								EdgeColor.getInvColor(segment.getLinks().get(0).color()),
-								segment.getLinks().get(1).color());
-				segment.getSwitchs()
-						.get(0)
-						.addRestriction(segment.getLinks().get(1).color(),
-								EdgeColor.getInvColor(segment.getLinks().get(0).color()));
+				Vertice sw = segment.getSwitchs().get(0);
+
+				restrictions.addRestriction(sw, EdgeColor.getInvColor(segment.getLinks().get(0).color()),
+						segment.getLinks().get(1).color());
+				restrictions.addRestriction(sw, segment.getLinks().get(1).color(),
+						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 				continue;
 			}
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
 				Vertice restrict = segment.getSwitchs().get(1);
-				restrict.addRestriction(
-						EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment
-								.getLinks().get(2).color());
-				restrict.addRestriction(segment.getLinks().get(2).color(),
+				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment
+						.getLinks().get(2).color());
+				restrictions.addRestriction(restrict, segment.getLinks().get(2).color(),
 						EdgeColor.getInvColor(segment.getLinks().get(1).color()));
 				continue;
 			}
 			if (segment.isStarting()) {
 				Vertice restrict = segment.getSwitchs().get(1);
-				restrict.addRestriction(
-						EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment
-								.getLinks().get(1).color());
-				restrict.addRestriction(segment.getLinks().get(1).color(),
+				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment
+						.getLinks().get(1).color());
+				restrictions.addRestriction(restrict, segment.getLinks().get(1).color(),
 						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 			}
 		}
