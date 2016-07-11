@@ -6,12 +6,12 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GraphBuilder {
+public class FromFileGraphBuilder {
 
     static public Graph generateGraph(String topology_file_path) {
         File topology = new File(topology_file_path);
 
-        Graph result = new Graph();
+        Graph result = null;
         try {
             Scanner sc = new Scanner(new FileReader(topology));
 
@@ -23,6 +23,8 @@ public class GraphBuilder {
 
             int dimX = lines[0].split(" ").length + 1;
             int dimY = lines.length;
+
+            result = new Graph(dimX, dimY);
 
             for (int i = 0; i < dimX; i++) {
                 for (int j = 0; j < dimY; j++) {
