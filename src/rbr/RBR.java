@@ -150,7 +150,7 @@ public class RBR {
 				} else
 				{ // we have to break up the region
 					regionsToBeRemoved.add(currentRegion);
-					ArrayList<ArrayList<String>> dsts = getDestinations(outsidersBox.min(0), outsidersBox.max(0), outsidersBox.min(1), outsidersBox.max(1), currentRegion);
+					ArrayList<ArrayList<String>> dsts = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
 					for (ArrayList<String> dst : dsts) {
 						Region r = new Region(currentRegion.getIp(), dst, currentRegion.getOp());
 						newRegions.add(r);
@@ -165,142 +165,29 @@ public class RBR {
 		}
 	}
 
-	// Get destinations depending on the min and max from region and from
-	// excluded box
-	private static ArrayList<ArrayList<String>> getDestinations(int xmin, int xmax,
-			int ymin, int ymax, Region reg) {
-		ArrayList<ArrayList<String>> dsts = new ArrayList<>();
-		ArrayList<String> dstTemp1 = new ArrayList<>();
-		ArrayList<String> dstTemp2 = new ArrayList<>();
-		ArrayList<String> dstTemp3 = new ArrayList<>();
-		ArrayList<String> dstTemp4 = new ArrayList<>();
-		boolean left = touchLeft(xmin, reg);
-		boolean right = touchRight(xmax, reg);
-		boolean up = touchUp(ymax, reg);
-		boolean down = touchDown(ymin, reg);
-
-		if (left && down && !up && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x > xmax)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-			}
-		} else if (left && up && !right && !down) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x > xmax)
-					dstTemp1.add(dst);
-				else if (y < ymin)
-					dstTemp2.add(dst);
-			}
-		} else if (right && up && !left && !down) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (y < ymin)
-					dstTemp2.add(dst);
-			}
-		} else if (right && down && !left && !up) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-			}
-		} else if (up && down && !right && !left) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (x > xmax)
-					dstTemp2.add(dst);
-			}
-		} else if (left && right && !up && !down) {
-			for (String dst : reg.getDst()) {
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (y < ymin)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-			}
-		} else if (left && !up && !down && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x > xmax)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-				else if (y < ymin)
-					dstTemp3.add(dst);
-			}
-		} else if (right && !left && !down && !up) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-				else if (y < ymin)
-					dstTemp3.add(dst);
-			}
-		} else if (down && !up && !left && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (y > ymax)
-					dstTemp1.add(dst);
-				else if (x < xmin)
-					dstTemp2.add(dst);
-				else if (x > xmax)
-					dstTemp3.add(dst);
-			}
-		} else if (up && !down && !left && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (y < ymin)
-					dstTemp1.add(dst);
-				else if (x < xmin)
-					dstTemp2.add(dst);
-				else if (x > xmax)
-					dstTemp3.add(dst);
-			}
-		} else if (!up && !down && !left && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (x > xmax)
-					dstTemp2.add(dst);
-				else if (y > ymax)
-					dstTemp3.add(dst);
-				else
-					dstTemp4.add(dst);
-			}
-		} else {
-			;// System.err.println("Severe Error: total overlap!!");
-		}
-		if (dstTemp1.size() != 0)
-			dsts.add(dstTemp1);
-		if (dstTemp2.size() != 0)
-			dsts.add(dstTemp2);
-		if (dstTemp3.size() != 0)
-			dsts.add(dstTemp3);
-		if (dstTemp4.size() != 0)
-			dsts.add(dstTemp4);
-
-		return dsts;
+	private static ArrayList<ArrayList<String>> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
+		ArrayList<ArrayList<String>> result = new ArrayList<>();
+		// up
+		Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
+		ArrayList<String> upDestinations = region.destinationsIn(upBox);
+		if(!upDestinations.isEmpty())
+			result.add(upDestinations);
+		// down
+		Range downBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), outsidersBox.max(1) + 1, region.box().max(1));
+		ArrayList<String> downDestinations = region.destinationsIn(downBox);
+		if(!downDestinations.isEmpty())
+			result.add(downDestinations);
+		// left
+		Range leftBox = Range.TwoDimensionalRange(outsidersBox.max(0) + 1, region.box().max(0), region.box().min(1), region.box().max(1));
+		ArrayList<String> leftDestinations = region.destinationsIn(leftBox);
+		if(!leftDestinations.isEmpty())
+			result.add(leftDestinations);
+		// right
+		Range rightBox = Range.TwoDimensionalRange(region.box().min(0), outsidersBox.min(0) - 1, region.box().min(1), region.box().max(1));
+		ArrayList<String> rightDestinations = region.destinationsIn(rightBox);
+		if(!rightDestinations.isEmpty())
+			result.add(rightDestinations);
+		return result;
 	}
 
 	private static boolean touchLeft(int xmin, Region reg) {
