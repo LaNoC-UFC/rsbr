@@ -75,9 +75,9 @@ public class rsbr {
 			}
 
 			System.out.println("Paths Selection");
-
-			double lwm = rbr.linkWeightMean(paths);
-			double pwm = rbr.pathWeightMean(paths);
+			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
+			double lwm = statistics.linkWeightMean(paths);
+			double pwm = statistics.pathWeightMean(paths);
 
 			int choice = 5;
 			switch (choice) {
@@ -87,22 +87,22 @@ public class rsbr {
 				case 1: // Selecao aleatoria
 					chosenPaths = new RandomPathSelector(paths).selection();
 					System.out.println("Aleatoria");
-					printResults(chosenPaths, rbr);
+					printResults(chosenPaths, statistics);
 					break;
 				case 2: // Peso mínimo
 					chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
 					System.out.println("Peso Minimo");
-					printResults(chosenPaths, rbr);
+					printResults(chosenPaths, statistics);
 					break;
 				case 3: // Peso proporcional
 					chosenPaths = new ComparativePathSelector(paths, new Path().new PropWeight(lwm), 10).selection();
 					System.out.println("Peso proporcional");
-					printResults(chosenPaths, rbr);
+					printResults(chosenPaths, statistics);
 					break;
 				case 4: // Peso médio
 					chosenPaths = new ComparativePathSelector(paths, new Path().new MedWeight(pwm), 10).selection();
 					System.out.println("Peso médio");
-					printResults(chosenPaths, rbr);
+					printResults(chosenPaths, statistics);
 					break;
 				case 5: // Peso máximo
 					chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
@@ -120,7 +120,7 @@ public class rsbr {
 				}
 
 				System.out.println("Making Tables");
-				stats = rbr.getRegionsStats();
+				stats = statistics.getRegionsStats();
 				new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable("all");
 				System.out.println("All");
 				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
@@ -137,7 +137,7 @@ public class rsbr {
 				}
 
 				System.out.println("Making Tables");
-				stats = rbr.getRegionsStats();
+				stats = statistics.getRegionsStats();
 				new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable(tableFile);
 				System.out.println(tableFile);
 				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
@@ -167,11 +167,10 @@ public class rsbr {
 		return true;
 	}
 
-	private static void printResults(ArrayList<ArrayList<Path>> paths, RBR rbr) {
-		//double[] reg = rbr.getRegionsStats();
-		double[] lw = rbr.linkWeightStats();
-		double[] pw = rbr.pathWeightStats(paths);
-		double[] pnw = rbr.pathNormWeightStats(paths);
+	private static void printResults(ArrayList<ArrayList<Path>> paths, StatisticalAnalyser statistics) {
+		double[] lw = statistics.linkWeightStats();
+		double[] pw = statistics.pathWeightStats(paths);
+		double[] pnw = statistics.pathNormWeightStats(paths);
 		
 		//System.out.println("Regions - Min: "+reg[0]+", Med: "+reg[1]+", Max: "+reg[2]);
 		System.out.println("Peso dos caminhos: "+pw[0]+" ("+pw[1]+")");
