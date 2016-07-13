@@ -127,7 +127,7 @@ public class RBR {
 			}
 		}
 		adjustsRegions();
-
+		assert reachabilityIsOk();
 	}
 
 	// Adjust the regions to avoid overlap
@@ -148,7 +148,7 @@ public class RBR {
 				int xmax = Integer.valueOf(Max[0]);
 				int ymax = Integer.valueOf(Max[1]);
 
-				ArrayList<String> destinationsInOutsidersRange = currentRegion.getDst(xmin, ymin, xmax, ymax);
+				ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.getDst(xmin, ymin, xmax, ymax);
 
 				if (nSides(currentRegion, outsiders) == 3) { // whole side, we can cut it off.
 					deleteFromRegion(outsidersRange, currentRegion);
@@ -162,8 +162,8 @@ public class RBR {
 					}
 				}
 				// use others routers to make others regions
-				if (destinationsInOutsidersRange != null)
-					newRegions.addAll(makeRegions(destinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
+				if (trulyDestinationsInOutsidersRange != null)
+					newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
 			}
 			regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
 			regionsForVertex.get(sw).addAll(newRegions);
@@ -478,6 +478,14 @@ public class RBR {
 		return canBeMerged;
 	}
 
+	public boolean reachabilityIsOk() {
+		for (Vertex dest : graph.getVertices()) {
+			if(reachability(dest) < 1)
+				return false;
+		}
+		return true;
+	}
+
 	// Calculates reachability
 	private double reachability(Vertex orig) {
 		double reaches = 0, total = graph.getVertices().size() - 1;
@@ -511,7 +519,7 @@ public class RBR {
 				return (reg.getOp().substring(0, 1));
 
 		System.err.println("ERROR : There isn't Op on " + src.name()
-				+ " for " + dest.name() + " " + ipColor);
+				+ "("  + ipColor + ") going to " + dest.name());
 		return null;
 	}
 

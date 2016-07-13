@@ -117,6 +117,7 @@ public class rsbr {
 				if (merge.equals("merge")) {
 					System.out.println("Doing Merge");
 					rbr.merge(reachability);
+					assert rbr.reachabilityIsOk();
 				}
 
 				System.out.println("Making Tables");
@@ -134,6 +135,7 @@ public class rsbr {
 				if (merge.equals("merge")) {
 					System.out.println("Doing Merge");
 					rbr.merge(reachability);
+					assert rbr.reachabilityIsOk();
 				}
 
 				System.out.println("Making Tables");
