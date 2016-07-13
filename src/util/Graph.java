@@ -3,80 +3,16 @@ package util;
 import java.util.ArrayList;
 
 public class Graph {
-	boolean debug = true;
-	static private String[] ports = { "N", "S", "E", "W" };
-	ArrayList<Vertex> vertices;
-	ArrayList<Edge> edges;
-	int dimX;
-	int dimY;
+	private ArrayList<Vertex> vertices;
+	private ArrayList<Edge> edges;
+	private int dimX;
+	private int dimY;
 
-	public Graph() {
+	public Graph(int rows, int columns) {
 		vertices = new ArrayList<>();
 		edges = new ArrayList<>();
-	}
-	
-	public Graph(int dim, double perc) {
-		this(dim, dim, perc);
-	}
-	
-	public Graph(int dim) {
-		this(dim, dim, 0);
-	}
-	
-	public Graph(int dX,int dY, double perc) {
-		
-		vertices = new ArrayList<>();
-		edges = new ArrayList<>();
-		
-		dimX=dX;
-		dimY=dY;
-		int NumberOfEdges = (dimX-1)*dimY + dimX*(dimY-1);
-		int nFalts = (int)Math.ceil((double)NumberOfEdges*perc);
-		System.out.println("#Edges: "+NumberOfEdges);
-		System.out.println("#Faults: "+nFalts);
-			
-		//Adiciona Vertices
-		for(int x=0; x<dimX; x++)
-			for(int y=0; y<dimY; y++)
-				addVertex(x+"."+y);
-		
-		//Add Edges
-		for(int y=0; y<dimY; y++)
-			for(int x=0; x<dimX; x++)
-			{
-				if(contem(x+"."+(y+1)))
-					addEdge(vertex(x+"."+y), vertex(x+"."+(y+1)), ports[0]);
-				if(contem(x+"."+(y-1)))
-					addEdge(vertex(x+"."+y), vertex(x+"."+(y-1)), ports[1]);
-				if(contem((x+1)+"."+y)) 
-					addEdge(vertex(x+"."+y), vertex((x+1)+"."+y), ports[2]);
-				if(contem((x-1)+"."+y)) 
-					addEdge(vertex(x+"."+y), vertex((x-1)+"."+y), ports[3]);
-			}				
-		
-		//Adiciona Falhas e checa isolamento
-		for(int i=0;i<nFalts;i++)
-		{
-			while(true)
-			{
-				int idx = (int)(Math.random()*((double) edges.size()));
-				Edge toRemoveIndo = edges.get(idx);
-				Edge toRemoveVindo = toRemoveIndo.destination().edge(toRemoveIndo.source());
-				
-				if (debug) System.out.println("Removing: "+toRemoveIndo.source().name()
-						+"->"+toRemoveIndo.destination().name());
-				
-				removeEdge(toRemoveIndo);
-				removeEdge(toRemoveVindo);
-				
-				if(haveIsolatedCores())
-				{
-					addEdge(toRemoveIndo);
-					addEdge(toRemoveVindo);
-				}
-				else break;
-			}
-		}
+		dimX = columns;
+		dimY = rows;
 	}
 	
 	public boolean haveIsolatedCores() {
@@ -88,17 +24,6 @@ public class Graph {
 		if(!(alc.size()==vertices.size())) return true;
 		
     	return false;
-	}
-
-	private boolean contem(String vertex) {
-
-		for (int i = 0; i < vertices.size(); i++) {
-
-			if (vertex.equals(vertices.get(i).name())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public ArrayList<Vertex> getVertices() {
@@ -127,23 +52,23 @@ public class Graph {
 		return vertex;
 	}
 
-	public void addVertex(String nome) {
+	void addVertex(String nome) {
 		Vertex v = new Vertex(nome);
 		vertices.add(v);
 	}
 	
-	public void addEdge(Vertex origem, Vertex destino, String cor) {
+	void addEdge(Vertex origem, Vertex destino, String cor) {
 		Edge e = new Edge(origem, destino, cor);
 		origem.addAdjunct(e);
 		edges.add(e);
 	}
 	
-	private void addEdge(Edge toAdd) {
+	void addEdge(Edge toAdd) {
 		toAdd.source().adjuncts().add(toAdd);
 		edges.add(toAdd);
 	}
 	
-	private void removeEdge(Edge toRemove) {
+	void removeEdge(Edge toRemove) {
 		toRemove.source().adjuncts().remove(toRemove);
 		edges.remove(toRemove);
 	}

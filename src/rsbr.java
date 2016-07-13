@@ -6,10 +6,7 @@ import java.util.Scanner;
 
 import rbr.*;
 import sbr.SR;
-import util.Graph;
-import util.GraphBuilder;
-import util.GraphRestrictions;
-import util.Path;
+import util.*;
 
 public class rsbr {
 
@@ -45,8 +42,8 @@ public class rsbr {
 
 			System.out.println("Generating graph");
 			graph = (topologyFile != null) ?
-					GraphBuilder.generateGraph(topologyFile) :
-					new Graph(dimX, dimY, faltPerc);
+					FromFileGraphBuilder.generateGraph(topologyFile) :
+					RandomFaultyGraphBuilder.generateGraph(dimX, dimY, faltPerc);
 
 			System.out.println("Isolado?: " + graph.haveIsolatedCores());
 
