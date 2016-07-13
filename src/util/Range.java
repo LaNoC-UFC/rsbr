@@ -12,7 +12,6 @@ public class Range {
     }
 
     public static Range TwoDimensionalRange(int xMin, int xMax, int yMin, int yMax) {
-        assert xMin <= xMax && yMin <= yMax;
         return new Range(2, new int[]{xMin, yMin}, new int[]{xMax, yMax});
     }
 
@@ -27,12 +26,12 @@ public class Range {
     }
 
     public int min(int dimension) {
-        assert dimension < numberOfDimensions;
+        assert dimension < dimensions();
         return this.min[dimension];
     }
 
     public int max(int dimension) {
-        assert dimension < numberOfDimensions;
+        assert dimension < dimensions();
         return this.max[dimension];
     }
 }
