@@ -1,6 +1,8 @@
 package util;
 
 public class EdgeColor {
+    static String[] ports = { "N", "S", "E", "W" };
+
     public static String getInvColor(String color) {
         switch (color) {
             case "E":
