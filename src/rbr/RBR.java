@@ -133,48 +133,40 @@ public class RBR {
 	// Adjust the regions to avoid overlap
 	private void adjustsRegions() {
 		for (Vertex sw : graph.getVertices()) {
-			ArrayList<Region> regionsTemp = new ArrayList<>();
-			ArrayList<Region> regionsRemov = new ArrayList<>();
-			for (Region reg : regionsForVertex.get(sw)) {
-				ArrayList<String> strgs = getStranges(reg);
+			ArrayList<Region> newRegions = new ArrayList<>();
+			ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
+			for (Region currentRegion : regionsForVertex.get(sw)) {
+				ArrayList<String> outsiders = getStranges(currentRegion);
+				if(outsiders.isEmpty())
+					continue;
+				// outsiders' range
+				String[] outsidersRange = getExtrems(outsiders);
+				String[] Min = outsidersRange[0].split("\\.");
+				int xmin = Integer.valueOf(Min[0]);
+				int ymin = Integer.valueOf(Min[1]);
+				String[] Max = outsidersRange[1].split("\\.");
+				int xmax = Integer.valueOf(Max[0]);
+				int ymax = Integer.valueOf(Max[1]);
 
-				if (strgs != null) {
-					String[] extrems = getExtrems(strgs);
+				ArrayList<String> destinationsInOutsidersRange = currentRegion.getDst(xmin, ymin, xmax, ymax);
 
-					String[] Min = extrems[0].split("\\.");
-					int xmin = Integer.valueOf(Min[0]);
-					int ymin = Integer.valueOf(Min[1]);
-					String[] Max = extrems[1].split("\\.");
-					int xmax = Integer.valueOf(Max[0]);
-					int ymax = Integer.valueOf(Max[1]);
-
-					ArrayList<String> dests = reg
-							.getDst(xmin, ymin, xmax, ymax);
-
-					if (nSides(reg, strgs) == 3) {
-						deleteFromRegion(extrems, reg);
-						reg.setextrems();
-					} else {
-						regionsRemov.add(reg);
-						ArrayList<ArrayList<String>> dsts = getDestinations(
-								xmin, xmax, ymin, ymax, reg);
-						if (dsts != null) {
-							for (ArrayList<String> dst : dsts) {
-								Region r = new Region(reg.getIp(), dst,
-										reg.getOp());
-								// r.setextrems();
-								regionsTemp.add(r);
-							}
-						}
+				if (nSides(currentRegion, outsiders) == 3) { // whole side, we can cut it off.
+					deleteFromRegion(outsidersRange, currentRegion);
+					currentRegion.setextrems();
+				} else { // we have to break up the region
+					regionsToBeRemoved.add(currentRegion);
+					ArrayList<ArrayList<String>> dsts = getDestinations(xmin, xmax, ymin, ymax, currentRegion);
+					for (ArrayList<String> dst : dsts) {
+						Region r = new Region(currentRegion.getIp(), dst, currentRegion.getOp());
+						newRegions.add(r);
 					}
-					// use others routers to make others regions
-					if (dests != null)
-						regionsTemp.addAll(makeRegions(dests, reg.getIp(),
-								reg.getOp()));
 				}
+				// use others routers to make others regions
+				if (destinationsInOutsidersRange != null)
+					newRegions.addAll(makeRegions(destinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
 			}
-			regionsForVertex.get(sw).removeAll(regionsRemov);
-			regionsForVertex.get(sw).addAll(regionsTemp);
+			regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
+			regionsForVertex.get(sw).addAll(newRegions);
 		}
 	}
 
@@ -312,8 +304,7 @@ public class RBR {
 			dsts.add(dstTemp3);
 		if (dstTemp4.size() != 0)
 			dsts.add(dstTemp4);
-		if (dsts.size() == 0)
-			dsts = null;
+
 		return dsts;
 	}
 
@@ -407,8 +398,6 @@ public class RBR {
 				}
 			}
 		}
-		if (strg.size() == 0)
-			strg = null;
 		return strg;
 
 	}
