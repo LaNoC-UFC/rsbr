@@ -140,22 +140,17 @@ public class RBR {
 				if(outsiders.isEmpty())
 					continue;
 				// outsiders' range
-				String[] outsidersRange = getExtrems(outsiders);
-				String[] Min = outsidersRange[0].split("\\.");
-				int xmin = Integer.valueOf(Min[0]);
-				int ymin = Integer.valueOf(Min[1]);
-				String[] Max = outsidersRange[1].split("\\.");
-				int xmax = Integer.valueOf(Max[0]);
-				int ymax = Integer.valueOf(Max[1]);
+				Range outsidersBox = box(outsiders);
 
-				ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.getDst(xmin, ymin, xmax, ymax);
+				ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
 
-				if (nSides(currentRegion, outsiders) == 3) { // whole side, we can cut it off.
-					deleteFromRegion(outsidersRange, currentRegion);
+				if (nSides(currentRegion, outsidersBox) == 3) { // whole side, we can cut it off.
+					deleteFromRegion(outsidersBox, currentRegion);
 					currentRegion.setextrems();
-				} else { // we have to break up the region
+				} else
+				{ // we have to break up the region
 					regionsToBeRemoved.add(currentRegion);
-					ArrayList<ArrayList<String>> dsts = getDestinations(xmin, xmax, ymin, ymax, currentRegion);
+					ArrayList<ArrayList<String>> dsts = getDestinations(outsidersBox.min(0), outsidersBox.max(0), outsidersBox.min(1), outsidersBox.max(1), currentRegion);
 					for (ArrayList<String> dst : dsts) {
 						Region r = new Region(currentRegion.getIp(), dst, currentRegion.getOp());
 						newRegions.add(r);
@@ -324,10 +319,7 @@ public class RBR {
 		return (ymin == reg.getYmin());
 	}
 
-	// [0] - DownLeft [1]- UpRight
-	private static String[] getExtrems(ArrayList<String> dsts) {
-		String[] xtrems = new String[2];
-
+	private static Range box(ArrayList<String> dsts) {
 		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
 		int xMax = 0, yMax = 0;
 
@@ -341,27 +333,21 @@ public class RBR {
 			xMax = (xMax > x) ? xMax : x;
 			yMax = (yMax > y) ? yMax : y;
 		}
-
-		xtrems[1] = xMax + "." + yMax;
-		xtrems[0] = xMin + "." + yMin;
-
-		return xtrems;
-
+		return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
 	}
 
 	// Return number of common sides of the box formed by strangers and the
 	// region
-	private static int nSides(Region reg, ArrayList<String> strgs) {
-		String[] strgsXtrems = getExtrems(strgs);
+	private static int nSides(Region reg, Range destinationsBox) {
 		int sides = 0;
 
-		if (Integer.parseInt(strgsXtrems[0].split("\\.")[0]) == reg.getXmin())
+		if (destinationsBox.min(0) == reg.getXmin())
 			sides++;
-		if (Integer.parseInt(strgsXtrems[0].split("\\.")[1]) == reg.getYmin())
+		if (destinationsBox.min(1) == reg.getYmin())
 			sides++;
-		if (Integer.parseInt(strgsXtrems[1].split("\\.")[0]) == reg.getXmax())
+		if (destinationsBox.max(0) == reg.getXmax())
 			sides++;
-		if (Integer.parseInt(strgsXtrems[1].split("\\.")[1]) == reg.getYmax())
+		if (destinationsBox.max(1) == reg.getYmax())
 			sides++;
 
 		return sides;
@@ -369,16 +355,9 @@ public class RBR {
 	}
 
 	// Delete routers inside of box defined by extremes
-	private static void deleteFromRegion(String[] extrems, Region reg) {
-
-		String[] Min = extrems[0].split("\\.");
-		int xmin = Integer.valueOf(Min[0]);
-		int ymin = Integer.valueOf(Min[1]);
-		String[] Max = extrems[1].split("\\.");
-		int xmax = Integer.valueOf(Max[0]);
-		int ymax = Integer.valueOf(Max[1]);
-		for (int i = xmin; i <= xmax; i++) {
-			for (int j = ymin; j <= ymax; j++) {
+	private static void deleteFromRegion(Range destinationsBox, Region reg) {
+		for (int i = destinationsBox.min(0); i <= destinationsBox.max(0); i++) {
+			for (int j = destinationsBox.min(1); j <= destinationsBox.max(1); j++) {
 				String dst = i + "." + j;
 				reg.getDst().remove(dst);
 			}
@@ -406,17 +385,11 @@ public class RBR {
 	private static ArrayList<Region> makeRegions(ArrayList<String> dsts, String ip,
 			String op) {
 		ArrayList<Region> result = new ArrayList<Region>();
-		String[] extrems = getExtrems(dsts);
-		String[] Min = extrems[0].split("\\.");
-		int Xmin = Integer.valueOf(Min[0]);
-		int Ymin = Integer.valueOf(Min[1]);
-		String[] Max = extrems[1].split("\\.");
-		int Xmax = Integer.valueOf(Max[0]);
-		int Ymax = Integer.valueOf(Max[1]);
+		Range box = box(dsts);
 
 		while (!dsts.isEmpty()) {
-			int Lmin = Ymin, Cmax = Xmax;
-			int Cmin = Xmin, Lmax = Ymax;
+			int Lmin = box.min(1), Cmax = box.max(0);
+			int Cmin = box.min(0), Lmax = box.max(1);
 
 			boolean first = true;
 			for (int line = Lmax; line >= Lmin; line--) {
