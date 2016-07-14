@@ -126,208 +126,61 @@ public class RBR {
 				reg.setextrems();
 			}
 		}
-		adjustsRegions();
-
+		for(Vertex v : graph.getVertices())
+			adjustRegions(v);
+		assert reachabilityIsOk();
 	}
 
-	// Adjust the regions to avoid overlap
-	private void adjustsRegions() {
-		for (Vertex sw : graph.getVertices()) {
-			ArrayList<Region> newRegions = new ArrayList<>();
-			ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
-			for (Region currentRegion : regionsForVertex.get(sw)) {
-				ArrayList<String> outsiders = getStranges(currentRegion);
-				if(outsiders.isEmpty())
-					continue;
-				// outsiders' range
-				String[] outsidersRange = getExtrems(outsiders);
-				String[] Min = outsidersRange[0].split("\\.");
-				int xmin = Integer.valueOf(Min[0]);
-				int ymin = Integer.valueOf(Min[1]);
-				String[] Max = outsidersRange[1].split("\\.");
-				int xmax = Integer.valueOf(Max[0]);
-				int ymax = Integer.valueOf(Max[1]);
+	private void adjustRegions(Vertex sw) {
+		ArrayList<Region> newRegions = new ArrayList<>();
+		ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
+		for (Region currentRegion : regionsForVertex.get(sw)) {
+			ArrayList<String> outsiders = getStranges(currentRegion);
+			if(outsiders.isEmpty())
+				continue;
+			Range outsidersBox = box(outsiders);
+			ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
 
-				ArrayList<String> destinationsInOutsidersRange = currentRegion.getDst(xmin, ymin, xmax, ymax);
-
-				if (nSides(currentRegion, outsiders) == 3) { // whole side, we can cut it off.
-					deleteFromRegion(outsidersRange, currentRegion);
-					currentRegion.setextrems();
-				} else { // we have to break up the region
-					regionsToBeRemoved.add(currentRegion);
-					ArrayList<ArrayList<String>> dsts = getDestinations(xmin, xmax, ymin, ymax, currentRegion);
-					for (ArrayList<String> dst : dsts) {
-						Region r = new Region(currentRegion.getIp(), dst, currentRegion.getOp());
-						newRegions.add(r);
-					}
-				}
-				// use others routers to make others regions
-				if (destinationsInOutsidersRange != null)
-					newRegions.addAll(makeRegions(destinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
-			}
-			regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
-			regionsForVertex.get(sw).addAll(newRegions);
+			regionsToBeRemoved.add(currentRegion);
+			ArrayList<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
+			newRegions.addAll(regionsToAdd);
+			// use others routers to make others regions
+			newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
 		}
+		regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
+		regionsForVertex.get(sw).addAll(newRegions);
 	}
 
-	// Get destinations depending on the min and max from region and from
-	// excluded box
-	private static ArrayList<ArrayList<String>> getDestinations(int xmin, int xmax,
-			int ymin, int ymax, Region reg) {
+	private static ArrayList<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
 		ArrayList<ArrayList<String>> dsts = new ArrayList<>();
-		ArrayList<String> dstTemp1 = new ArrayList<>();
-		ArrayList<String> dstTemp2 = new ArrayList<>();
-		ArrayList<String> dstTemp3 = new ArrayList<>();
-		ArrayList<String> dstTemp4 = new ArrayList<>();
-		boolean left = touchLeft(xmin, reg);
-		boolean right = touchRight(xmax, reg);
-		boolean up = touchUp(ymax, reg);
-		boolean down = touchDown(ymin, reg);
+		// up
+		Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
+		ArrayList<String> upDestinations = region.destinationsIn(upBox);
+		dsts.add(upDestinations);
+		// down
+		Range downBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), outsidersBox.max(1) + 1, region.box().max(1));
+		ArrayList<String> downDestinations = region.destinationsIn(downBox);
+		dsts.add(downDestinations);
+		// left
+		Range leftBox = Range.TwoDimensionalRange(outsidersBox.max(0) + 1, region.box().max(0), region.box().min(1), region.box().max(1));
+		ArrayList<String> leftDestinations = region.destinationsIn(leftBox);
+		dsts.add(leftDestinations);
+		// right
+		Range rightBox = Range.TwoDimensionalRange(region.box().min(0), outsidersBox.min(0) - 1, region.box().min(1), region.box().max(1));
+		ArrayList<String> rightDestinations = region.destinationsIn(rightBox);
+		dsts.add(rightDestinations);
 
-		if (left && down && !up && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x > xmax)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-			}
-		} else if (left && up && !right && !down) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x > xmax)
-					dstTemp1.add(dst);
-				else if (y < ymin)
-					dstTemp2.add(dst);
-			}
-		} else if (right && up && !left && !down) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (y < ymin)
-					dstTemp2.add(dst);
-			}
-		} else if (right && down && !left && !up) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-			}
-		} else if (up && down && !right && !left) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (x > xmax)
-					dstTemp2.add(dst);
-			}
-		} else if (left && right && !up && !down) {
-			for (String dst : reg.getDst()) {
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (y < ymin)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-			}
-		} else if (left && !up && !down && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x > xmax)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-				else if (y < ymin)
-					dstTemp3.add(dst);
-			}
-		} else if (right && !left && !down && !up) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (y > ymax)
-					dstTemp2.add(dst);
-				else if (y < ymin)
-					dstTemp3.add(dst);
-			}
-		} else if (down && !up && !left && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (y > ymax)
-					dstTemp1.add(dst);
-				else if (x < xmin)
-					dstTemp2.add(dst);
-				else if (x > xmax)
-					dstTemp3.add(dst);
-			}
-		} else if (up && !down && !left && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (y < ymin)
-					dstTemp1.add(dst);
-				else if (x < xmin)
-					dstTemp2.add(dst);
-				else if (x > xmax)
-					dstTemp3.add(dst);
-			}
-		} else if (!up && !down && !left && !right) {
-			for (String dst : reg.getDst()) {
-				int x = Integer.parseInt(dst.split("\\.")[0]);
-				int y = Integer.parseInt(dst.split("\\.")[1]);
-				if (x < xmin)
-					dstTemp1.add(dst);
-				else if (x > xmax)
-					dstTemp2.add(dst);
-				else if (y > ymax)
-					dstTemp3.add(dst);
-				else
-					dstTemp4.add(dst);
-			}
-		} else {
-			;// System.err.println("Severe Error: total overlap!!");
+		ArrayList<Region> result = new ArrayList<>();
+		for (ArrayList<String> dst : dsts) {
+			if(dst.isEmpty())
+				continue;
+			Region r = new Region(region.getIp(), dst, region.getOp());
+			result.add(r);
 		}
-		if (dstTemp1.size() != 0)
-			dsts.add(dstTemp1);
-		if (dstTemp2.size() != 0)
-			dsts.add(dstTemp2);
-		if (dstTemp3.size() != 0)
-			dsts.add(dstTemp3);
-		if (dstTemp4.size() != 0)
-			dsts.add(dstTemp4);
-
-		return dsts;
+		return result;
 	}
 
-	private static boolean touchLeft(int xmin, Region reg) {
-		return (xmin == reg.getXmin());
-	}
-
-	private static boolean touchRight(int xmax, Region reg) {
-		return (xmax == reg.getXmax());
-	}
-
-	private static boolean touchUp(int ymax, Region reg) {
-		return (ymax == reg.getYmax());
-	}
-
-	private static boolean touchDown(int ymin, Region reg) {
-		return (ymin == reg.getYmin());
-	}
-
-	// [0] - DownLeft [1]- UpRight
-	private static String[] getExtrems(ArrayList<String> dsts) {
-		String[] xtrems = new String[2];
-
+	private static Range box(ArrayList<String> dsts) {
 		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
 		int xMax = 0, yMax = 0;
 
@@ -341,48 +194,7 @@ public class RBR {
 			xMax = (xMax > x) ? xMax : x;
 			yMax = (yMax > y) ? yMax : y;
 		}
-
-		xtrems[1] = xMax + "." + yMax;
-		xtrems[0] = xMin + "." + yMin;
-
-		return xtrems;
-
-	}
-
-	// Return number of common sides of the box formed by strangers and the
-	// region
-	private static int nSides(Region reg, ArrayList<String> strgs) {
-		String[] strgsXtrems = getExtrems(strgs);
-		int sides = 0;
-
-		if (Integer.parseInt(strgsXtrems[0].split("\\.")[0]) == reg.getXmin())
-			sides++;
-		if (Integer.parseInt(strgsXtrems[0].split("\\.")[1]) == reg.getYmin())
-			sides++;
-		if (Integer.parseInt(strgsXtrems[1].split("\\.")[0]) == reg.getXmax())
-			sides++;
-		if (Integer.parseInt(strgsXtrems[1].split("\\.")[1]) == reg.getYmax())
-			sides++;
-
-		return sides;
-
-	}
-
-	// Delete routers inside of box defined by extremes
-	private static void deleteFromRegion(String[] extrems, Region reg) {
-
-		String[] Min = extrems[0].split("\\.");
-		int xmin = Integer.valueOf(Min[0]);
-		int ymin = Integer.valueOf(Min[1]);
-		String[] Max = extrems[1].split("\\.");
-		int xmax = Integer.valueOf(Max[0]);
-		int ymax = Integer.valueOf(Max[1]);
-		for (int i = xmin; i <= xmax; i++) {
-			for (int j = ymin; j <= ymax; j++) {
-				String dst = i + "." + j;
-				reg.getDst().remove(dst);
-			}
-		}
+		return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
 	}
 
 	// Return wrong destinations
@@ -405,18 +217,12 @@ public class RBR {
 	// Make regions only with correct destinations
 	private static ArrayList<Region> makeRegions(ArrayList<String> dsts, String ip,
 			String op) {
-		ArrayList<Region> result = new ArrayList<Region>();
-		String[] extrems = getExtrems(dsts);
-		String[] Min = extrems[0].split("\\.");
-		int Xmin = Integer.valueOf(Min[0]);
-		int Ymin = Integer.valueOf(Min[1]);
-		String[] Max = extrems[1].split("\\.");
-		int Xmax = Integer.valueOf(Max[0]);
-		int Ymax = Integer.valueOf(Max[1]);
+		ArrayList<Region> result = new ArrayList<>();
+		Range box = box(dsts);
 
 		while (!dsts.isEmpty()) {
-			int Lmin = Ymin, Cmax = Xmax;
-			int Cmin = Xmin, Lmax = Ymax;
+			int Lmin = box.min(1), Cmax = box.max(0);
+			int Cmin = box.min(0), Lmax = box.max(1);
 
 			boolean first = true;
 			for (int line = Lmax; line >= Lmin; line--) {
@@ -478,6 +284,14 @@ public class RBR {
 		return canBeMerged;
 	}
 
+	public boolean reachabilityIsOk() {
+		for (Vertex dest : graph.getVertices()) {
+			if(reachability(dest) < 1)
+				return false;
+		}
+		return true;
+	}
+
 	// Calculates reachability
 	private double reachability(Vertex orig) {
 		double reaches = 0, total = graph.getVertices().size() - 1;
@@ -511,7 +325,7 @@ public class RBR {
 				return (reg.getOp().substring(0, 1));
 
 		System.err.println("ERROR : There isn't Op on " + src.name()
-				+ " for " + dest.name() + " " + ipColor);
+				+ "("  + ipColor + ") going to " + dest.name());
 		return null;
 	}
 

@@ -1,5 +1,7 @@
 package rbr;
 
+import util.Range;
+
 import java.util.ArrayList;
 
 public class Region implements Comparable<Region> {
@@ -87,6 +89,19 @@ public class Region implements Comparable<Region> {
 		if (result.size() == 0)
 			result = null;
 		return result;
+	}
+
+	public ArrayList<String> destinationsIn(Range box) {
+		ArrayList<String> result = new ArrayList<String>();
+		for (int x = box.min(0); x <= box.max(0); x++)
+			for (int y = box.min(1); y <= box.max(1); y++)
+				if (this.dst.contains(x + "." + y))
+					result.add(x + "." + y);
+		return result;
+	}
+
+	public Range box() {
+		return Range.TwoDimensionalRange(getXmin(), getXmax(), getYmin(), getYmax());
 	}
 
 	@Override
