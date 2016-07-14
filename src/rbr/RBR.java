@@ -126,84 +126,58 @@ public class RBR {
 				reg.setextrems();
 			}
 		}
-		adjustsRegions();
+		for(Vertex v : graph.getVertices())
+			adjustRegions(v);
 		assert reachabilityIsOk();
 	}
 
-	// Adjust the regions to avoid overlap
-	private void adjustsRegions() {
-		for (Vertex sw : graph.getVertices()) {
-			ArrayList<Region> newRegions = new ArrayList<>();
-			ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
-			for (Region currentRegion : regionsForVertex.get(sw)) {
-				ArrayList<String> outsiders = getStranges(currentRegion);
-				if(outsiders.isEmpty())
-					continue;
-				// outsiders' range
-				Range outsidersBox = box(outsiders);
+	private void adjustRegions(Vertex sw) {
+		ArrayList<Region> newRegions = new ArrayList<>();
+		ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
+		for (Region currentRegion : regionsForVertex.get(sw)) {
+			ArrayList<String> outsiders = getStranges(currentRegion);
+			if(outsiders.isEmpty())
+				continue;
+			Range outsidersBox = box(outsiders);
+			ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
 
-				ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
-
-				if (nSides(currentRegion, outsidersBox) == 3) { // whole side, we can cut it off.
-					deleteFromRegion(outsidersBox, currentRegion);
-					currentRegion.setextrems();
-				} else
-				{ // we have to break up the region
-					regionsToBeRemoved.add(currentRegion);
-					ArrayList<ArrayList<String>> dsts = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
-					for (ArrayList<String> dst : dsts) {
-						Region r = new Region(currentRegion.getIp(), dst, currentRegion.getOp());
-						newRegions.add(r);
-					}
-				}
-				// use others routers to make others regions
-				if (trulyDestinationsInOutsidersRange != null)
-					newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
-			}
-			regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
-			regionsForVertex.get(sw).addAll(newRegions);
+			regionsToBeRemoved.add(currentRegion);
+			ArrayList<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
+			newRegions.addAll(regionsToAdd);
+			// use others routers to make others regions
+			newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
 		}
+		regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
+		regionsForVertex.get(sw).addAll(newRegions);
 	}
 
-	private static ArrayList<ArrayList<String>> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
-		ArrayList<ArrayList<String>> result = new ArrayList<>();
+	private static ArrayList<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
+		ArrayList<ArrayList<String>> dsts = new ArrayList<>();
 		// up
 		Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
 		ArrayList<String> upDestinations = region.destinationsIn(upBox);
-		if(!upDestinations.isEmpty())
-			result.add(upDestinations);
+		dsts.add(upDestinations);
 		// down
 		Range downBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), outsidersBox.max(1) + 1, region.box().max(1));
 		ArrayList<String> downDestinations = region.destinationsIn(downBox);
-		if(!downDestinations.isEmpty())
-			result.add(downDestinations);
+		dsts.add(downDestinations);
 		// left
 		Range leftBox = Range.TwoDimensionalRange(outsidersBox.max(0) + 1, region.box().max(0), region.box().min(1), region.box().max(1));
 		ArrayList<String> leftDestinations = region.destinationsIn(leftBox);
-		if(!leftDestinations.isEmpty())
-			result.add(leftDestinations);
+		dsts.add(leftDestinations);
 		// right
 		Range rightBox = Range.TwoDimensionalRange(region.box().min(0), outsidersBox.min(0) - 1, region.box().min(1), region.box().max(1));
 		ArrayList<String> rightDestinations = region.destinationsIn(rightBox);
-		if(!rightDestinations.isEmpty())
-			result.add(rightDestinations);
+		dsts.add(rightDestinations);
+
+		ArrayList<Region> result = new ArrayList<>();
+		for (ArrayList<String> dst : dsts) {
+			if(dst.isEmpty())
+				continue;
+			Region r = new Region(region.getIp(), dst, region.getOp());
+			result.add(r);
+		}
 		return result;
-	}
-
-	private static boolean touchLeft(int xmin, Region reg) {
-		return (xmin == reg.getXmin());
-	}
-
-	private static boolean touchRight(int xmax, Region reg) {
-		return (xmax == reg.getXmax());
-	}
-
-	private static boolean touchUp(int ymax, Region reg) {
-		return (ymax == reg.getYmax());
-	}
-
-	private static boolean touchDown(int ymin, Region reg) {
-		return (ymin == reg.getYmin());
 	}
 
 	private static Range box(ArrayList<String> dsts) {
@@ -221,34 +195,6 @@ public class RBR {
 			yMax = (yMax > y) ? yMax : y;
 		}
 		return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
-	}
-
-	// Return number of common sides of the box formed by strangers and the
-	// region
-	private static int nSides(Region reg, Range destinationsBox) {
-		int sides = 0;
-
-		if (destinationsBox.min(0) == reg.getXmin())
-			sides++;
-		if (destinationsBox.min(1) == reg.getYmin())
-			sides++;
-		if (destinationsBox.max(0) == reg.getXmax())
-			sides++;
-		if (destinationsBox.max(1) == reg.getYmax())
-			sides++;
-
-		return sides;
-
-	}
-
-	// Delete routers inside of box defined by extremes
-	private static void deleteFromRegion(Range destinationsBox, Region reg) {
-		for (int i = destinationsBox.min(0); i <= destinationsBox.max(0); i++) {
-			for (int j = destinationsBox.min(1); j <= destinationsBox.max(1); j++) {
-				String dst = i + "." + j;
-				reg.getDst().remove(dst);
-			}
-		}
 	}
 
 	// Return wrong destinations
@@ -271,7 +217,7 @@ public class RBR {
 	// Make regions only with correct destinations
 	private static ArrayList<Region> makeRegions(ArrayList<String> dsts, String ip,
 			String op) {
-		ArrayList<Region> result = new ArrayList<Region>();
+		ArrayList<Region> result = new ArrayList<>();
 		Range box = box(dsts);
 
 		while (!dsts.isEmpty()) {
