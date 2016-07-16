@@ -20,7 +20,7 @@ public class Region {
 		this.updateBox();
 	}
 
-	void updateBox() {
+	private void updateBox() {
 		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE; 
 		int xMax = 0, yMax = 0;
 		for (String s : this.destinations) {
@@ -28,10 +28,10 @@ public class Region {
 			int x = Integer.valueOf(xy[0]);
 			int y = Integer.valueOf(xy[1]);
 			
-			xMin = (xMin < x) ? xMin : x;
-			yMin = (yMin < y) ? yMin : y;
-			xMax = (xMax > x) ? xMax : x;
-			yMax = (yMax > y) ? yMax : y;
+			xMin = Math.min(xMin, x);
+			yMin = Math.min(yMin, y);
+			xMax = Math.max(xMax, x);
+			yMax = Math.max(yMax, y);
 		}
 		this.box = Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
 	}
@@ -84,6 +84,7 @@ public class Region {
 		Region reg = new Region(ip, this.destinations(), op);
 		reg.box = mergedBox(this, that);
 		reg.destinations().addAll(that.destinations());
+		reg.updateBox();
 		return reg;
 	}
 

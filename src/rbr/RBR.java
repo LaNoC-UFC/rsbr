@@ -121,10 +121,6 @@ public class RBR {
 					regionsForVertex.get(sw).add(new Region(ip, destinations, op));
 				}
 			}
-
-			for (Region reg : regionsForVertex.get(sw)) {
-				reg.updateBox();
-			}
 		}
 		for(Vertex v : graph.getVertices())
 			adjustRegions(v);
