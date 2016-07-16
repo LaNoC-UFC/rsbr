@@ -135,7 +135,7 @@ public class RBR {
 		ArrayList<Region> newRegions = new ArrayList<>();
 		ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
 		for (Region currentRegion : regionsForVertex.get(sw)) {
-			ArrayList<String> outsiders = getStranges(currentRegion);
+			ArrayList<String> outsiders = outsidersIn(currentRegion);
 			if(outsiders.isEmpty())
 				continue;
 			Range outsidersBox = box(outsiders);
@@ -198,19 +198,17 @@ public class RBR {
 	}
 
 	// Return wrong destinations
-	private static ArrayList<String> getStranges(Region reg) {
-		ArrayList<String> strg = new ArrayList<String>();
-		int xmin = reg.getXmin(), xmax = reg.getXmax();
-		int ymin = reg.getYmin(), ymax = reg.getYmax();
-		for (int x = xmin; x <= xmax; x++) {
-			for (int y = ymin; y <= ymax; y++) {
-				String dest = x + "." + y;
-				if (!reg.getDst().contains(dest)) {
-					strg.add(dest);
+	private static ArrayList<String> outsidersIn(Region reg) {
+		ArrayList<String> result = new ArrayList<String>();
+		for (int x = reg.box().min(0); x <= reg.box().max(0); x++) {
+			for (int y = reg.box().min(1); y <= reg.box().max(1); y++) {
+				String name = x + "." + y;
+				if (!reg.getDst().contains(name)) {
+					result.add(name);
 				}
 			}
 		}
-		return strg;
+		return result;
 
 	}
 
@@ -360,14 +358,12 @@ public class RBR {
 				Region rb = regionsForVertex.get(router).get(b);
 
 				if (CanBeMerged(ra, rb)) {
-					String upRight = getUpRightMerged(ra, rb);
-					String downLeft = getDownLeftMerged(ra, rb);
+					Range mergedBox = mergedBox(ra, rb);
 					String op = getOpMerged(ra, rb);
 					String ip = getIpMerged(ra, rb);
 
 					Region reg = new Region(ip, ra.getDst(), op);
-					reg.setUpRight(upRight);
-					reg.setDownLeft(downLeft);
+					reg.setBox(mergedBox);
 					reg.getDst().addAll(rb.getDst());
 					reg.setSize();
 
@@ -384,34 +380,15 @@ public class RBR {
 		return false;
 	}
 
-	// Return UpRight identifier after merge
-	private static String getUpRightMerged(Region r1, Region r2) {
-		String upRight;
-
-		upRight = Integer.toString(Math.max(
-				Integer.parseInt(r1.getUpRight().split("\\.")[0]),
-				Integer.parseInt(r2.getUpRight().split("\\.")[0])))
-				+ "."
-				+ Integer.toString(Math.max(
-						Integer.parseInt(r1.getUpRight().split("\\.")[1]),
-						Integer.parseInt(r2.getUpRight().split("\\.")[1])));
-
-		return upRight;
-	}
-
-	// Return DownLeft identifier after merge
-	private static String getDownLeftMerged(Region r1, Region r2) {
-		String downLeft;
-
-		downLeft = Integer.toString(Math.min(
-				Integer.parseInt(r1.getDownLeft().split("\\.")[0]),
-				Integer.parseInt(r2.getDownLeft().split("\\.")[0])))
-				+ "."
-				+ Integer.toString(Math.min(
-						Integer.parseInt(r1.getDownLeft().split("\\.")[1]),
-						Integer.parseInt(r2.getDownLeft().split("\\.")[1])));
-
-		return downLeft;
+	private static Range mergedBox(Region tic, Region tac) {
+		Range thisBox = tic.box();
+		Range thatBox = tac.box();
+		return Range.TwoDimensionalRange(
+				Math.min(thisBox.min(0), thatBox.min(0)),
+				Math.max(thisBox.max(0), thatBox.max(0)),
+				Math.min(thisBox.min(1), thatBox.min(1)),
+				Math.max(thisBox.max(1), thatBox.max(1))
+		);
 	}
 
 	// return the Output ports after merge
@@ -452,15 +429,15 @@ public class RBR {
 	private static boolean AreNeighbours(Region r1, Region r2) {
 		boolean areNeighbours = false;
 
-		int Xmax1 = Integer.parseInt(r1.getUpRight().split("\\.")[0]);
-		int Xmax2 = Integer.parseInt(r2.getUpRight().split("\\.")[0]);
-		int Ymax1 = Integer.parseInt(r1.getUpRight().split("\\.")[1]);
-		int Ymax2 = Integer.parseInt(r2.getUpRight().split("\\.")[1]);
+		int Xmax1 = r1.box().max(0);
+		int Xmax2 = r2.box().max(0);
+		int Ymax1 = r1.box().max(1);
+		int Ymax2 = r2.box().max(1);
 
-		int Xmin1 = Integer.parseInt(r1.getDownLeft().split("\\.")[0]);
-		int Xmin2 = Integer.parseInt(r2.getDownLeft().split("\\.")[0]);
-		int Ymin1 = Integer.parseInt(r1.getDownLeft().split("\\.")[1]);
-		int Ymin2 = Integer.parseInt(r2.getDownLeft().split("\\.")[1]);
+		int Xmin1 = r1.box().min(0);
+		int Xmin2 = r2.box().min(0);
+		int Ymin1 = r1.box().min(1);
+		int Ymin2 = r2.box().min(1);
 
 		if (Xmax1 > Xmax2) {
 			if (Xmin1 == Xmax2 + 1)
@@ -486,18 +463,12 @@ public class RBR {
 
 	// Check if regions form a box
 	private static boolean FormBox(Region r1, Region r2) {
-
-		if ((Integer.parseInt(r1.getUpRight().split("\\.")[0]) == Integer
-				.parseInt(r2.getUpRight().split("\\.")[0]) && Integer
-				.parseInt(r1.getDownLeft().split("\\.")[0]) == Integer
-				.parseInt(r2.getDownLeft().split("\\.")[0]))
-				|| (Integer.parseInt(r1.getUpRight().split("\\.")[1]) == Integer
-						.parseInt(r2.getUpRight().split("\\.")[1]) && Integer
-						.parseInt(r1.getDownLeft().split("\\.")[1]) == Integer
-						.parseInt(r2.getDownLeft().split("\\.")[1]))) {
+		if ((r1.box().max(0) == r2.box().max(0)
+				&& 	r1.box().min(0) == r2.box().min(0))
+				|| (r1.box().max(1) == r2.box().max(1)
+				&& r1.box().min(1) == r2.box().min(1))) {
 			return true;
 		}
-
 		return false;
 	}
 

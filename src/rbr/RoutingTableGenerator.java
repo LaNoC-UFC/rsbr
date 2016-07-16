@@ -97,10 +97,11 @@ public class RoutingTableGenerator {
         bw.append("(");
 
         for (int regionIndex = 0; regionIndex < regionsForVertex.get(router).size(); regionIndex++) {
-            int Xmin = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getDownLeft().split("\\.")[0]);
-            int Ymin = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getDownLeft().split("\\.")[1]);
-            int Xmax = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getUpRight().split("\\.")[0]);
-            int Ymax = Integer.parseInt(regionsForVertex.get(router).get(regionIndex).getUpRight().split("\\.")[1]);
+            Region currentRegion = regionsForVertex.get(router).get(regionIndex);
+            int Xmin = currentRegion.box().min(0);
+            int Ymin = currentRegion.box().min(1);
+            int Xmax = currentRegion.box().max(0);
+            int Ymax = currentRegion.box().max(1);
 
             String region = "(\""
                     + opToBinary(regionsForVertex.get(router).get(regionIndex).getIp())
