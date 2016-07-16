@@ -3,6 +3,7 @@ package rbr;
 import util.Range;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Region implements Comparable<Region> {
 	private String ip;
@@ -102,7 +103,120 @@ public class Region implements Comparable<Region> {
 		return false;
 	}
 
-	public void setBox(Range mergedBox) {
-		this.box = mergedBox;
+	Region merge(Region that) {
+		String op = getOpMerged(this, that);
+		String ip = getIpMerged(this, that);
+		Region reg = new Region(ip, this.getDst(), op);
+		reg.box = mergedBox(this, that);
+		reg.getDst().addAll(that.getDst());
+		reg.setSize();
+		return reg;
 	}
+
+	private static Range mergedBox(Region tic, Region tac) {
+		Range thisBox = tic.box();
+		Range thatBox = tac.box();
+		return Range.TwoDimensionalRange(
+				Math.min(thisBox.min(0), thatBox.min(0)),
+				Math.max(thisBox.max(0), thatBox.max(0)),
+				Math.min(thisBox.min(1), thatBox.min(1)),
+				Math.max(thisBox.max(1), thatBox.max(1))
+		);
+	}
+
+	// return the Output ports after merge
+	private static String getOpMerged(Region r1, Region r2) {
+		String op;
+
+		if (r1.getOp().contains(r2.getOp())) {
+			op = r2.getOp();
+		} else {
+			op = r1.getOp();
+		}
+
+		return op;
+	}
+
+	// return the Input ports after merge
+	private static String getIpMerged(Region r1, Region r2) {
+		String ip = new String(r2.getIp());
+
+		for (int i = 0; i < r1.getIp().length(); i++) {
+			if (!ip.contains(r1.getIp().substring(i, i + 1)))
+				ip += r1.getIp().substring(i, i + 1);
+		}
+		return ip;
+	}
+
+	ArrayList<String> outsiders() {
+		ArrayList<String> result = new ArrayList<>();
+		for (int x = this.box().min(0); x <= this.box().max(0); x++) {
+			for (int y = this.box().min(1); y <= this.box().max(1); y++) {
+				String name = x + "." + y;
+				if (!this.getDst().contains(name)) {
+					result.add(name);
+				}
+			}
+		}
+		return result;
+	}
+
+	boolean canBeMergedWith(Region that) {
+		return (this.isNeighborOf(that) && this.formBoxWith(that) && opIsSubset(this, that));
+	}
+
+	private boolean isNeighborOf(Region that) {
+		boolean areNeighbours = false;
+
+		int Xmax1 = this.box().max(0);
+		int Xmax2 = that.box().max(0);
+		int Ymax1 = this.box().max(1);
+		int Ymax2 = that.box().max(1);
+
+		int Xmin1 = this.box().min(0);
+		int Xmin2 = that.box().min(0);
+		int Ymin1 = this.box().min(1);
+		int Ymin2 = that.box().min(1);
+
+		if (Xmax1 > Xmax2) {
+			if (Xmin1 == Xmax2 + 1)
+				areNeighbours = true;
+		}
+
+		if (Xmax1 < Xmax2) {
+			if (Xmin2 == Xmax1 + 1)
+				areNeighbours = true;
+		}
+
+		if (Ymax1 > Ymax2) {
+			if (Ymax2 == Ymin1 - 1)
+				areNeighbours = true;
+		}
+
+		if (Ymax1 < Ymax2) {
+			if (Ymax1 == Ymin2 - 1)
+				areNeighbours = true;
+		}
+		return areNeighbours;
+	}
+
+	private boolean formBoxWith(Region that) {
+		return ((this.box().max(0) == that.box().max(0)
+				&& 	this.box().min(0) == that.box().min(0))
+				|| (this.box().max(1) == that.box().max(1)
+				&& this.box().min(1) == that.box().min(1)));
+	}
+
+	private static boolean opIsSubset(Region r1, Region r2) {
+		String r1Op = sortStrAlf(r1.getOp());
+		String r2Op = sortStrAlf(r2.getOp());
+		return (r1Op.contains(r2Op) || r2Op.contains(r1Op));
+	}
+
+	private static String sortStrAlf(String input) {
+		char[] ip1 = input.toCharArray();
+		Arrays.sort(ip1);
+		return String.valueOf(ip1);
+	}
+
 }
