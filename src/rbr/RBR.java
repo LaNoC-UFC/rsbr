@@ -121,10 +121,6 @@ public class RBR {
 					regionsForVertex.get(sw).add(new Region(ip, destinations, op));
 				}
 			}
-
-			for (Region reg : regionsForVertex.get(sw)) {
-				reg.setextrems();
-			}
 		}
 		for(Vertex v : graph.getVertices())
 			adjustRegions(v);
@@ -135,7 +131,7 @@ public class RBR {
 		ArrayList<Region> newRegions = new ArrayList<>();
 		ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
 		for (Region currentRegion : regionsForVertex.get(sw)) {
-			ArrayList<String> outsiders = getStranges(currentRegion);
+			ArrayList<String> outsiders = currentRegion.outsiders();
 			if(outsiders.isEmpty())
 				continue;
 			Range outsidersBox = box(outsiders);
@@ -145,7 +141,7 @@ public class RBR {
 			ArrayList<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
 			newRegions.addAll(regionsToAdd);
 			// use others routers to make others regions
-			newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
+			newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.inputPorts(), currentRegion.outputPorts()));
 		}
 		regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
 		regionsForVertex.get(sw).addAll(newRegions);
@@ -174,7 +170,7 @@ public class RBR {
 		for (ArrayList<String> dst : dsts) {
 			if(dst.isEmpty())
 				continue;
-			Region r = new Region(region.getIp(), dst, region.getOp());
+			Region r = new Region(region.inputPorts(), dst, region.outputPorts());
 			result.add(r);
 		}
 		return result;
@@ -195,23 +191,6 @@ public class RBR {
 			yMax = (yMax > y) ? yMax : y;
 		}
 		return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
-	}
-
-	// Return wrong destinations
-	private static ArrayList<String> getStranges(Region reg) {
-		ArrayList<String> strg = new ArrayList<String>();
-		int xmin = reg.getXmin(), xmax = reg.getXmax();
-		int ymin = reg.getYmin(), ymax = reg.getYmax();
-		for (int x = xmin; x <= xmax; x++) {
-			for (int y = ymin; y <= ymax; y++) {
-				String dest = x + "." + y;
-				if (!reg.getDst().contains(dest)) {
-					strg.add(dest);
-				}
-			}
-		}
-		return strg;
-
 	}
 
 	// Make regions only with correct destinations
@@ -246,7 +225,7 @@ public class RBR {
 							if (line == Lmin) { // last line
 								Region rg = montaRegiao(Cmin, Lmin, Cmax, Lmax,
 										ip, op);
-								dsts.removeAll(rg.getDst());
+								dsts.removeAll(rg.destinations());
 								result.add(rg);
 							}
 							break;
@@ -254,7 +233,7 @@ public class RBR {
 					}
 					if (line == Lmin && col == Cmax) { // last line
 						Region rg = montaRegiao(Cmin, Lmin, Cmax, Lmax, ip, op);
-						dsts.removeAll(rg.getDst());
+						dsts.removeAll(rg.destinations());
 						result.add(rg);
 					}
 				}
@@ -271,17 +250,6 @@ public class RBR {
 				dst.add(x + "." + y);
 
 		return (new Region(ip, dst, op));
-	}
-
-	// Check if regions r1 and r2 can be merged
-	private static boolean CanBeMerged(Region r1, Region r2) {
-		boolean canBeMerged = false;
-
-		if (AreNeighbours(r1, r2) && FormBox(r1, r2) && OpIsSub(r1, r2)) {
-			canBeMerged = true;
-		}
-
-		return canBeMerged;
 	}
 
 	public boolean reachabilityIsOk() {
@@ -321,8 +289,8 @@ public class RBR {
 	private String getOpColor(Vertex src, Vertex dest, String ipColor) {
 		String router = dest.name();
 		for (rbr.Region reg : regionsForVertex.get(src))
-			if (reg.contains(router) && reg.getIp().contains(ipColor))
-				return (reg.getOp().substring(0, 1));
+			if (reg.contains(router) && reg.inputPorts().contains(ipColor))
+				return (reg.outputPorts().substring(0, 1));
 
 		System.err.println("ERROR : There isn't Op on " + src.name()
 				+ "("  + ipColor + ") going to " + dest.name());
@@ -358,84 +326,16 @@ public class RBR {
 			Region ra = regionsForVertex.get(router).get(a);
 			for (int b = a + 1; b < regionsForVertex.get(router).size(); b++) {
 				Region rb = regionsForVertex.get(router).get(b);
-
-				if (CanBeMerged(ra, rb)) {
-					String upRight = getUpRightMerged(ra, rb);
-					String downLeft = getDownLeftMerged(ra, rb);
-					String op = getOpMerged(ra, rb);
-					String ip = getIpMerged(ra, rb);
-
-					Region reg = new Region(ip, ra.getDst(), op);
-					reg.setUpRight(upRight);
-					reg.setDownLeft(downLeft);
-					reg.getDst().addAll(rb.getDst());
-					reg.setSize();
-
+				if (ra.canBeMergedWith(rb)) {
+					Region reg = ra.merge(rb);
 					regionsForVertex.get(router).add(reg);
 					regionsForVertex.get(router).remove(ra);
 					regionsForVertex.get(router).remove(rb);
-
-					Collections.sort(regionsForVertex.get(router));
-
 					return true;
 				}
 			}
 		}
 		return false;
-	}
-
-	// Return UpRight identifier after merge
-	private static String getUpRightMerged(Region r1, Region r2) {
-		String upRight;
-
-		upRight = Integer.toString(Math.max(
-				Integer.parseInt(r1.getUpRight().split("\\.")[0]),
-				Integer.parseInt(r2.getUpRight().split("\\.")[0])))
-				+ "."
-				+ Integer.toString(Math.max(
-						Integer.parseInt(r1.getUpRight().split("\\.")[1]),
-						Integer.parseInt(r2.getUpRight().split("\\.")[1])));
-
-		return upRight;
-	}
-
-	// Return DownLeft identifier after merge
-	private static String getDownLeftMerged(Region r1, Region r2) {
-		String downLeft;
-
-		downLeft = Integer.toString(Math.min(
-				Integer.parseInt(r1.getDownLeft().split("\\.")[0]),
-				Integer.parseInt(r2.getDownLeft().split("\\.")[0])))
-				+ "."
-				+ Integer.toString(Math.min(
-						Integer.parseInt(r1.getDownLeft().split("\\.")[1]),
-						Integer.parseInt(r2.getDownLeft().split("\\.")[1])));
-
-		return downLeft;
-	}
-
-	// return the Output ports after merge
-	private static String getOpMerged(Region r1, Region r2) {
-		String op;
-
-		if (r1.getOp().contains(r2.getOp())) {
-			op = r2.getOp();
-		} else {
-			op = r1.getOp();
-		}
-
-		return op;
-	}
-
-	// return the Input ports after merge
-	private static String getIpMerged(Region r1, Region r2) {
-		String ip = new String(r2.getIp());
-
-		for (int i = 0; i < r1.getIp().length(); i++) {
-			if (!ip.contains(r1.getIp().substring(i, i + 1)))
-				ip += r1.getIp().substring(i, i + 1);
-		}
-		return ip;
 	}
 
 	private static String mergeString(String s1, String s2) {
@@ -448,71 +348,6 @@ public class RBR {
 		return ip;
 	}
 
-	// Check if regions r1 and r2 are neighbours
-	private static boolean AreNeighbours(Region r1, Region r2) {
-		boolean areNeighbours = false;
-
-		int Xmax1 = Integer.parseInt(r1.getUpRight().split("\\.")[0]);
-		int Xmax2 = Integer.parseInt(r2.getUpRight().split("\\.")[0]);
-		int Ymax1 = Integer.parseInt(r1.getUpRight().split("\\.")[1]);
-		int Ymax2 = Integer.parseInt(r2.getUpRight().split("\\.")[1]);
-
-		int Xmin1 = Integer.parseInt(r1.getDownLeft().split("\\.")[0]);
-		int Xmin2 = Integer.parseInt(r2.getDownLeft().split("\\.")[0]);
-		int Ymin1 = Integer.parseInt(r1.getDownLeft().split("\\.")[1]);
-		int Ymin2 = Integer.parseInt(r2.getDownLeft().split("\\.")[1]);
-
-		if (Xmax1 > Xmax2) {
-			if (Xmin1 == Xmax2 + 1)
-				areNeighbours = true;
-		}
-
-		if (Xmax1 < Xmax2) {
-			if (Xmin2 == Xmax1 + 1)
-				areNeighbours = true;
-		}
-
-		if (Ymax1 > Ymax2) {
-			if (Ymax2 == Ymin1 - 1)
-				areNeighbours = true;
-		}
-
-		if (Ymax1 < Ymax2) {
-			if (Ymax1 == Ymin2 - 1)
-				areNeighbours = true;
-		}
-		return areNeighbours;
-	}
-
-	// Check if regions form a box
-	private static boolean FormBox(Region r1, Region r2) {
-
-		if ((Integer.parseInt(r1.getUpRight().split("\\.")[0]) == Integer
-				.parseInt(r2.getUpRight().split("\\.")[0]) && Integer
-				.parseInt(r1.getDownLeft().split("\\.")[0]) == Integer
-				.parseInt(r2.getDownLeft().split("\\.")[0]))
-				|| (Integer.parseInt(r1.getUpRight().split("\\.")[1]) == Integer
-						.parseInt(r2.getUpRight().split("\\.")[1]) && Integer
-						.parseInt(r1.getDownLeft().split("\\.")[1]) == Integer
-						.parseInt(r2.getDownLeft().split("\\.")[1]))) {
-			return true;
-		}
-
-		return false;
-	}
-
-	// Check if output port are subsets
-	private static boolean OpIsSub(Region r1, Region r2) {
-
-		String r1Op = sortStrAlf(r1.getOp());
-		String r2Op = sortStrAlf(r2.getOp());
-		if (r1Op.contains(r2Op) || r2Op.contains(r1Op)) {
-			return true;
-		}
-
-		return false;
-	}
-	
 	private void addRoutingPath(Vertex v, String ip, String dst, String op) {
 		RoutingPath rp = new RoutingPath(sortStrAlf(ip), dst, sortStrAlf(op));
 		// @Todo replace this by a Set to not worry with duplication
