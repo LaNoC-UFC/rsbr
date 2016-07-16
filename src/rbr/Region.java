@@ -6,25 +6,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Region implements Comparable<Region> {
-	private String ip;
-	private String op;
+	private String inputPortsSet;
+	private String outputPortsSet;
 	private Range box;
 	private float size;
-	private ArrayList<String> dst = new ArrayList<>();
+	private ArrayList<String> destinations = new ArrayList<>();
 
-	public Region(String ip, ArrayList<String> dsts, String op) {
-		this.dst = dsts;
-		this.ip = ip;
-		this.op = op;
-		this.setextrems();
-		this.setSize();
+	public Region(String ip, ArrayList<String> destinations, String op) {
+		this.destinations = destinations;
+		this.inputPortsSet = ip;
+		this.outputPortsSet = op;
+		this.updateBox();
+		this.updateSize();
 	}
 
-	public void setextrems() {
+	void updateBox() {
 		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE; 
 		int xMax = 0, yMax = 0;
-
-		for (String s : this.dst) {
+		for (String s : this.destinations) {
 			String[] xy = s.split("\\.");
 			int x = Integer.valueOf(xy[0]);
 			int y = Integer.valueOf(xy[1]);
@@ -37,7 +36,7 @@ public class Region implements Comparable<Region> {
 		this.box = Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
 	}
 
-	public void setSize() {
+	private void updateSize() {
 		int Xmin = box.min(0);
 		int Ymin = box.min(1);
 		int Xmax = box.max(0);
@@ -46,28 +45,28 @@ public class Region implements Comparable<Region> {
 		this.size = ((Xmax - Xmin) + 1) * ((Ymax - Ymin) + 1);
 	}
 
-	public String getIp() {
-		return ip;
+	String inputPorts() {
+		return inputPortsSet;
 	}
 
-	public String getOp() {
-		return op;
+	String outputPorts() {
+		return outputPortsSet;
 	}
 
-	public ArrayList<String> getDst() {
-		return dst;
+	ArrayList<String> destinations() {
+		return destinations;
 	}
 
-	public ArrayList<String> destinationsIn(Range box) {
+	ArrayList<String> destinationsIn(Range box) {
 		ArrayList<String> result = new ArrayList<String>();
 		for (int x = box.min(0); x <= box.max(0); x++)
 			for (int y = box.min(1); y <= box.max(1); y++)
-				if (this.dst.contains(x + "." + y))
+				if (this.destinations.contains(x + "." + y))
 					result.add(x + "." + y);
 		return result;
 	}
 
-	public Range box() {
+	Range box() {
 		return box;
 	}
 
@@ -83,13 +82,11 @@ public class Region implements Comparable<Region> {
 	}
 
 	public String toString() {
-		String out = this.box + " " + this.ip + " "
-				+ this.op;
-		return out;
+		return this.box + " " + this.inputPortsSet + " " + this.outputPortsSet;
 	}
 
-	public boolean contains(String router) {
-		String[] xy = router.split("\\.");
+	boolean contains(String vertex) {
+		String[] xy = vertex.split("\\.");
 		int x = Integer.parseInt(xy[0]);
 		int y = Integer.parseInt(xy[1]);
 
@@ -98,18 +95,16 @@ public class Region implements Comparable<Region> {
 		int maxX = box().max(0);
 		int maxY = box().max(1);
 		
-		if (minX <= x && x <= maxX && minY <= y && y <= maxY)
-			return true;
-		return false;
+		return (minX <= x && x <= maxX && minY <= y && y <= maxY);
 	}
 
 	Region merge(Region that) {
 		String op = getOpMerged(this, that);
 		String ip = getIpMerged(this, that);
-		Region reg = new Region(ip, this.getDst(), op);
+		Region reg = new Region(ip, this.destinations(), op);
 		reg.box = mergedBox(this, that);
-		reg.getDst().addAll(that.getDst());
-		reg.setSize();
+		reg.destinations().addAll(that.destinations());
+		reg.updateSize();
 		return reg;
 	}
 
@@ -124,26 +119,23 @@ public class Region implements Comparable<Region> {
 		);
 	}
 
-	// return the Output ports after merge
 	private static String getOpMerged(Region r1, Region r2) {
 		String op;
 
-		if (r1.getOp().contains(r2.getOp())) {
-			op = r2.getOp();
+		if (r1.outputPorts().contains(r2.outputPorts())) {
+			op = r2.outputPorts();
 		} else {
-			op = r1.getOp();
+			op = r1.outputPorts();
 		}
 
 		return op;
 	}
 
-	// return the Input ports after merge
 	private static String getIpMerged(Region r1, Region r2) {
-		String ip = new String(r2.getIp());
-
-		for (int i = 0; i < r1.getIp().length(); i++) {
-			if (!ip.contains(r1.getIp().substring(i, i + 1)))
-				ip += r1.getIp().substring(i, i + 1);
+		String ip = r2.inputPorts();
+		for (int i = 0; i < r1.inputPorts().length(); i++) {
+			if (!ip.contains(r1.inputPorts().substring(i, i + 1)))
+				ip += r1.inputPorts().substring(i, i + 1);
 		}
 		return ip;
 	}
@@ -153,7 +145,7 @@ public class Region implements Comparable<Region> {
 		for (int x = this.box().min(0); x <= this.box().max(0); x++) {
 			for (int y = this.box().min(1); y <= this.box().max(1); y++) {
 				String name = x + "." + y;
-				if (!this.getDst().contains(name)) {
+				if (!this.destinations().contains(name)) {
 					result.add(name);
 				}
 			}
@@ -208,8 +200,8 @@ public class Region implements Comparable<Region> {
 	}
 
 	private static boolean opIsSubset(Region r1, Region r2) {
-		String r1Op = sortStrAlf(r1.getOp());
-		String r2Op = sortStrAlf(r2.getOp());
+		String r1Op = sortStrAlf(r1.outputPorts());
+		String r2Op = sortStrAlf(r2.outputPorts());
 		return (r1Op.contains(r2Op) || r2Op.contains(r1Op));
 	}
 

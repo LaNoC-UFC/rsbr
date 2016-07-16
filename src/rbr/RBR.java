@@ -123,7 +123,7 @@ public class RBR {
 			}
 
 			for (Region reg : regionsForVertex.get(sw)) {
-				reg.setextrems();
+				reg.updateBox();
 			}
 		}
 		for(Vertex v : graph.getVertices())
@@ -145,7 +145,7 @@ public class RBR {
 			ArrayList<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
 			newRegions.addAll(regionsToAdd);
 			// use others routers to make others regions
-			newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.getIp(), currentRegion.getOp()));
+			newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.inputPorts(), currentRegion.outputPorts()));
 		}
 		regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
 		regionsForVertex.get(sw).addAll(newRegions);
@@ -174,7 +174,7 @@ public class RBR {
 		for (ArrayList<String> dst : dsts) {
 			if(dst.isEmpty())
 				continue;
-			Region r = new Region(region.getIp(), dst, region.getOp());
+			Region r = new Region(region.inputPorts(), dst, region.outputPorts());
 			result.add(r);
 		}
 		return result;
@@ -229,7 +229,7 @@ public class RBR {
 							if (line == Lmin) { // last line
 								Region rg = montaRegiao(Cmin, Lmin, Cmax, Lmax,
 										ip, op);
-								dsts.removeAll(rg.getDst());
+								dsts.removeAll(rg.destinations());
 								result.add(rg);
 							}
 							break;
@@ -237,7 +237,7 @@ public class RBR {
 					}
 					if (line == Lmin && col == Cmax) { // last line
 						Region rg = montaRegiao(Cmin, Lmin, Cmax, Lmax, ip, op);
-						dsts.removeAll(rg.getDst());
+						dsts.removeAll(rg.destinations());
 						result.add(rg);
 					}
 				}
@@ -293,8 +293,8 @@ public class RBR {
 	private String getOpColor(Vertex src, Vertex dest, String ipColor) {
 		String router = dest.name();
 		for (rbr.Region reg : regionsForVertex.get(src))
-			if (reg.contains(router) && reg.getIp().contains(ipColor))
-				return (reg.getOp().substring(0, 1));
+			if (reg.contains(router) && reg.inputPorts().contains(ipColor))
+				return (reg.outputPorts().substring(0, 1));
 
 		System.err.println("ERROR : There isn't Op on " + src.name()
 				+ "("  + ipColor + ") going to " + dest.name());
