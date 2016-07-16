@@ -330,15 +330,11 @@ public class RBR {
 			Region ra = regionsForVertex.get(router).get(a);
 			for (int b = a + 1; b < regionsForVertex.get(router).size(); b++) {
 				Region rb = regionsForVertex.get(router).get(b);
-
 				if (ra.canBeMergedWith(rb)) {
 					Region reg = ra.merge(rb);
 					regionsForVertex.get(router).add(reg);
 					regionsForVertex.get(router).remove(ra);
 					regionsForVertex.get(router).remove(rb);
-
-					Collections.sort(regionsForVertex.get(router));
-
 					return true;
 				}
 			}

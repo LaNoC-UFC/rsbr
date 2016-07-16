@@ -5,11 +5,12 @@ import util.Range;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Region implements Comparable<Region> {
+public class Region {
+	// @ToDo inputPortsSet and outputPortsSet could actually be Sets. This would ease many operations on them:
+	// @ToDo isSubset, getOpMerged (intersection), getIpMerged (union) and so on.
 	private String inputPortsSet;
 	private String outputPortsSet;
 	private Range box;
-	private float size;
 	private ArrayList<String> destinations = new ArrayList<>();
 
 	public Region(String ip, ArrayList<String> destinations, String op) {
@@ -17,7 +18,6 @@ public class Region implements Comparable<Region> {
 		this.inputPortsSet = ip;
 		this.outputPortsSet = op;
 		this.updateBox();
-		this.updateSize();
 	}
 
 	void updateBox() {
@@ -36,15 +36,6 @@ public class Region implements Comparable<Region> {
 		this.box = Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
 	}
 
-	private void updateSize() {
-		int Xmin = box.min(0);
-		int Ymin = box.min(1);
-		int Xmax = box.max(0);
-		int Ymax = box.max(1);
-
-		this.size = ((Xmax - Xmin) + 1) * ((Ymax - Ymin) + 1);
-	}
-
 	String inputPorts() {
 		return inputPortsSet;
 	}
@@ -58,7 +49,7 @@ public class Region implements Comparable<Region> {
 	}
 
 	ArrayList<String> destinationsIn(Range box) {
-		ArrayList<String> result = new ArrayList<String>();
+		ArrayList<String> result = new ArrayList<>();
 		for (int x = box.min(0); x <= box.max(0); x++)
 			for (int y = box.min(1); y <= box.max(1); y++)
 				if (this.destinations.contains(x + "." + y))
@@ -68,17 +59,6 @@ public class Region implements Comparable<Region> {
 
 	Range box() {
 		return box;
-	}
-
-	@Override
-	public int compareTo(Region otherRegion) {
-		if (this.size < otherRegion.size) {
-			return -1;
-		}
-		if (this.size > otherRegion.size) {
-			return 1;
-		}
-		return 0;
 	}
 
 	public String toString() {
@@ -104,7 +84,6 @@ public class Region implements Comparable<Region> {
 		Region reg = new Region(ip, this.destinations(), op);
 		reg.box = mergedBox(this, that);
 		reg.destinations().addAll(that.destinations());
-		reg.updateSize();
 		return reg;
 	}
 
@@ -210,5 +189,4 @@ public class Region implements Comparable<Region> {
 		Arrays.sort(ip1);
 		return String.valueOf(ip1);
 	}
-
 }
