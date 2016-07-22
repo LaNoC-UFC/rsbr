@@ -20,4 +20,24 @@ public class EdgeColor {
                 return null;
         }
     }
+
+    public static String colorFromTo(String src, String dst) {
+        int srcX = Integer.valueOf(src.split("\\.")[0]);
+        int srcY = Integer.valueOf(src.split("\\.")[1]);
+        int dstX = Integer.valueOf(dst.split("\\.")[0]);
+        int dstY = Integer.valueOf(dst.split("\\.")[1]);
+        int deltaX = srcX - dstX;
+        int deltaY = srcY - dstY;
+        assert Math.abs(deltaX) + Math.abs(deltaY) == 1 : src + " and " + dst + " are not neighbors";
+        if(1 == deltaX) {
+            return "W";
+        } else if(-1 == deltaX) {
+            return "E";
+        } else if(1 == deltaY) {
+            return "S";
+        } else if(-1 == deltaY) {
+            return "N";
+        }
+        return "I";
+    }
 }
