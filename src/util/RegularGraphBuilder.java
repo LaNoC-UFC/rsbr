@@ -22,13 +22,13 @@ public class RegularGraphBuilder {
             for(int x = 0; x < graph.dimX(); x++) {
                 Vertex current = graph.vertex(x + "." + y);
                 if(contains(graph, x + "." + (y + 1)))
-                    graph.addEdge(current, graph.vertex(x + "." + (y + 1)), EdgeColor.ports[0]);
+                    graph.addEdge(current, graph.vertex(x + "." + (y + 1)), EdgeColor.colorFromTo(x + "." + y, x + "." + (y + 1)));
                 if(contains(graph, x + "." + (y - 1)))
-                    graph.addEdge(current, graph.vertex(x + "." + (y - 1)), EdgeColor.ports[1]);
+                    graph.addEdge(current, graph.vertex(x + "." + (y - 1)), EdgeColor.colorFromTo(x + "." + y, x + "." + (y - 1)));
                 if(contains(graph, (x + 1) + "." + y))
-                    graph.addEdge(current, graph.vertex((x + 1) + "." + y), EdgeColor.ports[2]);
+                    graph.addEdge(current, graph.vertex((x + 1) + "." + y), EdgeColor.colorFromTo(x + "." + y, (x + 1) + "." + y));
                 if(contains(graph, (x - 1) + "." + y))
-                    graph.addEdge(current, graph.vertex((x - 1) + "." + y), EdgeColor.ports[3]);
+                    graph.addEdge(current, graph.vertex((x - 1) + "." + y), EdgeColor.colorFromTo(x + "." + y, (x - 1) + "." + y));
             }
         }
     }
