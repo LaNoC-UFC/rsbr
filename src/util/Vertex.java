@@ -39,11 +39,11 @@ public class Vertex {
 		return this.name;
 	}
 
-	public boolean isIn(String min, String max) {
-		int xMin = Integer.valueOf(min.split("\\.")[0]);
-		int yMin = Integer.valueOf(min.split("\\.")[1]);
-		int xMax = Integer.valueOf(max.split("\\.")[0]);
-		int yMax = Integer.valueOf(max.split("\\.")[1]);
+	public boolean isIn(Range box) {
+		int xMin = box.min(0);
+		int yMin = box.min(1);
+		int xMax = box.max(0);
+		int yMax = box.max(1);
 
 		int x = Integer.valueOf(name.split("\\.")[0]);
 		int y = Integer.valueOf(name.split("\\.")[1]);
