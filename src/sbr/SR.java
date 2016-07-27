@@ -2,9 +2,7 @@ package sbr;
 
 import util.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class SR {
 
@@ -18,72 +16,86 @@ public class SR {
 
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
-	private ArrayList<Edge> bridge;
+	private ArrayList<Edge> bridges;
 
 	private List<Vertex> visitedVertices, unvisitedVertices, start, terminal;
 	private List<Edge> visitedEdges, unvisitedEdges;
-	//private List<Vertex> visiteds;
-	//private List<Vertex> nVisiteds;
 
 	private HashMap<Vertex, Segment> segmentForVertex;
 	private HashMap<Vertex, Integer> subnetForVertex;
 
 	public SR(Graph graph) 
 	{
-		//graph = new Graph(fileName);
 		this.graph = graph;
 		this.restrictions = new GraphRestrictions(graph);
-		if(debug) System.err.println(graph);
 		segments = new ArrayList<>();
 		visitedVertices = new ArrayList<>();
-		unvisitedVertices = new ArrayList<>();
+		unvisitedVertices = new ArrayList<>(graph.getVertices());
 		start = new ArrayList<>();
+		terminal = new ArrayList<>();
 		visitedEdges = new ArrayList<>();
-		unvisitedEdges = new ArrayList<>();
-		bridge = new ArrayList<>();
-		//nVisiteds = new ArrayList<>();
+		unvisitedEdges = new ArrayList<>(graph.getEdges());
+		bridges = new ArrayList<>();
 		RRIndex = new int[2];
 		RRIndex[0] = -1;
 		RRIndex[1] = -1;
 		subNet = 0;
 		maxSN = 0;
 		new Bridge(graph);
-		System.out.println(bridge.size()+" bridges.");
 		segmentForVertex = new HashMap<>();
 		subnetForVertex = new HashMap<>();
 	}
 
 	public void computeSegments() {
-		// fill not visiteds' list
-		unvisitedEdges.addAll(graph.getEdges());
-		unvisitedVertices.addAll(graph.getVertices());
-		int Nx = graph.dimX()-1;
-		int Ny = graph.dimY()-1;
-		for (int i = Ny - 1; i >= 0; i--) {
-			currentWindow = Range.TwoDimensionalRange(0, Nx, i, Ny);
+		int maxX = graph.dimX()-1;
+		int maxY = graph.dimY()-1;
+		for (int currentY = maxY - 1; currentY >= 0; currentY--) {
+			currentWindow = Range.TwoDimensionalRange(0, maxX, currentY, maxY);
 			computeSegmentsInRange();
+			for (Segment seg : segments)
+				assert !seg.getLinks().isEmpty();
 		}
 	}
 
-	private void computeSegmentsInRange() {
+	public Collection<Segment> segments() {
+		return segments;
+	}
 
+	public Collection<Vertex> terminalVertices() {
+		return terminal;
+	}
+
+	public Collection<Vertex> startVertices() {
+		return start;
+	}
+
+	private void computeSegmentsInRange() {
 		terminal = new ArrayList<>();
+		Segment sg = new Segment();
+		segments.add(sg);
+
+		Vertex sw = pickFirstVertex();
+		while (sw != null) {
+			this.resetRRIndex();
+			formSegmentFrom(sw);
+			sw = pickNextVertex();
+		}
+	}
+
+	private Vertex pickFirstVertex() {
 		int xMin = currentWindow.min(0);
 		int yMin = currentWindow.min(1);
 		int xMax = currentWindow.max(0);
 		int yMax = currentWindow.max(1);
 
-		if (debug)
-			System.err.println("Subnet now: " + subNet);
-
 		// Choose the start switch
-		boolean first = (yMin + 1 == yMax);
-		boolean pair = ((yMin + 1) % 2 == 0);
+		boolean isFirstTurn = (yMin + 1 == yMax);
 		Vertex sw;
 		Vertex left = graph.vertex(xMin + "." + (yMin + 1));
 		Vertex right = graph.vertex(xMax + "." + (yMin + 1));
-		
-		if(first) {
+
+		if(isFirstTurn) {
+			boolean pair = ((yMin + 1) % 2 == 0);
 			sw = (pair) ? left : right;
 			setStart(sw);
 			subnetForVertex.put(sw, subNet);
@@ -95,65 +107,55 @@ public class SR {
 		else {
 			sw = nextVisited();
 			if (sw == null) {
-				sw = nextNotVisited();
-				if(sw == null) return;
+				sw = nextStartVertex();
+				if(sw == null) return null;
 				setStart(sw);
 				subNet = ++maxSN;
 				subnetForVertex.put(sw, subNet);
 			}
 			subNet = subnetForVertex.get(sw);
 		}
-
-		Segment sg = new Segment();
-		segments.add(sg);
-
-		if (debug) System.err.println("#starting: " + sw.name());
-
-		do {
-			this.resetRRIndex();
-			
-			// try to form a segment
-			if (find(sw)) {
-				sg = new Segment();
-				segments.add(sg);
-				if (debug) System.err.println("New Segment.");
-			} else if (isVisited(sw)) {
-				setTerminal(sw);
-				if (debug) System.err.println(sw.name() + " is Terminal.");
-
-			} else if (xMin == 0 && yMin == 0) { // eh a ultima rodada
-				visit(sw);
-				setTerminal(sw);
-				if (debug) System.err.println(sw.name() + " is Terminal.");
-					
-			} else {
-				unsetStart(sw);
-			}
-			
-			// look for a not visited switch to form the next segment
-			sw = nextVisited();
-			if (sw == null) { // if didnt find
-				if ((xMin == 0 && yMin == 0) && (sw = nextNotVisited()) != null) {
-					subNet = ++maxSN;
-					if (debug) System.err.println("Subnet now: " + subNet);
-					segments.get(segments.size()-1).add(sw);// sg.add(sw);
-					segmentForVertex.put(sw, segments.get(segments.size()-1));
-					setStart(sw);
-					if (debug)
-						System.err.println(sw.name() + " is Start.");
-					visit(sw);
-					subnetForVertex.put(sw, subNet);
-				} else {
-					if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
-						segments.remove(sg);
-					return;
-				}
-			}
-		} while (sw != null);
-
+		return sw;
 	}
 
-	protected boolean find(Vertex sw) {
+	private void formSegmentFrom(Vertex sw) {
+		if (find(sw)) {
+			segments.add(new Segment());
+		} else if (isVisited(sw)) {
+			setTerminal(sw);
+		} else if (isFinalTurn()) {
+			visit(sw);
+			setTerminal(sw);
+		} else {
+			unsetStart(sw);
+		}
+	}
+
+	private Vertex pickNextVertex() {
+		Vertex sw = nextVisited();
+		if (sw == null) { // if didnt find
+			if (isFinalTurn() && (sw = nextStartVertex()) != null) {
+				subNet = ++maxSN;
+				segments.get(segments.size() - 1).add(sw);// sg.add(sw);
+				segmentForVertex.put(sw, segments.get(segments.size() - 1));
+				setStart(sw);
+				visit(sw);
+				subnetForVertex.put(sw, subNet);
+			}
+			else {
+				if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
+					segments.remove(segments.get(segments.size()-1));
+				return null;
+			}
+		}
+		return sw;
+	}
+
+	private boolean isFinalTurn() {
+		return (currentWindow.min(0) == 0 && currentWindow.min(1) == 0);
+	}
+
+	private boolean find(Vertex sw) {
 		Segment segm = segments.get(segments.size()-1);
 		if (!isVisited(sw)) {
 			segm.add(sw);
@@ -162,17 +164,7 @@ public class SR {
 		} else if (subnetForVertex.get(sw) != subNet && !(isStart(sw) && isTerminal(sw)))
 			return false;
 			
-		if (debug) System.err.println("Switch now: " + sw.name());
-		
 		ArrayList<Edge> links = suitableLinks(sw);
-		if (links == null) {
-			if (debug) System.err.println("No Suitable Links found.");
-			if(isTVisited(sw)) unsetTVisited(sw);
-			segm.remove(sw);
-			segmentForVertex.remove(sw);
-			return false;
-		}
-		
 		while (!links.isEmpty()) {
 			Edge ln = getNextLink(links);
 			links.remove(ln);
@@ -181,7 +173,7 @@ public class SR {
 			setTVisited(ln);
 			setTVisited(nl);
 			segm.add(ln);
-			Vertex nsw = ln.other(sw);
+			Vertex nsw = ln.destination();
 			if (nsw.isIn(currentWindow)) {
 				if (((isVisited(nsw) || isStart(nsw)) && subnetForVertex.get(nsw) == subNet) || find(nsw)) {
 					visit(ln);
@@ -205,82 +197,60 @@ public class SR {
 		segm.remove(sw);
 		segmentForVertex.remove(sw);
 		if(isTVisited(sw)) unsetTVisited(sw);
-
 		return false;
 	}
 
-	/*
-	 * search for a switch marked as visited, belonging to the current subnet,
-	 * and with at least one link not marked as visited.
-	 */
-	protected Vertex nextVisited() {
-		ArrayList<Vertex> next = new ArrayList<>();
-		// get switches from visiteds' list
-		for (int i = visitedVertices.size() - 1; i >= 0; i--) {
-			Vertex sw = visitedVertices.get(i);
-			if (!isTerminal(sw) && sw.isIn(currentWindow) && suitableLinks(sw) != null) {
-				
-				// agora só retorna se existir mais de um visitado com links
-				// favoráveis
-				if(next.isEmpty())
-					next.add(sw);
-				else {
-					for(Vertex n : next) {
-						if(subnetForVertex.get(n) == subnetForVertex.get(sw)) {
-							if (debug) System.err.println("nextVisited " + n.name());
-							subNet = subnetForVertex.get(n);
-							return n;							
-						}
-					}
-					next.add(sw);
+	private Vertex nextVisited() {
+		List<Vertex> suitables = suitableVisitedVertices();
+		Collections.reverse(suitables);
+		for (int i = 0; i < suitables.size(); i++) {
+			Vertex tic = suitables.get(i);
+			for (int j = i + 1; j < suitables.size(); j++) {
+				Vertex tac = suitables.get(j);
+				if (subnetForVertex.get(tic).equals(subnetForVertex.get(tac))) {
+					subNet = subnetForVertex.get(tic);
+					return tic;
 				}
 			}
 		}
-		if (debug)
-			System.err.println("nextVisited not found for subnet " + subNet);
 		return null;
 	}
 
-	/*
-	 * look for a switch that is not marked as visited not marked as terminal,
-	 * and attached to a terminal switch.
-	 */
-	protected Vertex nextNotVisited() {
-		for (Edge b: bridge) {
-			Vertex sw = b.destination();
-			if(!isVisited(sw) && sw.isIn(currentWindow) && suitableLinks(sw) != null) {
-				if (debug) System.err.println("nextNotVisited " + sw.name());
-				return sw;				
+	private List<Vertex> suitableVisitedVertices() {
+		ArrayList<Vertex> result = new ArrayList<>();
+		for (Vertex sw : visitedVertices) {
+			if (!isTerminal(sw) && sw.isIn(currentWindow) && hasSuitableLinks(sw))
+					result.add(sw);
+		}
+		return result;
+	}
+
+	private Vertex nextStartVertex() {
+		for (Edge b: bridges) {
+			Vertex dst = b.destination();
+			if(canBeStart(dst)) {
+				return dst;
 			}
-			sw = b.source();
-			if(!isVisited(sw) && sw.isIn(currentWindow) && suitableLinks(sw) != null) {
-				if (debug) System.err.println("nextNotVisited " + sw.name());
-				return sw;				
+			Vertex src = b.source();
+			if(canBeStart(src)) {
+				return src;
 			}
 		}
-		/*
-		for (Vertex sw : unvisitedVertices) {
-			if (sw.isIn(min, max) && isTerminal(sw)) {
-				List<Vertex> lS = sw.getNeighbors();
-				for (Vertex s : lS) {
-					if (!isVisited(s) && !isTerminal(s) && s.isIn(min, max)) {
-						if (debug) System.err.println("nextNotVisited " + s.name());
-						return s;
-					}
-				}
-			}
-		}
-		*/
-		if (debug)
-			System.err.println("nextNotVisited not found");
 		return null;
 	}
 
+	private boolean canBeStart(Vertex sw) {
+		return (!isVisited(sw) && sw.isIn(currentWindow) && hasSuitableLinks(sw));
+	}
+
+	private boolean hasSuitableLinks(Vertex sw) {
+		return !suitableLinks(sw).isEmpty();
+	}
 	/*
 	 * try to make a small segment by choosing a link for close a cycle making a
 	 * turn every time. RRIndex keeps track of the last turn
 	 */
-	protected Edge getNextLink(ArrayList<Edge> links) {
+	private Edge getNextLink(ArrayList<Edge> links) {
 		Edge got = null;
 		int index;
 		if (RRIndex[0] == -1) {
@@ -327,6 +297,7 @@ public class SR {
 	public GraphRestrictions restrictions() {
 		return this.restrictions;
 	}
+
 	public void setrestrictions() {
 		for (Segment segment : segments) {
 			if (segment.getLinks().isEmpty())
@@ -471,22 +442,16 @@ public class SR {
 		terminal.remove(v);
 	}
 
-	public ArrayList<Edge> suitableLinks(Vertex v)
-	{
-		ArrayList<Edge> adj = v.adjuncts();
-		if(adj.isEmpty())
-			return null;
-		
-		ArrayList<Edge> slinks = new ArrayList<>();
-		for(Edge ln : adj) {
+	private ArrayList<Edge> suitableLinks(Vertex v) {
+		ArrayList<Edge> result = new ArrayList<>();
+		for(Edge ln : v.adjuncts()) {
 			Vertex dst = ln.destination();
 			boolean cruza = isTVisited(dst) && !isStart(dst);
-			boolean bdg = bridge.contains(ln) || bridge.contains(dst.edge(ln.source()));
-			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(currentWindow) && !cruza && !bdg)
-				slinks.add(ln);
+			boolean isBridge = bridges.contains(ln) || bridges.contains(dst.edge(ln.source()));
+			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(currentWindow) && !cruza && !isBridge)
+				result.add(ln);
 		}
-
-		return (slinks.isEmpty())? null : slinks;
+		return result;
 	}
 
 	private class Bridge {
@@ -517,7 +482,7 @@ public class SR {
 					dfs(g, v, w);
 					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
 					if (low[g.indexOf(w)] == pre[g.indexOf(w)]) {
-						bridge.add(e);
+						bridges.add(e);
 					}
 				}
 				else if (!w.equals(u))
