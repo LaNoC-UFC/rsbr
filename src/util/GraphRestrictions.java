@@ -7,12 +7,10 @@ public class GraphRestrictions {
 
     public GraphRestrictions(Graph g) {
         restrictions = new HashMap<>();
-        for(Vertex v : g.getVertices())
-            restrictions.put(v, new String[]{"", "", "", "", ""});
     }
 
     public void addRestriction(Vertex v, String op, String rest) {
-        String[] vertexRestrictions = restrictions.get(v);
+        String[] vertexRestrictions = getOrInit(v);
         switch (op) {
             case "I":
                 vertexRestrictions[0] = vertexRestrictions[0] + "" + rest;
@@ -33,6 +31,8 @@ public class GraphRestrictions {
     }
 
     public String getRestriction(Vertex v, String op) {
+        if(!restrictions.containsKey(v))
+            return "";
         String[] vertexRestrictions = restrictions.get(v);
         switch (op) {
             case "I":
@@ -48,5 +48,15 @@ public class GraphRestrictions {
             default:
                 return null;
         }
+    }
+
+    private String[] getOrInit(Vertex v) {
+        if(!restrictions.containsKey(v))
+            restrictions.put(v, new String[]{"", "", "", "", ""});
+        return restrictions.get(v);
+    }
+
+    public int size() {
+        return restrictions.size();
     }
 }

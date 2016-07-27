@@ -20,6 +20,7 @@ public class rsbr {
 		int dim = 4;
 		int dimX = dim, dimY = dim;
 		double[] faltPercs = { 0.0, 0.05, 0.1, 0.15, 0.2, 0, 25, 0.30 };
+		int totalOfEdges = (dimX - 1)*dimY + (dimY - 1)*dimX;
 		ArrayList<ArrayList<Path>> chosenPaths = null;
 
 		switch (args.length) {
@@ -43,7 +44,7 @@ public class rsbr {
 			System.out.println("Generating graph");
 			graph = (topologyFile != null) ?
 					FromFileGraphBuilder.generateGraph(topologyFile) :
-					RandomFaultyGraphBuilder.generateGraph(dimX, dimY, faltPerc);
+					RandomFaultyGraphBuilder.generateGraph(dimX, dimY, (int)Math.ceil(faltPerc*totalOfEdges));
 
 			System.out.println("Isolado?: " + graph.haveIsolatedCores());
 

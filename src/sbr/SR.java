@@ -2,10 +2,7 @@ package sbr;
 
 import util.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class SR {
 
@@ -35,6 +32,7 @@ public class SR {
 		visitedVertices = new ArrayList<>();
 		unvisitedVertices = new ArrayList<>(graph.getVertices());
 		start = new ArrayList<>();
+		terminal = new ArrayList<>();
 		visitedEdges = new ArrayList<>();
 		unvisitedEdges = new ArrayList<>(graph.getEdges());
 		bridges = new ArrayList<>();
@@ -59,9 +57,20 @@ public class SR {
 		}
 	}
 
+	public Collection<Segment> segments() {
+		return segments;
+	}
+
+	public Collection<Vertex> terminalVertices() {
+		return terminal;
+	}
+
+	public Collection<Vertex> startVertices() {
+		return start;
+	}
+
 	private void computeSegmentsInRange() {
 		terminal = new ArrayList<>();
-
 		Segment sg = new Segment();
 		segments.add(sg);
 
@@ -127,12 +136,13 @@ public class SR {
 		if (sw == null) { // if didnt find
 			if (isFinalTurn() && (sw = nextStartVertex()) != null) {
 				subNet = ++maxSN;
-				segments.get(segments.size()-1).add(sw);// sg.add(sw);
-				segmentForVertex.put(sw, segments.get(segments.size()-1));
+				segments.get(segments.size() - 1).add(sw);// sg.add(sw);
+				segmentForVertex.put(sw, segments.get(segments.size() - 1));
 				setStart(sw);
 				visit(sw);
 				subnetForVertex.put(sw, subNet);
-			} else {
+			}
+			else {
 				if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
 					segments.remove(segments.get(segments.size()-1));
 				return null;
