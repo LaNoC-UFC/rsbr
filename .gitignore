@@ -1,11 +1,10 @@
 bin/
-target/
+out/
+.idea/
+.classpath
+.project
 *~
 *.jar
 *.txt
-ard
-lw-Mean
-lw-Std
-region-max
 *.vhd
-graph_teste
+rsbr.iml

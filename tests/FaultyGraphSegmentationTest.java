@@ -3,11 +3,10 @@ import sbr.SR;
 import util.*;
 
 public class FaultyGraphSegmentationTest {
-    @Ignore
+    @Test
     public void faulty3x3Graph() throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             Graph noc = RandomFaultyGraphBuilder.generateGraph(3, 3, 1);
-            System.out.print(noc);
             SR sr = new SR(noc);
             sr.computeSegments();
             sr.setrestrictions();
