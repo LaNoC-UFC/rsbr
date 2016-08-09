@@ -17,7 +17,7 @@ public class SR {
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
 	private Segment currentSegment;
-	private ArrayList<Edge> bridges;
+	private List<Edge> bridges;
 
 	private List<Vertex> visitedVertices, unvisitedVertices, start, terminal;
 	private List<Edge> visitedEdges, unvisitedEdges;
@@ -36,13 +36,12 @@ public class SR {
 		terminal = new ArrayList<>();
 		visitedEdges = new ArrayList<>();
 		unvisitedEdges = new ArrayList<>(graph.getEdges());
-		bridges = new ArrayList<>();
+		bridges = graph.bridges();
 		RRIndex = new int[2];
 		RRIndex[0] = -1;
 		RRIndex[1] = -1;
 		subNet = 0;
 		maxSN = -1;
-		new Bridge(graph);
 		segmentForVertex = new HashMap<>();
 		subnetForVertex = new HashMap<>();
 	}
@@ -466,43 +465,4 @@ public class SR {
 		}
 		return result;
 	}
-
-	private class Bridge {
-		private int cnt; // counter
-		private int[] pre; // pre[v] = order in which dfs examines v
-		private int[] low; // low[v] = lowest preorder of any vertex connected to v
-
-		public Bridge(Graph G) {
-			assert G != null : "Ponteiro nulo para grafo!";
-			low = new int[G.getVertices().size()];
-			pre = new int[G.getVertices().size()];
-			cnt = 0;
-			for (int v = 0; v < G.getVertices().size(); v++)
-				low[v] = pre[v] = -1;
-
-			for (Vertex v: G.getVertices())
-
-				if (pre[G.indexOf(v)] == -1)
-					dfs(G, v, v);
-		}
-
-		private void dfs(Graph g, Vertex u, Vertex v) {
-			assert g != null && u != null && v != null : "Null pointer to vertices or graph!";
-			low[g.indexOf(v)] = pre[g.indexOf(v)] = cnt++;
-			for(Edge e : v.adjuncts()) {
-				Vertex w = e.destination();
-				if (pre[g.indexOf(w)] == -1) {
-					dfs(g, v, w);
-					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
-					if (low[g.indexOf(w)] == pre[g.indexOf(w)]) {
-						bridges.add(e);
-					}
-				}
-				else if (!w.equals(u))
-					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
-			}
-		}
-
-	}
-
 }
