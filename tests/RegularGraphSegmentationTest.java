@@ -16,6 +16,25 @@ public class RegularGraphSegmentationTest {
     }
 
     @Test
+    public void horizontalLinearGraph() throws Exception {
+        for (int numberOfVertices = 0; numberOfVertices < 10; numberOfVertices++) {
+            testHorizontalGraph(numberOfVertices);
+        }
+
+    }
+
+    private void testHorizontalGraph(int numberOfVertices) {
+        Graph noc = RegularGraphBuilder.generateGraph(1, numberOfVertices);
+        SR sr = new SR(noc);
+        sr.computeSegments();
+        sr.setrestrictions();
+        Assert.assertEquals(0, sr.segments().size());
+        Assert.assertEquals(0, sr.restrictions().size());
+        //Assert.assertEquals(numberOfVertices, sr.startVertices().size());
+        //Assert.assertEquals(numberOfVertices, sr.terminalVertices().size());
+    }
+
+    @Test
     public void horizontalBinaryGraph() throws Exception {
         Graph noc = RegularGraphBuilder.generateGraph(1, 2);
         SR sr = new SR(noc);

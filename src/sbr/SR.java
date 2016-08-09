@@ -48,6 +48,7 @@ public class SR {
 
 	public void computeSegments() {
 		int maxX = graph.dimX()-1;
+
 		int maxY = graph.dimY()-1;
 		for (int currentY = maxY - 1; currentY >= 0; currentY--) {
 			currentWindow = Range.TwoDimensionalRange(0, maxX, currentY, maxY);
@@ -79,6 +80,12 @@ public class SR {
 			this.resetRRIndex();
 			formSegmentFrom(sw);
 			sw = pickNextVertex();
+			/* If no segment was created from the start vertex picked and the graph has no bridges
+			(ideal places to pick starts) then we should try to pick any non-visited vertex to
+			start forming segments even in the first run.
+			Even if the graph does have bridges, in the case no segment was formed at all I cannot
+			see a problem in pick 'any' vertex to start segments.
+			 */
 		}
 	}
 
@@ -107,8 +114,14 @@ public class SR {
 		else {
 			sw = nextVisited();
 			if (sw == null) {
-				sw = nextStartVertex();
-				if(sw == null) return null;
+				sw = nextBridgeLinkedStartVertex();
+				if(sw == null) {
+					boolean pair = ((yMin + 1) % 2 == 0);
+					sw = (pair) ? left : right;
+					setStart(sw);
+					subnetForVertex.put(sw, subNet);
+					return sw;
+				}
 				setStart(sw);
 				subNet = ++maxSN;
 				subnetForVertex.put(sw, subNet);
@@ -134,7 +147,7 @@ public class SR {
 	private Vertex pickNextVertex() {
 		Vertex sw = nextVisited();
 		if (sw == null) { // if didnt find
-			if (isFinalTurn() && (sw = nextStartVertex()) != null) {
+			if (isFinalTurn() && (sw = nextBridgeLinkedStartVertex()) != null) {
 				subNet = ++maxSN;
 				segments.get(segments.size() - 1).add(sw);// sg.add(sw);
 				segmentForVertex.put(sw, segments.get(segments.size() - 1));
@@ -225,7 +238,7 @@ public class SR {
 		return result;
 	}
 
-	private Vertex nextStartVertex() {
+	private Vertex nextBridgeLinkedStartVertex() {
 		for (Edge b: bridges) {
 			Vertex dst = b.destination();
 			if(canBeStart(dst)) {
