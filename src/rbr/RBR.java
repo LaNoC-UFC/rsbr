@@ -7,7 +7,7 @@ import java.util.*;
 public class RBR {
 	private Graph graph;
 
-	private HashMap<Vertex, ArrayList<RoutingPath>> routingPathForVertex;
+	private HashMap<Vertex, ArrayList<RoutingOption>> routingPathForVertex;
 	private HashMap<Vertex, ArrayList<Region>> regionsForVertex;
 
 	public RBR(Graph g) {
@@ -23,15 +23,15 @@ public class RBR {
 	// Pack routing options if they have the same input port and the same
 	// destination
 	private void packOutputPort(Vertex atual) {
-		ArrayList<RoutingPath> actRP = routingPathForVertex.get(atual);
+		ArrayList<RoutingOption> actRP = routingPathForVertex.get(atual);
 		routingPathForVertex.put(atual, new ArrayList<>());
-		for (RoutingPath a : actRP) {
+		for (RoutingOption a : actRP) {
 			String op = a.getOp();
-			String dst = a.getDst();
+			Vertex dst = a.destination();
 			String ip = a.getIp();
 
-			for (RoutingPath b : actRP) {
-				if (ip.equals(b.getIp()) && dst.equals(b.getDst())) {
+			for (RoutingOption b : actRP) {
+				if (ip.equals(b.getIp()) && dst.equals(b.destination())) {
 					if (!op.contains(b.getOp()))
 						op = op.concat(b.getOp());
 				}
@@ -43,15 +43,15 @@ public class RBR {
 	// Pack routing options if they have the same output port and the same
 	// destination
 	public void packInputPort(Vertex atual) {
-		ArrayList<RoutingPath> actRP = routingPathForVertex.get(atual);
+		ArrayList<RoutingOption> actRP = routingPathForVertex.get(atual);
 		routingPathForVertex.put(atual, new ArrayList<>());
-		for (RoutingPath a : actRP) {
+		for (RoutingOption a : actRP) {
 			String op = a.getOp();
-			String dst = a.getDst();
+			Vertex dst = a.destination();
 			String ip = a.getIp();
 
-			for (RoutingPath b : actRP) {
-				if (op.equals(b.getOp()) && dst.equals(b.getDst())) {
+			for (RoutingOption b : actRP) {
+				if (op.equals(b.getOp()) && dst.equals(b.destination())) {
 					if (!ip.contains(b.getIp()))
 						ip = ip.concat(b.getIp());
 				}
@@ -67,14 +67,13 @@ public class RBR {
 
 		for(ArrayList<Path> alp : paths) {			
 			for (Path path : alp) {
-				String dest = path.dst().name();
 				for (Vertex sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
 						String op = sw.edge(path.get(path.indexOf(sw) + 1))
 								.color();
 						String ip = (path.indexOf(sw) == 0) ? "I" : sw.edge(
 								path.get(path.indexOf(sw) - 1)).color();
-						addRoutingPath(sw, ip, dest, op);
+						addRoutingPath(sw, ip, path.dst(), op);
 					}
 				}
 			}
@@ -110,10 +109,10 @@ public class RBR {
 			for (String op : opComb) {
 				String ip = new String();
 				ArrayList<String> destinations = new ArrayList<String>();
-				for (RoutingPath rp : routingPathForVertex.get(sw)) {
+				for (RoutingOption rp : routingPathForVertex.get(sw)) {
 					if (rp.getOp().equals(op)) {
-						if (!destinations.contains(rp.getDst()))
-							destinations.add(rp.getDst());
+						if (!destinations.contains(rp.destination().name()))
+							destinations.add(rp.destination().name());
 						ip = mergeString(ip, rp.getIp());
 					}
 				}
@@ -348,8 +347,8 @@ public class RBR {
 		return ip;
 	}
 
-	private void addRoutingPath(Vertex v, String ip, String dst, String op) {
-		RoutingPath rp = new RoutingPath(sortStrAlf(ip), dst, sortStrAlf(op));
+	private void addRoutingPath(Vertex v, String ip, Vertex dst, String op) {
+		RoutingOption rp = new RoutingOption(sortStrAlf(ip), dst, sortStrAlf(op));
 		// @Todo replace this by a Set to not worry with duplication
 		if(!routingPathForVertex.get(v).contains(rp))
 			routingPathForVertex.get(v).add(rp);

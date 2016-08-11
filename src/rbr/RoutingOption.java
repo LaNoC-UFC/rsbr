@@ -1,11 +1,13 @@
 package rbr;
 
-public class RoutingPath {
+import util.Vertex;
+
+class RoutingOption {
 	private String ip;
-	private String dst;
+	private Vertex dst;
 	private String op;
 
-	public RoutingPath(String ip, String dst, String op) {
+	RoutingOption(String ip, Vertex dst, String op) {
 		this.dst = dst;
 		this.ip = ip;
 		this.op = op;
@@ -15,7 +17,7 @@ public class RoutingPath {
 		return ip;
 	}
 
-	public String getDst() {
+	Vertex destination() {
 		return dst;
 	}
 
@@ -29,12 +31,12 @@ public class RoutingPath {
 			return true;
 		if(this.getClass() != _that.getClass())
 			return false;
-		RoutingPath that = (RoutingPath) _that;
+		RoutingOption that = (RoutingOption) _that;
 		if(!this.getIp().equals(that.getIp()))
 			return false;
 		if(!this.getOp().equals(that.getOp()))
 			return false;
-		if(!this.getDst().equals(that.getDst()))
+		if(!this.destination().equals(that.destination()))
 			return false;
 		return true;
 	}
