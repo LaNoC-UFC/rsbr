@@ -296,17 +296,17 @@ public class RBR {
 		return null;
 	}
 
-	public void merge(double reachability) {
+	public void merge() {
 		for (Vertex vertex : graph.getVertices())
-			merge(vertex, reachability);
+			merge(vertex);
 	}
 
 	// Merge the regions of a router
-	private void merge(Vertex router, double reachability) {
+	private void merge(Vertex router) {
 		ArrayList<Region> bkpListRegion = null;
 		boolean wasPossible = true;
 
-		while (reachability(router) >= reachability && wasPossible) {
+		while (reachability(router) == 1 && wasPossible) {
 			bkpListRegion = new ArrayList<>(regionsForVertex.get(router));
 			wasPossible = mergeUnitary(router);
 		}

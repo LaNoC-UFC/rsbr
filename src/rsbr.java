@@ -1,12 +1,9 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
+import util.*;
 import rbr.*;
 import sbr.SR;
-import util.*;
 
 public class rsbr {
 
@@ -14,7 +11,6 @@ public class rsbr {
 
 		String topologyFile = null, volumePath = null;
 		String merge = "merge";
-		double reachability = 1.0;
 		String tableFile = "mw2";
 		//String tableFile = null;
 		int dim = 4;
@@ -117,7 +113,7 @@ public class rsbr {
 
 				if (merge.equals("merge")) {
 					System.out.println("Doing Merge");
-					rbr.merge(reachability);
+					rbr.merge();
 					assert rbr.reachabilityIsOk();
 				}
 
@@ -135,7 +131,7 @@ public class rsbr {
 
 				if (merge.equals("merge")) {
 					System.out.println("Doing Merge");
-					rbr.merge(reachability);
+					rbr.merge();
 					assert rbr.reachabilityIsOk();
 				}
 
