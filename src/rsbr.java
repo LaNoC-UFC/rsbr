@@ -1,173 +1,134 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.io.*;
+import java.util.*;
 
+import util.*;
 import rbr.*;
 import sbr.SR;
-import util.*;
 
 public class rsbr {
 
 	public static void main(String[] args) {
 
-		String topologyFile = null, volumePath = null;
-		String merge = "merge";
-		double reachability = 1.0;
-		String tableFile = "mw2";
-		//String tableFile = null;
+		String topologyFile = null;
+		String volumePath = null;
+		boolean shouldMerge = true;
 		int dim = 4;
-		int dimX = dim, dimY = dim;
-		double[] faltPercs = { 0.0, 0.05, 0.1, 0.15, 0.2, 0, 25, 0.30 };
-		int totalOfEdges = (dimX - 1)*dimY + (dimY - 1)*dimX;
-		ArrayList<ArrayList<Path>> chosenPaths = null;
+		int dimX = dim;
+		int dimY = dim;
+		double[] faultyPercentages = { 0.0, 0.05, 0.1, 0.15, 0.2, 0, 25, 0.30 };
 
-		switch (args.length) {
-		case 4:
+		if (args.length == 4) {
 			dimX = Integer.parseInt(args[0]);
 			dimY = Integer.parseInt(args[1]);
-			break;
 		}
 
-		for (double faltPerc : faltPercs) {
+		for (double faultyPercentage : faultyPercentages) {
 
-			Graph graph;
-			double[] stats = null;
-			ArrayList<Double> all = new ArrayList<Double>();
-			ArrayList<Double> mw2 = new ArrayList<Double>();
-			RBR rbr = null;
-
-			if (!canHasPerc(dimX, dimY, faltPerc))
+			if (!hasEnoughEdges(dimX, dimY, faultyPercentage))
 				break;
 
 			System.out.println("Generating graph");
-			graph = (topologyFile != null) ?
+			Graph graph = (topologyFile != null) ?
 					FromFileGraphBuilder.generateGraph(topologyFile) :
-					RandomFaultyGraphBuilder.generateGraph(dimX, dimY, (int)Math.ceil(faltPerc*totalOfEdges));
+					RandomFaultyGraphBuilder.generateGraph(dimX, dimY, (int)Math.ceil(faultyPercentage*numberOfEdges(dimX, dimY)));
 
-			System.out.println("Isolado?: " + graph.haveIsolatedCores());
+			System.out.println("Isolated?: " + graph.haveIsolatedCores());
 
 			System.out.println(" - SR Section");
-			SR sbr = new SR(graph);
-
-			System.out.println("Compute the segments");
-			sbr.computeSegments();
-			// sbr.listSegments();
-
-			System.out.println("Set the restrictions");
-			sbr.setrestrictions();
-			GraphRestrictions restrictions = sbr.restrictions();
-			// sbr.printRestrictions();
+			GraphRestrictions restrictions = SBRSection(graph);
 
 			System.out.println("Paths Computation");
-			ArrayList<ArrayList<Path>> paths = new PathFinder(graph, restrictions).pathsComputation();
+			ArrayList<ArrayList<Path>> allMinimalPaths = new PathFinder(graph, restrictions).pathsComputation();
 
-			System.out.println(" - RBR Section");
-			rbr = new RBR(graph);
+			System.out.println(" - Paths Selection Section");
+			RBR rbr = new RBR(graph);
 
 			if (volumePath != null) {
 				File commvol = new File(volumePath);
 				if (commvol.exists()) {
 					System.out
 							.println("Getting volumes from " + volumePath);
-					setCommunicationVolume(paths, commvol, graph);
+					setCommunicationVolume(allMinimalPaths, commvol, graph);
 				}
 			}
 
-			System.out.println("Paths Selection");
 			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
-			double lwm = statistics.linkWeightMean(paths);
-			double pwm = statistics.pathWeightMean(paths);
+			double lwm = statistics.linkWeightMean(allMinimalPaths);
+			double pwm = statistics.pathWeightMean(allMinimalPaths);
 
-			int choice = 5;
-			switch (choice) {
-				case 0: // Sem seleção
-					chosenPaths = paths;
-					break;
-				case 1: // Selecao aleatoria
-					chosenPaths = new RandomPathSelector(paths).selection();
-					System.out.println("Aleatoria");
-					printResults(chosenPaths, statistics);
-					break;
-				case 2: // Peso mínimo
-					chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
-					System.out.println("Peso Minimo");
-					printResults(chosenPaths, statistics);
-					break;
-				case 3: // Peso proporcional
-					chosenPaths = new ComparativePathSelector(paths, new Path().new PropWeight(lwm), 10).selection();
-					System.out.println("Peso proporcional");
-					printResults(chosenPaths, statistics);
-					break;
-				case 4: // Peso médio
-					chosenPaths = new ComparativePathSelector(paths, new Path().new MedWeight(pwm), 10).selection();
-					System.out.println("Peso médio");
-					printResults(chosenPaths, statistics);
-					break;
-				case 5: // Peso máximo
-					chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
-			}
+			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, lwm, pwm);
+			printResults(chosenPaths, statistics);
 
-			if (tableFile != null) {
-
-				System.out.println("Regions Computation");
-				rbr.addRoutingOptions(paths);
-				rbr.regionsComputation();
-
-				if (merge.equals("merge")) {
-					System.out.println("Doing Merge");
-					rbr.merge(reachability);
-					assert rbr.reachabilityIsOk();
-				}
-
-				System.out.println("Making Tables");
-				stats = statistics.getRegionsStats();
-				new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable("all");
-				System.out.println("All");
-				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
-						+ " Med: " + stats[2]);
-				all.add(stats[0]);
-
-				System.out.println("Regions Computation");
-				rbr.addRoutingOptions(chosenPaths);
-				rbr.regionsComputation();
-
-				if (merge.equals("merge")) {
-					System.out.println("Doing Merge");
-					rbr.merge(reachability);
-					assert rbr.reachabilityIsOk();
-				}
-
-				System.out.println("Making Tables");
-				stats = statistics.getRegionsStats();
-				new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable(tableFile);
-				System.out.println(tableFile);
-				System.out.println("Max: " + stats[0] + " Min: " + stats[1]
-						+ " Med: " + stats[2]);
-				mw2.add(stats[0]);
-			}
+			System.out.println(" - RBR Section");
+			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, statistics, "full");
+			RBRSection(shouldMerge, graph, chosenPaths, rbr, statistics, "custom");
 		}
-		System.out.println("All done!");
-
 	}
 
-	private static boolean canHasPerc(int dimX, int dimY, double perc) {
+	private static GraphRestrictions SBRSection(Graph graph) {
+		SR sbr = new SR(graph);
+		System.out.println("Compute the segments");
+		sbr.computeSegments();
+		System.out.println("Set the restrictions");
+		sbr.setrestrictions();
+		return sbr.restrictions();
+	}
 
-		System.out.println("e ai?");
-		int nArests = (dimX - 1) * dimY + dimX * (dimY - 1);
-		System.out.println(nArests);
-		int nFalts = (int) Math.ceil((double) nArests * perc);
-		System.out.println(nFalts);
-		int links = nArests - nFalts;
-		System.out.println(links);
-		int nRouters = dimX * dimY;
-		System.out.println(nRouters);
+	private static void RBRSection(boolean shouldMerge, Graph graph, ArrayList<ArrayList<Path>> allMinimalPaths, RBR rbr, StatisticalAnalyser statistics, String fileSuffix) {
+		System.out.println("Regions Computation");
+		rbr.addRoutingOptions(allMinimalPaths);
+		rbr.regionsComputation();
 
-		if (links < nRouters - 1)
-			return false;
+		if (shouldMerge) {
+            System.out.println("Doing Merge");
+            rbr.merge();
+            assert rbr.reachabilityIsOk();
+        }
 
-		return true;
+		System.out.println("Making Tables");
+		new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable(fileSuffix);
+	}
+
+	private static int numberOfEdges(int dimX, int dimY) {
+		return (dimX - 1)*dimY + (dimY - 1)*dimX;
+	}
+
+	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, double lwm, double pwm) {
+		ArrayList<ArrayList<Path>> chosenPaths = null;
+
+		int choice = 5;
+		switch (choice) {
+            case 0: // Sem seleção
+                chosenPaths = paths;
+                break;
+            case 1: // Selecao aleatoria
+                chosenPaths = new RandomPathSelector(paths).selection();
+                System.out.println("Random");
+                break;
+            case 2: // Peso mínimo
+                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
+                System.out.println("Peso Minimo");
+                break;
+            case 3: // Peso proporcional
+                chosenPaths = new ComparativePathSelector(paths, new Path().new PropWeight(lwm), 10).selection();
+                System.out.println("Peso proporcional");
+                break;
+            case 4: // Peso médio
+                chosenPaths = new ComparativePathSelector(paths, new Path().new MedWeight(pwm), 10).selection();
+                System.out.println("Peso médio");
+                break;
+            case 5: // Peso máximo
+                chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
+        }
+		return chosenPaths;
+	}
+
+	private static boolean hasEnoughEdges(int dimX, int dimY, double percentage) {
+		int numberOfFaultyEdges = (int) Math.ceil((double) numberOfEdges(dimX, dimY) * percentage);
+		int numberOfGoodEdges = numberOfEdges(dimX, dimY) - numberOfFaultyEdges;
+		int numberOfVertices = dimX * dimY;
+
+		return (numberOfGoodEdges >= numberOfVertices - 1);
 	}
 
 	private static void printResults(ArrayList<ArrayList<Path>> paths, StatisticalAnalyser statistics) {
@@ -212,5 +173,4 @@ public class rsbr {
 			}
 		}
 	}
-
 }
