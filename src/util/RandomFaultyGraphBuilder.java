@@ -5,7 +5,7 @@ public class RandomFaultyGraphBuilder {
     static public Graph generateGraph(int dimX, int dimY, int numberOfFaultyEdges) {
         Graph result = RegularGraphBuilder.generateGraph(dimX, dimY);
         int totalOfEdges = result.getEdges().size()/2;
-        assert totalOfEdges - numberOfFaultyEdges > dimX*dimY - 1;
+        assert totalOfEdges - numberOfFaultyEdges >= dimX*dimY - 1;
         for(int i = 0; i < numberOfFaultyEdges; i++)
             removeNoBridgeLink(result);
         return result;
