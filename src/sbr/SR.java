@@ -16,7 +16,8 @@ public class SR {
 
 	private int subNet, maxSN;
 	private ArrayList<Segment> segments;
-	private ArrayList<Edge> bridges;
+	private Segment currentSegment;
+	private List<Edge> bridges;
 
 	private List<Vertex> visitedVertices, unvisitedVertices, start, terminal;
 	private List<Edge> visitedEdges, unvisitedEdges;
@@ -35,13 +36,12 @@ public class SR {
 		terminal = new ArrayList<>();
 		visitedEdges = new ArrayList<>();
 		unvisitedEdges = new ArrayList<>(graph.getEdges());
-		bridges = new ArrayList<>();
+		bridges = graph.bridges();
 		RRIndex = new int[2];
 		RRIndex[0] = -1;
 		RRIndex[1] = -1;
 		subNet = 0;
-		maxSN = 0;
-		new Bridge(graph);
+		maxSN = -1;
 		segmentForVertex = new HashMap<>();
 		subnetForVertex = new HashMap<>();
 	}
@@ -72,14 +72,11 @@ public class SR {
 
 	private void computeSegmentsInRange() {
 		terminal = new ArrayList<>();
-		Segment sg = new Segment();
-		segments.add(sg);
 
-		Vertex sw = pickFirstVertex();
-		while (sw != null) {
-			this.resetRRIndex();
-			formSegmentFrom(sw);
-			sw = pickNextVertex();
+		Vertex start = pickFirstVertex();
+		while (start != null) {
+			computeSegmentsInExistingSubNets(start);
+			start = pickNextStartVertex();
 			/* If no segment was created from the start vertex picked and the graph has no bridges
 			(ideal places to pick starts) then we should try to pick any non-visited vertex to
 			start forming segments even in the first run.
@@ -89,51 +86,64 @@ public class SR {
 		}
 	}
 
+	private void computeSegmentsInExistingSubNets(Vertex sw) {
+		while (null != sw) {
+			this.resetRRIndex();
+			subNet = subnetForVertex.get(sw);
+			Segment seg = formSegmentFrom(sw);
+			if(segmentIsValid(seg))
+				segments.add(seg);
+			sw = nextVisited();
+		}
+	}
+
+	private boolean segmentIsValid(Segment seg) {
+		return (null != seg && !seg.getLinks().isEmpty());
+	}
+
 	private Vertex pickFirstVertex() {
 		int xMin = currentWindow.min(0);
 		int yMin = currentWindow.min(1);
 		int xMax = currentWindow.max(0);
 		int yMax = currentWindow.max(1);
 
-		// Choose the start switch
 		boolean isFirstTurn = (yMin + 1 == yMax);
 		Vertex sw;
 		Vertex left = graph.vertex(xMin + "." + (yMin + 1));
 		Vertex right = graph.vertex(xMax + "." + (yMin + 1));
+		boolean pair = ((yMin + 1) % 2 == 0);
 
 		if(isFirstTurn) {
-			boolean pair = ((yMin + 1) % 2 == 0);
 			sw = (pair) ? left : right;
 			setStart(sw);
-			subnetForVertex.put(sw, subNet);
+			subnetForVertex.put(sw,  ++maxSN);
+			return sw;
 		}
-		else if(isVisited(left) || isVisited(right)){
+
+		if(isVisited(left) || isVisited(right)){
 			sw = (isVisited(left)) ? left : right;
-			subNet = subnetForVertex.get(sw);
+			return sw;
 		}
-		else {
-			sw = nextVisited();
-			if (sw == null) {
-				sw = nextBridgeLinkedStartVertex();
-				if(sw == null) {
-					boolean pair = ((yMin + 1) % 2 == 0);
-					sw = (pair) ? left : right;
-					setStart(sw);
-					subnetForVertex.put(sw, subNet);
-					return sw;
-				}
-				setStart(sw);
-				subNet = ++maxSN;
-				subnetForVertex.put(sw, subNet);
-			}
-			subNet = subnetForVertex.get(sw);
+
+		sw = nextVisited();
+		if(null != sw) {
+			return sw;
 		}
+
+		sw = nextBridgeLinkedStartVertex();
+		if(sw == null) {
+			sw = (pair) ? left : right;
+		}
+		setStart(sw);
+		subnetForVertex.put(sw,  ++maxSN);
 		return sw;
 	}
 
-	private void formSegmentFrom(Vertex sw) {
+	private Segment formSegmentFrom(Vertex sw) {
+		currentSegment = new Segment();
+		Segment segment = null;
 		if (find(sw)) {
-			segments.add(new Segment());
+			segment = currentSegment;
 		} else if (isVisited(sw)) {
 			setTerminal(sw);
 		} else if (isFinalTurn()) {
@@ -142,24 +152,14 @@ public class SR {
 		} else {
 			unsetStart(sw);
 		}
+		return segment;
 	}
 
-	private Vertex pickNextVertex() {
-		Vertex sw = nextVisited();
-		if (sw == null) { // if didnt find
-			if (isFinalTurn() && (sw = nextBridgeLinkedStartVertex()) != null) {
-				subNet = ++maxSN;
-				segments.get(segments.size() - 1).add(sw);// sg.add(sw);
-				segmentForVertex.put(sw, segments.get(segments.size() - 1));
-				setStart(sw);
-				visit(sw);
-				subnetForVertex.put(sw, subNet);
-			}
-			else {
-				if (segments.get(segments.size()-1).getLinks().isEmpty()/* sg.getLinks().isEmpty()*/)
-					segments.remove(segments.get(segments.size()-1));
-				return null;
-			}
+	private Vertex pickNextStartVertex() {
+		Vertex sw = null;
+		if (isFinalTurn() && (sw = nextBridgeLinkedStartVertex()) != null) {
+			setStart(sw);
+			subnetForVertex.put(sw, ++maxSN);
 		}
 		return sw;
 	}
@@ -169,7 +169,7 @@ public class SR {
 	}
 
 	private boolean find(Vertex sw) {
-		Segment segm = segments.get(segments.size()-1);
+		Segment segm = currentSegment;
 		if (!isVisited(sw)) {
 			segm.add(sw);
 			segmentForVertex.put(sw, segm);
@@ -218,10 +218,11 @@ public class SR {
 		Collections.reverse(suitables);
 		for (int i = 0; i < suitables.size(); i++) {
 			Vertex tic = suitables.get(i);
+			if (suitableLinks(tic).size() > 1)
+				return tic;
 			for (int j = i + 1; j < suitables.size(); j++) {
 				Vertex tac = suitables.get(j);
 				if (subnetForVertex.get(tic).equals(subnetForVertex.get(tac))) {
-					subNet = subnetForVertex.get(tic);
 					return tic;
 				}
 			}
@@ -466,43 +467,4 @@ public class SR {
 		}
 		return result;
 	}
-
-	private class Bridge {
-		private int cnt; // counter
-		private int[] pre; // pre[v] = order in which dfs examines v
-		private int[] low; // low[v] = lowest preorder of any vertex connected to v
-
-		public Bridge(Graph G) {
-			assert G != null : "Ponteiro nulo para grafo!";
-			low = new int[G.getVertices().size()];
-			pre = new int[G.getVertices().size()];
-			cnt = 0;
-			for (int v = 0; v < G.getVertices().size(); v++)
-				low[v] = pre[v] = -1;
-
-			for (Vertex v: G.getVertices())
-				
-				if (pre[G.indexOf(v)] == -1)
-					dfs(G, v, v);
-		}
-
-		private void dfs(Graph g, Vertex u, Vertex v) {
-			assert g != null && u != null && v != null : "Null pointer to vertices or graph!";
-			low[g.indexOf(v)] = pre[g.indexOf(v)] = cnt++;
-			for(Edge e : v.adjuncts()) {
-				Vertex w = e.destination();
-				if (pre[g.indexOf(w)] == -1) {
-					dfs(g, v, w);
-					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
-					if (low[g.indexOf(w)] == pre[g.indexOf(w)]) {
-						bridges.add(e);
-					}
-				}
-				else if (!w.equals(u))
-					low[g.indexOf(v)] = Math.min(low[g.indexOf(v)], low[g.indexOf(w)]);
-			}
-		}
-		
-	}
-
 }
