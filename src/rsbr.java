@@ -53,8 +53,8 @@ public class rsbr {
 			}
 
 			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
-			double lwm = statistics.linkWeightMean(allMinimalPaths);
-			double pwm = statistics.pathWeightMean(allMinimalPaths);
+			double lwm = statistics.averageLinkWeight(allMinimalPaths);
+			double pwm = statistics.averagePathWeight(allMinimalPaths);
 
 			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, lwm, pwm);
 			printResults(chosenPaths, statistics);
@@ -145,11 +145,12 @@ public class rsbr {
 		System.out.println("ARD: " + ard);
 	}
 
-	private static void setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
+	private static Map<Path, Double> setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
 
 		int N = graph.dimX()*graph.dimY();
 		double[][] vol = new double[N][N];
 		double maxVol = 0;
+		Map<Path, Double> pathsVolume = new HashMap<>();
 
 		try {
 			Scanner sc = new Scanner(new FileReader(commvol));
@@ -172,8 +173,9 @@ public class rsbr {
 			int j = graph.indexOf(alp.get(0).dst());
 			double volume = vol[i][j];
 			for(Path path : alp) {
-				path.setVolume(volume/maxVol);
+				pathsVolume.put(path, volume/maxVol);
 			}
 		}
+		return pathsVolume;
 	}
 }

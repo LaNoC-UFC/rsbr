@@ -1,12 +1,10 @@
 package util;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 
 public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 
 	private static final long serialVersionUID = 1L;
-	private double volume;
 
 	public static class MinWeight implements Comparator<Path> {
 
@@ -81,12 +79,10 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 	
 	public Path() {
 		super();
-		volume = 1;
 	}
 
 	public Path(Path p) {
 		super(p);
-		this.volume = p.volume;
 	}
 
 	private int edgesCount() {
@@ -118,25 +114,17 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 	public void incremWeight() {
 		for (int i = 0; i < edgesCount(); i++) {
 			Edge edge = this.get(i).edge(this.get(i + 1));
-			edge.setWeight(edge.weight() + volume);
+			edge.setWeight(edge.weight() + 1);
 		}
 	}
 
 	public void decremWeight() {
 		for (int i = 0; i < edgesCount(); i++) {
 			Edge edge = this.get(i).edge(this.get(i + 1));
-			edge.setWeight(edge.weight() - volume);
+			edge.setWeight(edge.weight() - 1);
 		}
 	}
 	
-	public double volume() {
-		return volume;
-	}
-
-	public void setVolume(double vol) {
-		this.volume = vol;
-	}
-
 	public int compareTo(Path other) {
 		if (this.edgesCount() < other.edgesCount())
 			return -1;
@@ -144,24 +132,14 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 		if (this.edgesCount() > other.edgesCount())
 			return 1;
 		return 0;
-
 	}
 
-	/**
-	 * Return the string of the volume and all routers of this path.
-	 */
 	public String toString() {
-
-//		return "src: " + this.src().name() + ", dst: "
-//				+ this.dst().name() + ", size: " + this.edgesCount()
-//				+ ", weight: " + this.weight();
-		String pathLine = "" + volume + ":";
+		String pathLine = "";
 		for(Vertex v : this)
 		{
 			pathLine += " " + v.name();
 		}
 		return pathLine;
-
 	}
-
 }

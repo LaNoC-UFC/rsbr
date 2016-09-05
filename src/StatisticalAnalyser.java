@@ -55,20 +55,13 @@ public class StatisticalAnalyser {
         return numberOfRegionsPerVertex ;
     }
 
-    public double linkWeightMean(ArrayList<ArrayList<Path>> paths) {
-        double acc = 0;
+    public double averageLinkWeight(ArrayList<ArrayList<Path>> paths) {
+        double totalOfLoadedEdges = 0;
         for(ArrayList<Path> alp : paths) {
             Path path = alp.get(0);
-            acc += ((double)path.size()-1.0)*path.volume();
+            totalOfLoadedEdges += (double) path.size() - 1.0;
         }
-        return acc/(double)graph.getEdges().size();
-    }
-
-    public double pathWeightMean(ArrayList<ArrayList<Path>> paths) {
-        double acc = 0;
-        for(ArrayList<Path> alp : paths)
-            acc += (double) (alp.get(0).size()-1);
-        return acc*linkWeightMean(paths)/(double)paths.size();
+        return totalOfLoadedEdges / (double)graph.getEdges().size();
     }
 
     public double standardDeviationPathWeight(ArrayList<ArrayList<Path>> paths) {
