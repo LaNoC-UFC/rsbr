@@ -56,9 +56,9 @@ public class rsbr {
 			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths);
 
 			System.out.println(" - RBR Section");
+			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full");
+			RBRSection(shouldMerge, graph, chosenPaths, rbr, "custom");
 			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
-			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, statistics, "full");
-			RBRSection(shouldMerge, graph, chosenPaths, rbr, statistics, "custom");
 			printResults(chosenPaths, statistics);
 		}
 	}
@@ -72,7 +72,7 @@ public class rsbr {
 		return sbr.restrictions();
 	}
 
-	private static void RBRSection(boolean shouldMerge, Graph graph, ArrayList<ArrayList<Path>> allMinimalPaths, RBR rbr, StatisticalAnalyser statistics, String fileSuffix) {
+	private static void RBRSection(boolean shouldMerge, Graph graph, ArrayList<ArrayList<Path>> allMinimalPaths, RBR rbr, String fileSuffix) {
 		System.out.println("Regions Computation");
 		rbr.addRoutingOptions(allMinimalPaths);
 		rbr.regionsComputation();
