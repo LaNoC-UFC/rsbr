@@ -52,16 +52,13 @@ public class rsbr {
 				}
 			}
 
-			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
-			double lwm = statistics.averageLinkWeight(allMinimalPaths);
-			double pwm = statistics.averagePathWeight(allMinimalPaths);
-
-			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, lwm, pwm);
-			printResults(chosenPaths, statistics);
+			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths);
 
 			System.out.println(" - RBR Section");
+			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
 			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, statistics, "full");
 			RBRSection(shouldMerge, graph, chosenPaths, rbr, statistics, "custom");
+			printResults(chosenPaths, statistics);
 		}
 	}
 
@@ -93,7 +90,7 @@ public class rsbr {
 		return (dimX - 1)*dimY + (dimY - 1)*dimX;
 	}
 
-	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, double lwm, double pwm) {
+	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths) {
 		ArrayList<ArrayList<Path>> chosenPaths = null;
 
 		int choice = 5;
@@ -109,16 +106,8 @@ public class rsbr {
                 chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
                 System.out.println("Peso Minimo");
                 break;
-            case 3: // Peso proporcional
-                chosenPaths = new ComparativePathSelector(paths, new Path().new PropWeight(lwm), 10).selection();
-                System.out.println("Peso proporcional");
-                break;
-            case 4: // Peso médio
-                chosenPaths = new ComparativePathSelector(paths, new Path().new MedWeight(pwm), 10).selection();
-                System.out.println("Peso médio");
-                break;
             case 5: // Peso máximo
-                chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeight(), 2).selection();
         }
 		return chosenPaths;
 	}

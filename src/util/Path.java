@@ -39,44 +39,6 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 		
 	}
 	
-	public class MedWeight implements Comparator<Path> {
-
-		private double med; // peso total dividido pelo numero de paths
-		
-		public MedWeight(double med) {
-			this.med = med;
-		}
-		
-		@Override
-		public int compare(Path p0, Path p1) {
-			double err0 = Math.abs(p0.getWeight()-med);
-			double err1 = Math.abs(p1.getWeight()-med);
-			if(err0 < err1) return -1;
-			if(err0 > err1) return +1;
-			return 0;
-		}
-		
-	}
-	
-	public class PropWeight implements Comparator<Path> {
-
-		private double linkWeightMean; // peso medio dos links a ser mutiplicado pelo tamanho do path
-		
-		public PropWeight(double linkWeightMean) {
-			this.linkWeightMean = linkWeightMean;
-		}
-		
-		@Override
-		public int compare(Path p0, Path p1) {
-			double err0 = Math.abs(p0.getWeight()-linkWeightMean*(double)p0.edgesCount());
-			double err1 = Math.abs(p1.getWeight()-linkWeightMean*(double)p1.edgesCount());
-			if(err0 < err1) return -1;
-			if(err0 > err1) return +1;
-			return 0;
-		}
-		
-	}
-	
 	public Path() {
 		super();
 	}

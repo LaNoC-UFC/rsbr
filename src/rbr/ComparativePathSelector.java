@@ -51,21 +51,12 @@ public class ComparativePathSelector {
         }
 
         for(int i = 0; i < iterationsCount - 1; i++) {
-            sortIfEqualization(result);
             reselectPaths(result);
         }
         return result;
     }
 
-    private void sortIfEqualization(ArrayList<ArrayList<Path>> selectedPaths) {
-        if(comparator.getClass() == Path.PropWeight.class) {
-            Collections.sort(selectedPaths, new ByStandardDeviation(comparator));
-            Collections.sort(paths, new ByStandardDeviation(comparator));
-        }
-    }
-
     private void reselectPaths(ArrayList<ArrayList<Path>> selectedPaths) {
-        sortIfEqualization(selectedPaths);
         for(int j = 0; j < paths.size(); j++) {
             ArrayList<Path> samePairPaths = paths.get(j);
             if(samePairPaths.size() == 1)
