@@ -1,4 +1,4 @@
-package rbr;
+package paths_gen;
 
 import util.Path;
 

@@ -3,6 +3,7 @@ import java.util.*;
 
 import util.*;
 import rbr.*;
+import paths_gen.*;
 import sbr.SR;
 
 public class rsbr {
