@@ -1,38 +1,19 @@
 package paths_gen;
 
+import java.util.*;
 import util.Path;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 public class ComparativePathSelector {
-
     private ArrayList<ArrayList<Path>> paths;
     private Comparator<Path> comparator;
     private int iterationsCount = 0;
 
     private static class ByNumberOfPaths implements Comparator<ArrayList<Path>> {
-
         @Override
         public int compare(ArrayList<Path> p0, ArrayList<Path> p1) {
             if(p0.size() < p1.size()) return -1;
             if(p0.size() > p1.size()) return +1;
             return 0;
-        }
-    }
-
-    private static class ByStandardDeviation implements Comparator<ArrayList<Path>> {
-
-        private Comparator<Path> comp;
-
-        private ByStandardDeviation(Comparator<Path> c) {
-            comp = c;
-        }
-
-        @Override
-        public int compare(ArrayList<Path> p0, ArrayList<Path> p1) {
-            return comp.compare(p0.get(0), p1.get(0))*-1;
         }
     }
 
