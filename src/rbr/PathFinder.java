@@ -4,6 +4,8 @@ import util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
 
 public class PathFinder {
     private Graph graph;
@@ -16,7 +18,7 @@ public class PathFinder {
 
     public ArrayList<ArrayList<Path>> pathsComputation() {
         ArrayList<Path> result = new ArrayList<Path>();
-        ArrayList<String> alreadyFoundPairs = new ArrayList<String>();
+        Set<String> alreadyFoundPairs = new HashSet<String>();
         // N = 1 hop
         ArrayList<Path> oneHopPaths = computeOneHopPaths(alreadyFoundPairs);
         result.addAll(oneHopPaths);
@@ -31,7 +33,7 @@ public class PathFinder {
         return divideByPair(result);
     }
 
-    private ArrayList<Path> computeOneHopPaths(ArrayList<String> alreadyFoundPairs) {
+    private ArrayList<Path> computeOneHopPaths(Set<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<Path>();
         for (Vertex src : graph.getVertices()) {
             for (Edge e : src.adjuncts()) {
@@ -48,21 +50,18 @@ public class PathFinder {
         return result;
     }
 
-    private ArrayList<Path> advanceOneHop(ArrayList<Path> previouslyFoundPaths, ArrayList<String> alreadyFoundPairs) {
+    private ArrayList<Path> advanceOneHop(ArrayList<Path> previouslyFoundPaths, Set<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<Path>();
         for (Path p : previouslyFoundPaths)
             result.addAll(advanceOneHop(p, alreadyFoundPairs));
 
-        for (Path p : result) {
-            // @ToDo change this to a Set to not worry with duplication
-            if (!alreadyFoundPairs.contains(pairDescriptor(p.src(), p.dst()))) {
+        for (Path p : result)
                 alreadyFoundPairs.add(pairDescriptor(p.src(), p.dst()));
-            }
-        }
+
         return result;
     }
 
-    private ArrayList<Path> advanceOneHop(Path p, ArrayList<String> alreadyFoundPairs) {
+    private ArrayList<Path> advanceOneHop(Path p, Set<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<Path>();
         Vertex currentSrc = p.dst();
         Vertex predecessor = p.get(p.size() - 2);
