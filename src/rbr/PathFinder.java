@@ -1,11 +1,7 @@
 package rbr;
 
 import util.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 public class PathFinder {
     private Graph graph;
@@ -17,8 +13,8 @@ public class PathFinder {
     }
 
     public ArrayList<ArrayList<Path>> pathsComputation() {
-        ArrayList<Path> result = new ArrayList<Path>();
-        Set<String> alreadyFoundPairs = new HashSet<String>();
+        ArrayList<Path> result = new ArrayList<>();
+        Set<String> alreadyFoundPairs = new HashSet<>();
         // N = 1 hop
         ArrayList<Path> oneHopPaths = computeOneHopPaths(alreadyFoundPairs);
         result.addAll(oneHopPaths);
@@ -34,7 +30,7 @@ public class PathFinder {
     }
 
     private ArrayList<Path> computeOneHopPaths(Set<String> alreadyFoundPairs) {
-        ArrayList<Path> result = new ArrayList<Path>();
+        ArrayList<Path> result = new ArrayList<>();
         for (Vertex src : graph.getVertices()) {
             for (Edge e : src.adjuncts()) {
                 Vertex dst = e.destination();
@@ -51,7 +47,7 @@ public class PathFinder {
     }
 
     private ArrayList<Path> advanceOneHop(ArrayList<Path> previouslyFoundPaths, Set<String> alreadyFoundPairs) {
-        ArrayList<Path> result = new ArrayList<Path>();
+        ArrayList<Path> result = new ArrayList<>();
         for (Path p : previouslyFoundPaths)
             result.addAll(advanceOneHop(p, alreadyFoundPairs));
 
@@ -62,7 +58,7 @@ public class PathFinder {
     }
 
     private ArrayList<Path> advanceOneHop(Path p, Set<String> alreadyFoundPairs) {
-        ArrayList<Path> result = new ArrayList<Path>();
+        ArrayList<Path> result = new ArrayList<>();
         Vertex currentSrc = p.dst();
         Vertex predecessor = p.get(p.size() - 2);
         String inputPort = currentSrc.edge(predecessor).color();
