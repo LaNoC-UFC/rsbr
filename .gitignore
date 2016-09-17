@@ -5,6 +5,11 @@ out/
 .project
 *~
 *.jar
+ard
+lw-Mean
+lw-Std
+region-Max
+*.vhd
 *.txt
 *.vhd
 rsbr.iml

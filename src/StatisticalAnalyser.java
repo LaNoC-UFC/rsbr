@@ -125,4 +125,16 @@ public class StatisticalAnalyser {
         stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
         return stats;
     }
+
+    // Calculate routing distance -> all paths lengths / #paths
+    public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {
+        double routingDistance = 0.0;
+
+        for (ArrayList<Path> path : paths)
+            routingDistance += path.size();
+
+        // Cover paths with the same source and destination
+        routingDistance += this.graph.getVertices().size();
+        return routingDistance / (paths.size() + this.graph.getVertices().size());
+    }
 }
