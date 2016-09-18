@@ -135,11 +135,12 @@ public class rsbr {
 		double[] lw = statistics.linkWeightStats();
 		double[] pw = statistics.pathWeightStats(paths);
 		double[] pnw = statistics.pathNormWeightStats(paths);
-		
+		double ard = statistics.averageRoutingDistance(paths);
 		//System.out.println("Regions - Min: "+reg[0]+", Med: "+reg[1]+", Max: "+reg[2]);
 		System.out.println("Peso dos caminhos: "+pw[0]+" ("+pw[1]+")");
 		System.out.println("Peso normalizado dos caminhos: "+pnw[0]+" ("+pnw[1]+")");
 		System.out.println("Peso dos links: "+lw[0]+" ("+lw[1]+")");
+	  System.out.println("ARD: " + ard);
 	}
 
 	private static void setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
