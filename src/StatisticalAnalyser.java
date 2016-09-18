@@ -126,15 +126,13 @@ public class StatisticalAnalyser {
         return stats;
     }
 
-    // Calculate routing distance -> all paths lengths / #paths
 		public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {
-			double routingDistance = 0.0;
-
+			double accumulatedPathLength = 0.0;
+      int nPaths = paths.size() + this.graph.getVertices().size();
 			for (ArrayList<Path> path : paths)
-				routingDistance += path.size();
-
+				accumulatedPathLength += path.size();
 			// Cover paths with the same source and destination
-			routingDistance += this.graph.getVertices().size();
-			return routingDistance / (paths.size() + this.graph.getVertices().size());
+			accumulatedPathLength += this.graph.getVertices().size();
+			return accumulatedPathLength / (double)nPaths;
 		}
 }
