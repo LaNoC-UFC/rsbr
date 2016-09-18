@@ -140,7 +140,7 @@ public class rsbr {
 		System.out.println("Peso dos caminhos: "+pw[0]+" ("+pw[1]+")");
 		System.out.println("Peso normalizado dos caminhos: "+pnw[0]+" ("+pnw[1]+")");
 		System.out.println("Peso dos links: "+lw[0]+" ("+lw[1]+")");
-	 System.out.println("ARD: " + ard;
+	  System.out.println("ARD: " + ard);
 	}
 
 	private static void setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
