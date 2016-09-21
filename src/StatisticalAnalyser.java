@@ -15,55 +15,50 @@ public class StatisticalAnalyser {
         this.graph = graph;
         this.regionsForVertex = regionsForVertex;
     }
-    // Link weight stats [0] - mean / [1] - standard deviation
-    public double[] linkWeightStats() {
-        double linksWeight = 0.0;
-        double[] stats = new double[2];
-        double mean = 0.0;
-        double std = 0.0;
 
-        for (Edge link : graph.getEdges())
-            linksWeight += (double) link.weight();
-
-        mean = linksWeight / (double) graph.getEdges().size();
-        stats[0] = mean;
-
+    public double linkWeightStdDeviation() {
         double temp = 0.0;
+        double mean = linkWeightAverage();
+
         for (Edge link : graph.getEdges())
-            temp += ((double) link.weight() - mean)
-                    * ((double) link.weight() - mean);
+            temp += (link.weight() - mean)
+                    * (link.weight() - mean);
 
-        double variance = (temp / (double) (graph.getEdges().size()));
-        // size-1 for sample. We have population
-
-        std = Math.sqrt(variance);
-        stats[1] = std;
-
-        return stats;
+        int nEdges = graph.getEdges().size();
+        return  Math.sqrt(temp / (double) nEdges);
     }
 
-    // Calculates the regions stats - [0] - Max / [1] - Min / [2] - Average
-    public double[] getRegionsStats() {
+    public double linkWeightAverage() {
+        double sum = 0.0;
+        for (Edge link : graph.getEdges())
+            sum += link.weight();
 
-        double[] stats = new double[3];
-        double average;
+        int nEdges = graph.getEdges().size();
+        return sum / (double) nEdges;
+    }
+
+    public int maxNumberOfRegions() {
+        return regSizes().get(regSizes().size() - 1);
+    }
+
+    public int minNumberOfRegions() {
+        return regSizes().get(0);
+    }
+
+    public double averageNumberOfRegions() {
+        int sum = 0;
+        for (int size : regSizes())
+            sum += size;
+        return (double)(sum / regSizes().size());
+    }
+
+    private List<Integer> regSizes() {
         List<Integer> regSizes = new ArrayList<>();
-
         for (Vertex r : graph.getVertices()) {
             regSizes.add(regionsForVertex.get(r).size());
         }
         Collections.sort(regSizes);
-
-        int sum = 0;
-        for (int size : regSizes) {
-            sum += size;
-        }
-        average = sum / regSizes.size();
-
-        stats[0] = (double) regSizes.get(regSizes.size() - 1);
-        stats[1] = (double) regSizes.get(0);
-        stats[2] = (double) average;
-        return stats;
+        return regSizes;
     }
 
     public double linkWeightMean(ArrayList<ArrayList<Path>> paths) {
@@ -82,30 +77,46 @@ public class StatisticalAnalyser {
         return acc*linkWeightMean(paths)/(double)paths.size();
     }
 
-    public double[] pathWeightStats(ArrayList<ArrayList<Path>> paths) {
-        double[] stats = new double[2];
-        double acc = 0;
+    public double pathWeightStdDeviation(ArrayList<ArrayList<Path>> paths) {
+        int nPaths = 0;
+        double acc = 0.0; double dev;
+        double average = pathWeightAverage(paths);
+        for(ArrayList<Path> alp : paths) {
+            nPaths += alp.size();
+            for(Path path: alp) {
+                dev = path.getWeight() - average;
+                acc += dev*dev;
+            }
+        }
+        return Math.sqrt(acc/(double)nPaths);
+    }
+
+    public double pathWeightAverage(ArrayList<ArrayList<Path>> paths) {
+        double acc = 0.0;
         int nPaths = 0;
         for(ArrayList<Path> alp : paths) {
             nPaths += alp.size();
             for(Path path: alp)
                 acc += path.getWeight();
         }
-        stats[0] = acc/(double)nPaths; // media
+        return acc/(double)nPaths;
+    }
 
-        acc = 0; double dev;
+    public double pathNormWeightStdDeviation(ArrayList<ArrayList<Path>> paths) {
+        int nPaths = 0;
+        double acc = 0.0; double dev;
+        double average = pathNormWeightAverage(paths);
         for(ArrayList<Path> alp : paths) {
+            nPaths += alp.size();
             for(Path path: alp) {
-                dev = path.getWeight()-stats[0];
+                dev = average-path.getWeight()/(double)(path.size()-1);
                 acc += dev*dev;
             }
         }
-        stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
-        return stats;
+        return Math.sqrt(acc/(double)nPaths);
     }
 
-    public double[] pathNormWeightStats(ArrayList<ArrayList<Path>> paths) {
-        double[] stats = new double[2];
+    public double pathNormWeightAverage(ArrayList<ArrayList<Path>> paths) {
         double acc = 0;
         int nPaths = 0;
         for(ArrayList<Path> alp : paths) {
@@ -113,26 +124,16 @@ public class StatisticalAnalyser {
             for(Path path: alp)
                 acc += path.getWeight()/(double)(path.size()-1);
         }
-        stats[0] = acc/(double)nPaths; // media
-
-        acc = 0; double dev;
-        for(ArrayList<Path> alp : paths) {
-            for(Path path: alp) {
-                dev = stats[0]-path.getWeight()/(double)(path.size()-1);
-                acc += dev*dev;
-            }
-        }
-        stats[1] = Math.sqrt(acc/(double)nPaths); // desvio padrao
-        return stats;
+        return acc/(double)nPaths;
     }
 
-		public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {
-			double accumulatedPathLength = 0.0;
-      int nPaths = paths.size() + this.graph.getVertices().size();
-			for (ArrayList<Path> path : paths)
-				accumulatedPathLength += path.size();
-			// Cover paths with the same source and destination
-			accumulatedPathLength += this.graph.getVertices().size();
-			return accumulatedPathLength / (double)nPaths;
-		}
+    public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {
+        double accumulatedPathLength = 0.0;
+        int nPaths = paths.size() + graph.getVertices().size();
+        for (ArrayList<Path> path : paths)
+            accumulatedPathLength += path.size();
+        // Cover paths with the same source and destination
+        accumulatedPathLength += graph.getVertices().size();
+        return accumulatedPathLength / (double)nPaths;
+    }
 }
