@@ -132,12 +132,12 @@ public class rsbr {
 	}
 
 	private static void printResults(ArrayList<ArrayList<Path>> paths, StatisticalAnalyser statistics) {
-		double lwAverage = statistics.linkWeightAverage();
-		double lwStdDeviation = statistics.linkWeightStdDeviation();
-		double pwAverage = statistics.pathWeightAverage(paths);
-		double pwStdDeviation = statistics.pathWeightStdDeviation(paths);
-		double pnwAverage = statistics.pathNormWeightAverage(paths);
-		double pnwStdDeviation = statistics.pathNormWeightStdDeviation(paths);
+		double lwAverage = statistics.averageLinkWeight();
+		double lwStdDeviation = statistics.standardDeviationLinkWeight();
+		double pwAverage = statistics.averagePathWeight(paths);
+		double pwStdDeviation = statistics.standardDeviationPathWeight(paths);
+		double pnwAverage = statistics.averagePathNormWeight(paths);
+		double pnwStdDeviation = statistics.standardDeviationPathNormWeight(paths);
 		double ard = statistics.averageRoutingDistance(paths);
 		System.out.println("Peso dos caminhos: "+pwAverage+" ("+pwStdDeviation+")");
 		System.out.println("Peso normalizado dos caminhos: "+pnwAverage+" ("+pnwStdDeviation+")");
