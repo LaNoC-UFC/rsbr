@@ -121,11 +121,17 @@ public class StatisticalAnalyser {
 
     public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {
         double accumulatedPathLength = 0.0;
-        int nPaths = paths.size() + graph.getVertices().size();
-        for (ArrayList<Path> path : paths)
-            accumulatedPathLength += path.size();
-        // Cover paths with the same source and destination
-        accumulatedPathLength += graph.getVertices().size();
+        int nPaths = oneHopPaths(graph);
+        for (ArrayList<Path> alp : paths) {
+            nPaths += alp.size();
+            for (Path path : alp)
+                accumulatedPathLength += path.size();
+        }
+        accumulatedPathLength += oneHopPaths(graph);
         return accumulatedPathLength / (double)nPaths;
+    }
+
+    private int oneHopPaths(Graph graph){
+        return graph.getVertices().size();
     }
 }
