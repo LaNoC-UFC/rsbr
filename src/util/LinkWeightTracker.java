@@ -3,19 +3,25 @@ package util;
 import java.util.*;
 
 public class LinkWeightTracker {
-    private Map<Edge,Double> weights;
+    private Map<Edge, Double> edgesWeights;
+    private Map<Path, Double> pathsVolume = null;
 
     public LinkWeightTracker(Graph g) {
-        weights = new HashMap<>();
+        edgesWeights = new HashMap<>();
         for(Edge e : g.getEdges()) {
-            weights.put(e, 0.0);
+            edgesWeights.put(e, 0.0);
         }
+    }
+
+    public LinkWeightTracker(Graph g, Map<Path, Double> volumes) {
+        this(g);
+        pathsVolume = volumes;
     }
 
     public void add(Path p) {
         for(Edge e : p.edges()) {
-            double newWeight = weights.get(e) + 1.0;
-            weights.put(e, newWeight);
+            double newWeight = edgesWeights.get(e) + volume(p);
+            edgesWeights.put(e, newWeight);
         }
     }
 
@@ -33,10 +39,14 @@ public class LinkWeightTracker {
 
     void remove(Path p) {
         for(Edge e : p.edges()) {
-            double newWeight = weights.get(e) - 1.0;
+            double newWeight = edgesWeights.get(e) - volume(p);
             assert 0 <= newWeight;
-            weights.put(e, newWeight);
+            edgesWeights.put(e, newWeight);
         }
+    }
+
+    private double volume(Path p) {
+        return (null == pathsVolume) ? 1.0 : pathsVolume.get(p);
     }
 
     public double weight(Path p) {
@@ -48,10 +58,10 @@ public class LinkWeightTracker {
     }
 
     double weight(Edge e) {
-        return weights.get(e);
+        return edgesWeights.get(e);
     }
 
     public Collection<Double> edgesWeight() {
-        return weights.values();
+        return edgesWeights.values();
     }
 }

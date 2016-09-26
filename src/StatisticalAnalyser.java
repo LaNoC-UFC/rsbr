@@ -6,10 +6,12 @@ public class StatisticalAnalyser {
 
     private Graph graph;
     private Map<Vertex, ArrayList<Region>> regionsForVertex;
+    private Map<Path, Double> pathsWeight;
 
-    public StatisticalAnalyser(Graph graph, Map<Vertex, ArrayList<Region>> regionsForVertex) {
+    public StatisticalAnalyser(Graph graph, Map<Vertex, ArrayList<Region>> regionsForVertex, Map<Path, Double> volume) {
         this.graph = graph;
         this.regionsForVertex = regionsForVertex;
+        pathsWeight = volume;
     }
 
     public double standardDeviationLinkWeight(ArrayList<ArrayList<Path>> paths) {
@@ -112,7 +114,7 @@ public class StatisticalAnalyser {
     }
 
     private LinkWeightTracker linkWeightTracker(ArrayList<ArrayList<Path>> paths) {
-        LinkWeightTracker lwTracker = new LinkWeightTracker(graph);
+        LinkWeightTracker lwTracker = new LinkWeightTracker(graph, pathsWeight);
         for (ArrayList<Path> samePairPaths : paths) {
             lwTracker.addAll(samePairPaths);
         }

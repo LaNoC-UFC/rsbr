@@ -44,21 +44,22 @@ public class rsbr {
 			System.out.println(" - Paths Selection Section");
 			RBR rbr = new RBR(graph);
 
+			Map<Path, Double> volumes = null;
 			if (volumePath != null) {
 				File commvol = new File(volumePath);
 				if (commvol.exists()) {
 					System.out
 							.println("Getting volumes from " + volumePath);
-					setCommunicationVolume(allMinimalPaths, commvol, graph);
+					volumes = communicationVolume(allMinimalPaths, commvol, graph);
 				}
 			}
 
-			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, graph);
+			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, graph, volumes);
 
 			System.out.println(" - RBR Section");
 			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full");
 			RBRSection(shouldMerge, graph, chosenPaths, rbr, "custom");
-			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
+			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions(), volumes);
 			printResults(chosenPaths, statistics);
 		}
 	}
@@ -91,9 +92,9 @@ public class rsbr {
 		return (dimX - 1)*dimY + (dimY - 1)*dimX;
 	}
 
-	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, Graph g) {
+	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, Graph g, Map<Path, Double> volumes) {
 		ArrayList<ArrayList<Path>> chosenPaths = null;
-		LinkWeightTracker lwTracker = new LinkWeightTracker(g);
+		LinkWeightTracker lwTracker = new LinkWeightTracker(g, volumes);
 		int choice = 5;
 		switch (choice) {
             case 0: // Sem seleção
@@ -135,7 +136,7 @@ public class rsbr {
 		System.out.println("ARD: " + ard);
 	}
 
-	private static Map<Path, Double> setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
+	private static Map<Path, Double> communicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
 
 		int N = graph.dimX()*graph.dimY();
 		double[][] vol = new double[N][N];
