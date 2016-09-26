@@ -63,6 +63,13 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 		return this.size()-1;
 	}
 
+	public Collection<Edge> edges() {
+		List<Edge> edges = new ArrayList<>();
+		for (int i = 0; i < edgesCount(); i++)
+			edges.add(this.get(i).edge(this.get(i + 1)));
+		return edges;
+	}
+
 	// Sum of Edge's weight
 	public double getWeight() {
 		double weight = 0;
