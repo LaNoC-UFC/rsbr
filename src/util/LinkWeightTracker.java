@@ -51,7 +51,7 @@ public class LinkWeightTracker {
         return pathWeight;
     }
 
-    Collection<Double> edgesWeight() {
+    public Collection<Double> edgesWeight() {
         return weights.values();
     }
 }

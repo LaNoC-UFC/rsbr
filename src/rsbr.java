@@ -122,8 +122,8 @@ public class rsbr {
 	}
 
 	private static void printResults(ArrayList<ArrayList<Path>> paths, StatisticalAnalyser statistics) {
-		double lwAverage = statistics.averageLinkWeight();
-		double lwStdDeviation = statistics.standardDeviationLinkWeight();
+		double lwAverage = statistics.averageLinkWeight(paths);
+		double lwStdDeviation = statistics.standardDeviationLinkWeight(paths);
 		double pwAverage = statistics.averagePathWeight(paths);
 		double pwStdDeviation = statistics.standardDeviationPathWeight(paths);
 		double pnwAverage = statistics.averagePathNormWeight(paths);

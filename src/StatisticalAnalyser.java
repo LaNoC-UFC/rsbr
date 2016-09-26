@@ -12,22 +12,26 @@ public class StatisticalAnalyser {
         this.regionsForVertex = regionsForVertex;
     }
 
-    public double standardDeviationLinkWeight() {
+    public double standardDeviationLinkWeight(ArrayList<ArrayList<Path>> paths) {
         double accumulatedDeviation = 0.0;
-        double average = averageLinkWeight();
-        for (Edge link : graph.getEdges())
-            accumulatedDeviation += Math.pow((link.weight() - average),2);
+        double average = averageLinkWeight(paths);
+        Collection<Double> edgesWeight = linkWeightTracker(paths).edgesWeight();
+        for (Double linkWeight : edgesWeight) {
+            accumulatedDeviation += Math.pow((linkWeight - average), 2);
+        }
 
-        int nEdges = graph.getEdges().size();
+        int nEdges = edgesWeight.size();
         return  Math.sqrt(accumulatedDeviation / (double) nEdges);
     }
 
-    public double averageLinkWeight() {
+    public double averageLinkWeight(ArrayList<ArrayList<Path>> paths) {
         double accumulatedLinkWeight = 0.0;
-        for (Edge link : graph.getEdges())
-            accumulatedLinkWeight += link.weight();
+        Collection<Double> edgesWeight = linkWeightTracker(paths).edgesWeight();
+        for (Double linkWeight : edgesWeight) {
+            accumulatedLinkWeight += linkWeight;
+        }
 
-        int nEdges = graph.getEdges().size();
+        int nEdges = edgesWeight.size();
         return accumulatedLinkWeight / (double) nEdges;
     }
 
@@ -53,15 +57,6 @@ public class StatisticalAnalyser {
         }
         Collections.sort(numberOfRegionsPerVertex );
         return numberOfRegionsPerVertex ;
-    }
-
-    public double averageLinkWeight(ArrayList<ArrayList<Path>> paths) {
-        double totalOfLoadedEdges = 0;
-        for(ArrayList<Path> alp : paths) {
-            Path path = alp.get(0);
-            totalOfLoadedEdges += (double) path.size() - 1.0;
-        }
-        return totalOfLoadedEdges / (double)graph.getEdges().size();
     }
 
     public double standardDeviationPathWeight(ArrayList<ArrayList<Path>> paths) {
