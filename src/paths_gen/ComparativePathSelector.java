@@ -1,12 +1,13 @@
 package paths_gen;
 
 import java.util.*;
-import util.Path;
+import util.*;
 
 public class ComparativePathSelector {
     private ArrayList<ArrayList<Path>> paths;
     private Comparator<Path> comparator;
     private int iterationsCount = 0;
+    private LinkWeightTracker linkWeightTracker;
 
     private static class ByNumberOfPaths implements Comparator<ArrayList<Path>> {
         @Override
@@ -17,10 +18,14 @@ public class ComparativePathSelector {
         }
     }
 
-    public ComparativePathSelector(ArrayList<ArrayList<Path>> paths, Comparator<Path> comparator, int iterationsCount) {
+    public ComparativePathSelector(ArrayList<ArrayList<Path>> paths,
+                                   Comparator<Path> comparator,
+                                   int iterationsCount,
+                                   LinkWeightTracker tracker) {
         this.paths = paths;
         this.comparator = comparator;
         this.iterationsCount = iterationsCount;
+        linkWeightTracker = tracker;
     }
 
     public ArrayList<ArrayList<Path>> selection() {
@@ -49,14 +54,13 @@ public class ComparativePathSelector {
 
     private void unselectPaths(ArrayList<ArrayList<Path>> selectedPaths, int index) {
         ArrayList<Path> pair = selectedPaths.remove(index);
-        for(Path path : pair)
-            path.decremWeight();
+        linkWeightTracker.removeAll(pair);
     }
 
     private ArrayList<Path> selectPath(ArrayList<Path> samePairPaths) {
         Collections.sort(samePairPaths, comparator);
         Path selectedPath = samePairPaths.get(0);
-        selectedPath.incremWeight();
+        linkWeightTracker.add(selectedPath);
         ArrayList<Path> result = new ArrayList<>();
         result.add(selectedPath);
         return result;

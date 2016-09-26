@@ -5,21 +5,21 @@ import java.util.*;
 public class LinkWeightTracker {
     private Map<Edge,Double> weights;
 
-    LinkWeightTracker(Graph g) {
+    public LinkWeightTracker(Graph g) {
         weights = new HashMap<>();
         for(Edge e : g.getEdges()) {
             weights.put(e, 0.0);
         }
     }
 
-    void add(Path p) {
+    public void add(Path p) {
         for(Edge e : p.edges()) {
             double newWeight = weights.get(e) + 1.0;
             weights.put(e, newWeight);
         }
     }
 
-    void addAll(Collection<Path> paths) {
+    public void addAll(Collection<Path> paths) {
         for(Path p : paths) {
             add(p);
         }
@@ -33,7 +33,7 @@ public class LinkWeightTracker {
         }
     }
 
-    void removeAll(Collection<Path> paths) {
+    public void removeAll(Collection<Path> paths) {
         for(Path p : paths) {
             remove(p);
         }
@@ -43,7 +43,7 @@ public class LinkWeightTracker {
         return weights.get(e);
     }
 
-    double weight(Path p) {
+    public double weight(Path p) {
         double pathWeight = 0.0;
         for(Edge e : p.edges()) {
             pathWeight += weight(e);

@@ -53,7 +53,7 @@ public class rsbr {
 				}
 			}
 
-			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths);
+			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, graph);
 
 			System.out.println(" - RBR Section");
 			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full");
@@ -91,24 +91,24 @@ public class rsbr {
 		return (dimX - 1)*dimY + (dimY - 1)*dimX;
 	}
 
-	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths) {
+	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, Graph g) {
 		ArrayList<ArrayList<Path>> chosenPaths = null;
-
+		LinkWeightTracker lwTracker = new LinkWeightTracker(g);
 		int choice = 5;
 		switch (choice) {
             case 0: // Sem seleção
                 chosenPaths = paths;
                 break;
             case 1: // Selecao aleatoria
-                chosenPaths = new RandomPathSelector(paths).selection();
+                chosenPaths = new RandomPathSelector(paths, lwTracker).selection();
                 System.out.println("Random");
                 break;
             case 2: // Peso mínimo
-                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(lwTracker), 10, lwTracker).selection();
                 System.out.println("Peso Minimo");
                 break;
             case 5: // Peso máximo
-                chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeight(), 2).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeight(lwTracker), 2, lwTracker).selection();
         }
 		return chosenPaths;
 	}

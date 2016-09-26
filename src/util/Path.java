@@ -7,14 +7,17 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 	private static final long serialVersionUID = 1L;
 
 	public static class MinWeight implements Comparator<Path> {
+		private LinkWeightTracker lwTracker;
 
+		public MinWeight(LinkWeightTracker tracker) {
+			lwTracker = tracker;
+		}
 		@Override
 		public int compare(Path p0, Path p1) {
-			if(p0.getWeight() < p1.getWeight()) return -1;
-			if(p0.getWeight() > p1.getWeight()) return +1;
+			if(lwTracker.weight(p0) < lwTracker.weight(p1)) return -1;
+			if(lwTracker.weight(p0) > lwTracker.weight(p1)) return +1;
 			return 0;
 		}
-
 	}
 	
 	public static class SrcDst implements Comparator<Path> {
@@ -29,14 +32,17 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 	}
 	
 	public static class MaxWeight implements Comparator<Path> {
+		private LinkWeightTracker lwTracker;
 
+		public MaxWeight(LinkWeightTracker tracker) {
+			lwTracker = tracker;
+		}
 		@Override
 		public int compare(Path p0, Path p1) {
-			if(p0.getWeight() < p1.getWeight()) return +1;
-			if(p0.getWeight() > p1.getWeight()) return -1;
+			if(lwTracker.weight(p0) < lwTracker.weight(p1)) return +1;
+			if(lwTracker.weight(p0) > lwTracker.weight(p1)) return -1;
 			return 0;
 		}
-		
 	}
 	
 	public Path() {
