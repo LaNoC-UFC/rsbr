@@ -104,11 +104,11 @@ public class rsbr {
                 System.out.println("Random");
                 break;
             case 2: // Peso mínimo
-                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(lwTracker), 10, lwTracker).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeightComparator(lwTracker), 10, lwTracker).selection();
                 System.out.println("Peso Minimo");
                 break;
             case 5: // Peso máximo
-                chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeight(lwTracker), 2, lwTracker).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeightComparator(lwTracker), 2, lwTracker).selection();
         }
 		return chosenPaths;
 	}

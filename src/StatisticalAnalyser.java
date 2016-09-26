@@ -118,6 +118,7 @@ public class StatisticalAnalyser {
         }
         return lwTracker;
     }
+
     public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {
         double accumulatedPathLength = 0.0;
         int nPaths = paths.size() + graph.getVertices().size();

@@ -30,11 +30,6 @@ public class Edge {
 		return (v == source) ? destination : source;
 	}
 
-	void setWeight(double volume) {
-		assert 0 <= volume : "Link Weight should be non-negative.";
-		this.weight = volume;
-	}
-
 	public double weight() {
 		return this.weight;
 	}

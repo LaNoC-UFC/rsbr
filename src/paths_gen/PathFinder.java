@@ -82,7 +82,7 @@ public class PathFinder {
 
     private ArrayList<ArrayList<Path>> divideByPair(ArrayList<Path> paths) {
         // Sort by pair
-        Collections.sort(paths, new Path.SrcDst());
+        Collections.sort(paths, new Path.SrcDstComparator());
         // Then by length
         Collections.sort(paths);
         // Split by pair

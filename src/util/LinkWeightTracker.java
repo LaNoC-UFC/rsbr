@@ -25,6 +25,12 @@ public class LinkWeightTracker {
         }
     }
 
+    public void removeAll(Collection<Path> paths) {
+        for(Path p : paths) {
+            remove(p);
+        }
+    }
+
     void remove(Path p) {
         for(Edge e : p.edges()) {
             double newWeight = weights.get(e) - 1.0;
@@ -33,22 +39,16 @@ public class LinkWeightTracker {
         }
     }
 
-    public void removeAll(Collection<Path> paths) {
-        for(Path p : paths) {
-            remove(p);
-        }
-    }
-
-    double weight(Edge e) {
-        return weights.get(e);
-    }
-
     public double weight(Path p) {
         double pathWeight = 0.0;
         for(Edge e : p.edges()) {
             pathWeight += weight(e);
         }
         return pathWeight;
+    }
+
+    double weight(Edge e) {
+        return weights.get(e);
     }
 
     public Collection<Double> edgesWeight() {
