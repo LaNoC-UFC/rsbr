@@ -1,19 +1,15 @@
-package rbr;
+package paths_gen;
 
-import util.Path;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
+import util.*;
 
 public class ComparativePathSelector {
-
     private ArrayList<ArrayList<Path>> paths;
     private Comparator<Path> comparator;
     private int iterationsCount = 0;
+    private LinkWeightTracker linkWeightTracker;
 
     private static class ByNumberOfPaths implements Comparator<ArrayList<Path>> {
-
         @Override
         public int compare(ArrayList<Path> p0, ArrayList<Path> p1) {
             if(p0.size() < p1.size()) return -1;
@@ -22,24 +18,14 @@ public class ComparativePathSelector {
         }
     }
 
-    private static class ByStandardDeviation implements Comparator<ArrayList<Path>> {
-
-        private Comparator<Path> comp;
-
-        private ByStandardDeviation(Comparator<Path> c) {
-            comp = c;
-        }
-
-        @Override
-        public int compare(ArrayList<Path> p0, ArrayList<Path> p1) {
-            return comp.compare(p0.get(0), p1.get(0))*-1;
-        }
-    }
-
-    public ComparativePathSelector(ArrayList<ArrayList<Path>> paths, Comparator<Path> comparator, int iterationsCount) {
+    public ComparativePathSelector(ArrayList<ArrayList<Path>> paths,
+                                   Comparator<Path> comparator,
+                                   int iterationsCount,
+                                   LinkWeightTracker tracker) {
         this.paths = paths;
         this.comparator = comparator;
         this.iterationsCount = iterationsCount;
+        linkWeightTracker = tracker;
     }
 
     public ArrayList<ArrayList<Path>> selection() {
@@ -51,21 +37,12 @@ public class ComparativePathSelector {
         }
 
         for(int i = 0; i < iterationsCount - 1; i++) {
-            sortIfEqualization(result);
             reselectPaths(result);
         }
         return result;
     }
 
-    private void sortIfEqualization(ArrayList<ArrayList<Path>> selectedPaths) {
-        if(comparator.getClass() == Path.PropWeight.class) {
-            Collections.sort(selectedPaths, new ByStandardDeviation(comparator));
-            Collections.sort(paths, new ByStandardDeviation(comparator));
-        }
-    }
-
     private void reselectPaths(ArrayList<ArrayList<Path>> selectedPaths) {
-        sortIfEqualization(selectedPaths);
         for(int j = 0; j < paths.size(); j++) {
             ArrayList<Path> samePairPaths = paths.get(j);
             if(samePairPaths.size() == 1)
@@ -77,14 +54,13 @@ public class ComparativePathSelector {
 
     private void unselectPaths(ArrayList<ArrayList<Path>> selectedPaths, int index) {
         ArrayList<Path> pair = selectedPaths.remove(index);
-        for(Path path : pair)
-            path.decremWeight();
+        linkWeightTracker.removeAll(pair);
     }
 
     private ArrayList<Path> selectPath(ArrayList<Path> samePairPaths) {
         Collections.sort(samePairPaths, comparator);
         Path selectedPath = samePairPaths.get(0);
-        selectedPath.incremWeight();
+        linkWeightTracker.add(selectedPath);
         ArrayList<Path> result = new ArrayList<>();
         result.add(selectedPath);
         return result;

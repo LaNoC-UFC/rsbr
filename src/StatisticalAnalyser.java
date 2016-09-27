@@ -6,28 +6,34 @@ public class StatisticalAnalyser {
 
     private Graph graph;
     private Map<Vertex, ArrayList<Region>> regionsForVertex;
+    private Map<Path, Double> pathsWeight;
 
-    public StatisticalAnalyser(Graph graph, Map<Vertex, ArrayList<Region>> regionsForVertex) {
+    public StatisticalAnalyser(Graph graph, Map<Vertex, ArrayList<Region>> regionsForVertex, Map<Path, Double> volume) {
         this.graph = graph;
         this.regionsForVertex = regionsForVertex;
+        pathsWeight = volume;
     }
 
-    public double standardDeviationLinkWeight() {
+    public double standardDeviationLinkWeight(ArrayList<ArrayList<Path>> paths) {
         double accumulatedDeviation = 0.0;
-        double average = averageLinkWeight();
-        for (Edge link : graph.getEdges())
-            accumulatedDeviation += Math.pow((link.weight() - average),2);
+        double average = averageLinkWeight(paths);
+        Collection<Double> edgesWeight = linkWeightTracker(paths).edgesWeight();
+        for (Double linkWeight : edgesWeight) {
+            accumulatedDeviation += Math.pow((linkWeight - average), 2);
+        }
 
-        int nEdges = graph.getEdges().size();
+        int nEdges = edgesWeight.size();
         return  Math.sqrt(accumulatedDeviation / (double) nEdges);
     }
 
-    public double averageLinkWeight() {
+    public double averageLinkWeight(ArrayList<ArrayList<Path>> paths) {
         double accumulatedLinkWeight = 0.0;
-        for (Edge link : graph.getEdges())
-            accumulatedLinkWeight += link.weight();
+        Collection<Double> edgesWeight = linkWeightTracker(paths).edgesWeight();
+        for (Double linkWeight : edgesWeight) {
+            accumulatedLinkWeight += linkWeight;
+        }
 
-        int nEdges = graph.getEdges().size();
+        int nEdges = edgesWeight.size();
         return accumulatedLinkWeight / (double) nEdges;
     }
 
@@ -55,68 +61,64 @@ public class StatisticalAnalyser {
         return numberOfRegionsPerVertex ;
     }
 
-    public double linkWeightMean(ArrayList<ArrayList<Path>> paths) {
-        double acc = 0;
-        for(ArrayList<Path> alp : paths) {
-            Path path = alp.get(0);
-            acc += ((double)path.size()-1.0)*path.volume();
-        }
-        return acc/(double)graph.getEdges().size();
-    }
-
-    public double pathWeightMean(ArrayList<ArrayList<Path>> paths) {
-        double acc = 0;
-        for(ArrayList<Path> alp : paths)
-            acc += (double) (alp.get(0).size()-1);
-        return acc*linkWeightMean(paths)/(double)paths.size();
-    }
-
     public double standardDeviationPathWeight(ArrayList<ArrayList<Path>> paths) {
+        LinkWeightTracker lwTracker = linkWeightTracker(paths);
         int nPaths = 0;
         double accumulatedDeviation = 0.0;
         double average = averagePathWeight(paths);
         for(ArrayList<Path> alp : paths) {
             nPaths += alp.size();
             for(Path path: alp) {
-                accumulatedDeviation += Math.pow((path.getWeight() - average),2);
+                accumulatedDeviation += Math.pow((lwTracker.weight(path) - average),2);
             }
         }
         return Math.sqrt(accumulatedDeviation/(double)nPaths);
     }
 
     public double averagePathWeight(ArrayList<ArrayList<Path>> paths) {
+        LinkWeightTracker lwTracker = linkWeightTracker(paths);
         double accumulatedPathWeight = 0.0;
         int nPaths = 0;
         for(ArrayList<Path> alp : paths) {
             nPaths += alp.size();
             for(Path path: alp)
-                accumulatedPathWeight += path.getWeight();
+                accumulatedPathWeight += lwTracker.weight(path);
         }
         return accumulatedPathWeight/(double)nPaths;
     }
 
     public double standardDeviationPathNormWeight(ArrayList<ArrayList<Path>> paths) {
+        LinkWeightTracker lwTracker = linkWeightTracker(paths);
         int nPaths = 0;
         double accumulatedDeviation = 0.0;
         double average = averagePathNormWeight(paths);
         for(ArrayList<Path> alp : paths) {
             nPaths += alp.size();
             for(Path path: alp) {
-                accumulatedDeviation += Math.pow((average - path.getWeight()/(double)(path.size()-1)),2);
+                accumulatedDeviation += Math.pow((average - lwTracker.weight(path)/(double)(path.size()-1)),2);
             }
         }
         return Math.sqrt(accumulatedDeviation/(double)nPaths);
     }
 
     public double averagePathNormWeight(ArrayList<ArrayList<Path>> paths) {
+        LinkWeightTracker lwTracker = linkWeightTracker(paths);
         double accumulatedPathWeight = 0;
         int nPaths = 0;
         for(ArrayList<Path> alp : paths) {
             nPaths += alp.size();
             for(Path path: alp)
-                accumulatedPathWeight += path.getWeight()/(double)(path.size()-1);
+                accumulatedPathWeight += lwTracker.weight(path)/(double)(path.size()-1);
         }
         return accumulatedPathWeight/(double)nPaths;
+    }
+
+    private LinkWeightTracker linkWeightTracker(ArrayList<ArrayList<Path>> paths) {
+        LinkWeightTracker lwTracker = new LinkWeightTracker(graph, pathsWeight);
+        for (ArrayList<Path> samePairPaths : paths) {
+            lwTracker.addAll(samePairPaths);
+        }
+        return lwTracker;
     }
 
     public double averageRoutingDistance(ArrayList<ArrayList<Path>> paths) {

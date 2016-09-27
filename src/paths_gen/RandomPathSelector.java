@@ -1,16 +1,17 @@
-package rbr;
+package paths_gen;
 
-import util.Path;
-
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
+import util.*;
 
 public class RandomPathSelector {
 
     private ArrayList<ArrayList<Path>> paths;
+    private LinkWeightTracker linkWeightTracker;
 
-    public RandomPathSelector(ArrayList<ArrayList<Path>> paths) {
+    public RandomPathSelector(ArrayList<ArrayList<Path>> paths,
+                              LinkWeightTracker tracker) {
         this.paths = paths;
+        linkWeightTracker = tracker;
     }
 
     public ArrayList<ArrayList<Path>> selection() {
@@ -24,7 +25,7 @@ public class RandomPathSelector {
     private ArrayList<Path> selectPath(ArrayList<Path> samePairPaths) {
         Collections.shuffle(samePairPaths);
         Path randomPath = samePairPaths.get(0);
-        randomPath.incremWeight();
+        linkWeightTracker.add(randomPath);
         ArrayList<Path> result = new ArrayList<>();
         result.add(randomPath);
         return result;

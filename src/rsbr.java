@@ -3,6 +3,7 @@ import java.util.*;
 
 import util.*;
 import rbr.*;
+import paths_gen.*;
 import sbr.SR;
 
 public class rsbr {
@@ -43,25 +44,23 @@ public class rsbr {
 			System.out.println(" - Paths Selection Section");
 			RBR rbr = new RBR(graph);
 
+			Map<Path, Double> volumes = null;
 			if (volumePath != null) {
 				File commvol = new File(volumePath);
 				if (commvol.exists()) {
 					System.out
 							.println("Getting volumes from " + volumePath);
-					setCommunicationVolume(allMinimalPaths, commvol, graph);
+					volumes = communicationVolume(allMinimalPaths, commvol, graph);
 				}
 			}
 
-			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions());
-			double lwm = statistics.linkWeightMean(allMinimalPaths);
-			double pwm = statistics.pathWeightMean(allMinimalPaths);
-
-			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, lwm, pwm);
-			printResults(chosenPaths, statistics);
+			ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, graph, volumes);
 
 			System.out.println(" - RBR Section");
-			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, statistics, "full");
-			RBRSection(shouldMerge, graph, chosenPaths, rbr, statistics, "custom");
+			RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full");
+			RBRSection(shouldMerge, graph, chosenPaths, rbr, "custom");
+			StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions(), volumes);
+			printResults(chosenPaths, statistics);
 		}
 	}
 
@@ -74,7 +73,7 @@ public class rsbr {
 		return sbr.restrictions();
 	}
 
-	private static void RBRSection(boolean shouldMerge, Graph graph, ArrayList<ArrayList<Path>> allMinimalPaths, RBR rbr, StatisticalAnalyser statistics, String fileSuffix) {
+	private static void RBRSection(boolean shouldMerge, Graph graph, ArrayList<ArrayList<Path>> allMinimalPaths, RBR rbr, String fileSuffix) {
 		System.out.println("Regions Computation");
 		rbr.addRoutingOptions(allMinimalPaths);
 		rbr.regionsComputation();
@@ -93,32 +92,24 @@ public class rsbr {
 		return (dimX - 1)*dimY + (dimY - 1)*dimX;
 	}
 
-	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, double lwm, double pwm) {
+	private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, Graph g, Map<Path, Double> volumes) {
 		ArrayList<ArrayList<Path>> chosenPaths = null;
-
+		LinkWeightTracker lwTracker = new LinkWeightTracker(g, volumes);
 		int choice = 5;
 		switch (choice) {
             case 0: // Sem seleção
                 chosenPaths = paths;
                 break;
             case 1: // Selecao aleatoria
-                chosenPaths = new RandomPathSelector(paths).selection();
+                chosenPaths = new RandomPathSelector(paths, lwTracker).selection();
                 System.out.println("Random");
                 break;
             case 2: // Peso mínimo
-                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeight(), 10).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MinWeightComparator(lwTracker), 10, lwTracker).selection();
                 System.out.println("Peso Minimo");
                 break;
-            case 3: // Peso proporcional
-                chosenPaths = new ComparativePathSelector(paths, new Path().new PropWeight(lwm), 10).selection();
-                System.out.println("Peso proporcional");
-                break;
-            case 4: // Peso médio
-                chosenPaths = new ComparativePathSelector(paths, new Path().new MedWeight(pwm), 10).selection();
-                System.out.println("Peso médio");
-                break;
             case 5: // Peso máximo
-                chosenPaths = new ComparativePathSelector(paths,	new Path.MaxWeight(), 2).selection();
+                chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeightComparator(lwTracker), 2, lwTracker).selection();
         }
 		return chosenPaths;
 	}
@@ -132,8 +123,8 @@ public class rsbr {
 	}
 
 	private static void printResults(ArrayList<ArrayList<Path>> paths, StatisticalAnalyser statistics) {
-		double lwAverage = statistics.averageLinkWeight();
-		double lwStdDeviation = statistics.standardDeviationLinkWeight();
+		double lwAverage = statistics.averageLinkWeight(paths);
+		double lwStdDeviation = statistics.standardDeviationLinkWeight(paths);
 		double pwAverage = statistics.averagePathWeight(paths);
 		double pwStdDeviation = statistics.standardDeviationPathWeight(paths);
 		double pnwAverage = statistics.averagePathNormWeight(paths);
@@ -145,11 +136,12 @@ public class rsbr {
 		System.out.println("ARD: " + ard);
 	}
 
-	private static void setCommunicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
+	private static Map<Path, Double> communicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
 
 		int N = graph.dimX()*graph.dimY();
 		double[][] vol = new double[N][N];
 		double maxVol = 0;
+		Map<Path, Double> pathsVolume = new HashMap<>();
 
 		try {
 			Scanner sc = new Scanner(new FileReader(commvol));
@@ -172,8 +164,9 @@ public class rsbr {
 			int j = graph.indexOf(alp.get(0).dst());
 			double volume = vol[i][j];
 			for(Path path : alp) {
-				path.setVolume(volume/maxVol);
+				pathsVolume.put(path, volume/maxVol);
 			}
 		}
+		return pathsVolume;
 	}
 }
