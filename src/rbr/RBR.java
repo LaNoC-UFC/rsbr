@@ -286,9 +286,10 @@ public class RBR {
 	}
 
 	private String getOpColor(Vertex src, Vertex dest, String ipColor) {
-		String router = dest.name();
+		int destX = Integer.valueOf(dest.name().split("\\.")[0]);
+		int destY = Integer.valueOf(dest.name().split("\\.")[1]);
 		for (rbr.Region reg : regionsForVertex.get(src))
-			if (reg.contains(router) && reg.inputPorts().contains(ipColor))
+			if (reg.box().contains(destX, destY) && reg.inputPorts().contains(ipColor))
 				return (reg.outputPorts().substring(0, 1));
 
 		System.err.println("ERROR : There isn't Op on " + src.name()
