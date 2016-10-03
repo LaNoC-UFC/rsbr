@@ -25,14 +25,13 @@ public class RBR {
 		ArrayList<RoutingOption> actRP = routingPathForVertex.get(atual);
 		routingPathForVertex.put(atual, new ArrayList<>());
 		for (RoutingOption a : actRP) {
-			String op = a.getOp();
+			Set<Character> op = a.getOp();
+			Set<Character> ip = a.getIp();
 			Vertex dst = a.destination();
-			String ip = a.getIp();
 
 			for (RoutingOption b : actRP) {
 				if (ip.equals(b.getIp()) && dst.equals(b.destination())) {
-					if (!op.contains(b.getOp()))
-						op = op.concat(b.getOp());
+						op.addAll(b.getOp());
 				}
 			}
 			addRoutingPath(atual, ip, dst, op);
@@ -45,14 +44,13 @@ public class RBR {
 		ArrayList<RoutingOption> actRP = routingPathForVertex.get(atual);
 		routingPathForVertex.put(atual, new ArrayList<>());
 		for (RoutingOption a : actRP) {
-			String op = a.getOp();
+			Set<Character> op = a.getOp();
+			Set<Character> ip = a.getIp();
 			Vertex dst = a.destination();
-			String ip = a.getIp();
 
 			for (RoutingOption b : actRP) {
 				if (op.equals(b.getOp()) && dst.equals(b.destination())) {
-					if (!ip.contains(b.getIp()))
-						ip = ip.concat(b.getIp());
+						ip.addAll(b.getIp());
 				}
 			}
 			addRoutingPath(atual, ip, dst, op);
@@ -68,10 +66,16 @@ public class RBR {
 			for (Path path : alp) {
 				for (Vertex sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
-						String op = sw.edge(path.get(path.indexOf(sw) + 1))
-								.color();
-						String ip = (path.indexOf(sw) == 0) ? "I" : sw.edge(
-								path.get(path.indexOf(sw) - 1)).color();
+						Set<Character> op = new HashSet<>();
+						Set<Character> ip = new HashSet<>();
+
+						op.add(sw.edge(path.get(path.indexOf(sw) + 1)).color());
+						if(path.indexOf(sw) == 0) {
+							ip.add('I');
+						}
+						else {
+							ip.add(sw.edge(path.get(path.indexOf(sw) - 1)).color());
+						}
 						addRoutingPath(sw, ip, path.dst(), op);
 					}
 				}
@@ -84,15 +88,15 @@ public class RBR {
 	}
 
 	// Do output combinations
-	private static ArrayList<String> getOutputCombinations() {
-		ArrayList<String> oPComb = new ArrayList<String>();
+	private static List<Set<Character>> getOutputCombinations() {
+		List<Set<Character>> oPComb = new ArrayList<>();
 		char[] op = "ENSW".toCharArray();
 
 		for (int m = 1; m != 1 << op.length; m++) {
-			String a = "";
+			Set<Character> a = new HashSet<>();
 			for (int i = 0; i != op.length; i++) {
 				if ((m & (1 << i)) != 0) {
-					a = a.concat(Character.toString(op[i]));
+					a.add(op[i]);
 				}
 			}
 			oPComb.add(a);
@@ -102,16 +106,16 @@ public class RBR {
 	
 	// Compute the regions
 	public void regionsComputation() {
-		ArrayList<String> opComb = getOutputCombinations();
+		List<Set<Character>> opComb = getOutputCombinations();
 		for (Vertex sw : graph.getVertices()) {
 			regionsForVertex.put(sw, new ArrayList<>());
-			for (String op : opComb) {
-				String ip = new String();
+			for (Set<Character> op : opComb) {
+				Set<Character> ip = new HashSet<>();
 				Set<Vertex> destinations = new HashSet<>();
 				for (RoutingOption rp : routingPathForVertex.get(sw)) {
 					if (rp.getOp().equals(op)) {
 						destinations.add(rp.destination());
-						ip = mergeString(ip, rp.getIp());
+						ip.addAll(rp.getIp());
 					}
 				}
 				if (destinations.size() != 0) {
@@ -191,8 +195,7 @@ public class RBR {
 	}
 
 	// Make regions only with correct destinations
-	private ArrayList<Region> makeRegions(Set<Vertex> dsts, String ip,
-			String op) {
+	private ArrayList<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
 		ArrayList<Region> result = new ArrayList<>();
 		Range box = box(dsts);
 
@@ -238,8 +241,7 @@ public class RBR {
 		return result;
 	}
 
-	private Region makeRegion(int xmin, int ymin, int xmax, int ymax,
-			String ip, String op) {
+	private Region makeRegion(int xmin, int ymin, int xmax, int ymax, Set<Character> ip, Set<Character> op) {
 		Set<Vertex> dst = new HashSet<>();
 		for (int x = xmin; x <= xmax; x++) {
 			for (int y = ymin; y <= ymax; y++) {
@@ -251,8 +253,9 @@ public class RBR {
 
 	public boolean reachabilityIsOk() {
 		for (Vertex dest : graph.getVertices()) {
-			if(reachability(dest) < 1)
+			if(reachability(dest) < 1) {
 				return false;
+			}
 		}
 		return true;
 	}
@@ -271,27 +274,29 @@ public class RBR {
 	}
 
 	private boolean reaches(Vertex src, Vertex dest) {
-		return reaches(src, dest, "I");
+		return reaches(src, dest, 'I');
 	}
 
-	private boolean reaches(Vertex src, Vertex dest, String ipColor) {
-		if (dest == src)
+	private boolean reaches(Vertex src, Vertex dest, Character ipColor) {
+		if (dest == src) {
 			return true;
-		String opColor = getOpColor(src, dest, ipColor);
-		if (opColor == null)
+		}
+		Character opColor = getOpColor(src, dest, ipColor);
+		if (opColor == null) {
 			return false;
+		}
 		return reaches(src.adjunct(opColor).destination(), dest, EdgeColor.getInvColor(src.adjunct(opColor).color()));
 	}
 
-	private String getOpColor(Vertex src, Vertex dest, String ipColor) {
+	private Character getOpColor(Vertex src, Vertex dest, Character ipColor) {
 		int destX = Integer.valueOf(dest.name().split("\\.")[0]);
 		int destY = Integer.valueOf(dest.name().split("\\.")[1]);
-		for (rbr.Region reg : regionsForVertex.get(src))
-			if (reg.box().contains(destX, destY) && reg.inputPorts().contains(ipColor))
-				return (reg.outputPorts().substring(0, 1));
-
-		System.err.println("ERROR : There isn't Op on " + src.name()
-				+ "("  + ipColor + ") going to " + dest.name());
+		for (rbr.Region reg : regionsForVertex.get(src)) {
+			if (reg.box().contains(destX, destY) && reg.inputPorts().contains(ipColor)) {
+				return (Character)reg.outputPorts().toArray()[0];
+			}
+		}
+		System.err.println("ERROR : There isn't Op on " + src.name() + "("  + ipColor + ") going to " + dest.name());
 		return null;
 	}
 
@@ -336,26 +341,10 @@ public class RBR {
 		return false;
 	}
 
-	private static String mergeString(String s1, String s2) {
-		String ip = new String(s2);
-
-		for (int i = 0; i < s1.length(); i++) {
-			if (!ip.contains(s1.substring(i, i + 1)))
-				ip += s1.substring(i, i + 1);
-		}
-		return ip;
-	}
-
-	private void addRoutingPath(Vertex v, String ip, Vertex dst, String op) {
-		RoutingOption rp = new RoutingOption(sortStrAlf(ip), dst, sortStrAlf(op));
+	private void addRoutingPath(Vertex v, Set<Character> ip, Vertex dst, Set<Character> op) {
+		RoutingOption rp = new RoutingOption(ip, dst, op);
 		// @Todo replace this by a Set to not worry with duplication
 		if(!routingPathForVertex.get(v).contains(rp))
 			routingPathForVertex.get(v).add(rp);
-	}
-
-	private static String sortStrAlf(String input) {
-		char[] ip1 = input.toCharArray();
-		Arrays.sort(ip1);
-		return String.valueOf(ip1);
 	}
 }

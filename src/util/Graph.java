@@ -61,7 +61,7 @@ public class Graph {
 		vertices.add(v);
 	}
 	
-	void addEdge(Vertex origem, Vertex destino, String cor) {
+	void addEdge(Vertex origem, Vertex destino, Character cor) {
 		Edge e = new Edge(origem, destino, cor);
 		origem.addAdjunct(e);
 		edges.add(e);
