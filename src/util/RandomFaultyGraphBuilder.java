@@ -26,7 +26,7 @@ public class RandomFaultyGraphBuilder {
         // do
         graph.removeEdge(tic);
         graph.removeEdge(tac);
-        if(!graph.haveIsolatedCores())
+        if(!graph.hasIsolatedCores())
             return true;
         // undo
         graph.addEdge(tic);

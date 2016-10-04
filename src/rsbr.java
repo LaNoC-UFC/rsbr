@@ -33,7 +33,7 @@ public class rsbr {
 					FromFileGraphBuilder.generateGraph(topologyFile) :
 					RandomFaultyGraphBuilder.generateGraph(dimX, dimY, (int)Math.ceil(faultyPercentage*numberOfEdges(dimX, dimY)));
 
-			System.out.println("Isolated?: " + graph.haveIsolatedCores());
+			System.out.println("Isolated?: " + graph.hasIsolatedCores());
 
 			System.out.println(" - SR Section");
 			GraphRestrictions restrictions = SBRSection(graph);
