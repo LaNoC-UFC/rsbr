@@ -1,9 +1,7 @@
 package rbr;
 
-import util.Range;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+import util.*;
 
 public class Region {
 	// @ToDo inputPortsSet and outputPortsSet could actually be Sets. This would ease many operations on them:
@@ -11,10 +9,10 @@ public class Region {
 	private String inputPortsSet;
 	private String outputPortsSet;
 	private Range box;
-	private ArrayList<String> destinations = new ArrayList<>();
+	private Set<Vertex> destinations;
 
-	public Region(String ip, ArrayList<String> destinations, String op) {
-		this.destinations = destinations;
+	public Region(String ip, Set<Vertex> destinations, String op) {
+		this.destinations = new HashSet<>(destinations);
 		this.inputPortsSet = ip;
 		this.outputPortsSet = op;
 		this.updateBox();
@@ -23,8 +21,8 @@ public class Region {
 	private void updateBox() {
 		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE; 
 		int xMax = 0, yMax = 0;
-		for (String s : this.destinations) {
-			String[] xy = s.split("\\.");
+		for (Vertex vertex : this.destinations) {
+			String[] xy = vertex.name().split("\\.");
 			int x = Integer.valueOf(xy[0]);
 			int y = Integer.valueOf(xy[1]);
 			
@@ -44,16 +42,17 @@ public class Region {
 		return outputPortsSet;
 	}
 
-	ArrayList<String> destinations() {
+	Set<Vertex> destinations() {
 		return destinations;
 	}
 
-	ArrayList<String> destinationsIn(Range box) {
-		ArrayList<String> result = new ArrayList<>();
-		for (int x = box.min(0); x <= box.max(0); x++)
-			for (int y = box.min(1); y <= box.max(1); y++)
-				if (this.destinations.contains(x + "." + y))
-					result.add(x + "." + y);
+	Set<Vertex> destinationsIn(Range box) {
+		Set<Vertex> result = new HashSet<>();
+		for(Vertex vertex : destinations){
+			if(vertex.isIn(box)) {
+				result.add(vertex);
+			}
+		}
 		return result;
 	}
 
@@ -120,13 +119,13 @@ public class Region {
 		return ip;
 	}
 
-	ArrayList<String> outsiders() {
-		ArrayList<String> result = new ArrayList<>();
+	Set<Vertex> outsiders() {
+		Set<Vertex> result = new HashSet<>();
 		for (int x = this.box().min(0); x <= this.box().max(0); x++) {
 			for (int y = this.box().min(1); y <= this.box().max(1); y++) {
-				String name = x + "." + y;
-				if (!this.destinations().contains(name)) {
-					result.add(name);
+				Vertex vertex = new Vertex(x + "." + y);
+				if(!destinations().contains(vertex)) {
+					result.add(vertex);
 				}
 			}
 		}
