@@ -6,7 +6,6 @@ import java.util.*;
 
 public class RBR {
 	private Graph graph;
-
 	private HashMap<Vertex, ArrayList<RoutingOption>> routingPathForVertex;
 	private HashMap<Vertex, ArrayList<Region>> regionsForVertex;
 
@@ -108,11 +107,10 @@ public class RBR {
 			regionsForVertex.put(sw, new ArrayList<>());
 			for (String op : opComb) {
 				String ip = new String();
-				ArrayList<String> destinations = new ArrayList<String>();
+				Set<Vertex> destinations = new HashSet<>();
 				for (RoutingOption rp : routingPathForVertex.get(sw)) {
 					if (rp.getOp().equals(op)) {
-						if (!destinations.contains(rp.destination().name()))
-							destinations.add(rp.destination().name());
+						destinations.add(rp.destination());
 						ip = mergeString(ip, rp.getIp());
 					}
 				}
@@ -130,11 +128,11 @@ public class RBR {
 		ArrayList<Region> newRegions = new ArrayList<>();
 		ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
 		for (Region currentRegion : regionsForVertex.get(sw)) {
-			ArrayList<String> outsiders = currentRegion.outsiders();
+			Set<Vertex> outsiders = currentRegion.outsiders();
 			if(outsiders.isEmpty())
 				continue;
 			Range outsidersBox = box(outsiders);
-			ArrayList<String> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
+			Set<Vertex> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
 
 			regionsToBeRemoved.add(currentRegion);
 			ArrayList<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
@@ -147,26 +145,26 @@ public class RBR {
 	}
 
 	private static ArrayList<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
-		ArrayList<ArrayList<String>> dsts = new ArrayList<>();
+		Set<Set<Vertex>> dsts = new HashSet<>();
 		// up
 		Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
-		ArrayList<String> upDestinations = region.destinationsIn(upBox);
+		Set<Vertex> upDestinations = region.destinationsIn(upBox);
 		dsts.add(upDestinations);
 		// down
 		Range downBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), outsidersBox.max(1) + 1, region.box().max(1));
-		ArrayList<String> downDestinations = region.destinationsIn(downBox);
+		Set<Vertex> downDestinations = region.destinationsIn(downBox);
 		dsts.add(downDestinations);
 		// left
 		Range leftBox = Range.TwoDimensionalRange(outsidersBox.max(0) + 1, region.box().max(0), region.box().min(1), region.box().max(1));
-		ArrayList<String> leftDestinations = region.destinationsIn(leftBox);
+		Set<Vertex> leftDestinations = region.destinationsIn(leftBox);
 		dsts.add(leftDestinations);
 		// right
 		Range rightBox = Range.TwoDimensionalRange(region.box().min(0), outsidersBox.min(0) - 1, region.box().min(1), region.box().max(1));
-		ArrayList<String> rightDestinations = region.destinationsIn(rightBox);
+		Set<Vertex> rightDestinations = region.destinationsIn(rightBox);
 		dsts.add(rightDestinations);
 
 		ArrayList<Region> result = new ArrayList<>();
-		for (ArrayList<String> dst : dsts) {
+		for (Set<Vertex> dst : dsts) {
 			if(dst.isEmpty())
 				continue;
 			Region r = new Region(region.inputPorts(), dst, region.outputPorts());
@@ -175,12 +173,12 @@ public class RBR {
 		return result;
 	}
 
-	private static Range box(ArrayList<String> dsts) {
+	private static Range box(Set<Vertex> dsts) {
 		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
 		int xMax = 0, yMax = 0;
 
-		for (String s : dsts) {
-			String[] xy = s.split("\\.");
+		for (Vertex vertex : dsts) {
+			String[] xy = vertex.name().split("\\.");
 			int x = Integer.valueOf(xy[0]);
 			int y = Integer.valueOf(xy[1]);
 
@@ -193,7 +191,7 @@ public class RBR {
 	}
 
 	// Make regions only with correct destinations
-	private static ArrayList<Region> makeRegions(ArrayList<String> dsts, String ip,
+	private ArrayList<Region> makeRegions(Set<Vertex> dsts, String ip,
 			String op) {
 		ArrayList<Region> result = new ArrayList<>();
 		Range box = box(dsts);
@@ -206,13 +204,13 @@ public class RBR {
 			for (int line = Lmax; line >= Lmin; line--) {
 				for (int col = Cmin; col <= Cmax; col++) {
 					if (first) {
-						if (dsts.contains(col + "." + line)) {
+						if (dsts.contains(graph.vertex(col + "." + line))) {
 							Cmin = col;
 							Lmax = line;
 							first = false;
 						}
 					} else {
-						if (!dsts.contains(col + "." + line)) { // if stranger
+						if (!dsts.contains(graph.vertex(col + "." + line))) { // if stranger
 							if (line == Lmax) { // first line
 								Cmax = col - 1;
 							} else if (col > (Cmax - Cmin) / 2 && col > Cmin) {
@@ -222,8 +220,7 @@ public class RBR {
 							}
 
 							if (line == Lmin) { // last line
-								Region rg = montaRegiao(Cmin, Lmin, Cmax, Lmax,
-										ip, op);
+								Region rg = makeRegion(Cmin, Lmin, Cmax, Lmax,ip, op);
 								dsts.removeAll(rg.destinations());
 								result.add(rg);
 							}
@@ -231,7 +228,7 @@ public class RBR {
 						}
 					}
 					if (line == Lmin && col == Cmax) { // last line
-						Region rg = montaRegiao(Cmin, Lmin, Cmax, Lmax, ip, op);
+						Region rg = makeRegion(Cmin, Lmin, Cmax, Lmax, ip, op);
 						dsts.removeAll(rg.destinations());
 						result.add(rg);
 					}
@@ -241,13 +238,14 @@ public class RBR {
 		return result;
 	}
 
-	private static Region montaRegiao(int xmin, int ymin, int xmax, int ymax,
+	private Region makeRegion(int xmin, int ymin, int xmax, int ymax,
 			String ip, String op) {
-		ArrayList<String> dst = new ArrayList<String>();
-		for (int x = xmin; x <= xmax; x++)
-			for (int y = ymin; y <= ymax; y++)
-				dst.add(x + "." + y);
-
+		Set<Vertex> dst = new HashSet<>();
+		for (int x = xmin; x <= xmax; x++) {
+			for (int y = ymin; y <= ymax; y++) {
+				dst.add(graph.vertex(x + "." + y));
+			}
+		}
 		return (new Region(ip, dst, op));
 	}
 
