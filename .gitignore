@@ -1,9 +1,9 @@
 bin/
 out/
 .idea/
+*~
 .classpath
 .project
-*~
 *.jar
 *.txt
 *.vhd

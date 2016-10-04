@@ -1,14 +1,11 @@
 package sbr;
 
 import util.*;
-
 import java.util.*;
 
 public class SR {
 
 	private final boolean debug = false;
-	private final static char[] RoundRobin = { 'N', 'E', 'S', 'W' };
-	private static int RRIndex[];
 	private Range currentWindow;
 
 	private Graph graph;
@@ -21,12 +18,13 @@ public class SR {
 
 	private List<Vertex> visitedVertices, unvisitedVertices, start, terminal;
 	private List<Edge> visitedEdges, unvisitedEdges;
-
 	private HashMap<Vertex, Segment> segmentForVertex;
 	private HashMap<Vertex, Integer> subnetForVertex;
+	private SBRPolicy policy;
 
-	public SR(Graph graph)
+	public SR(Graph graph , SBRPolicy policy) 
 	{
+		this.policy = policy;
 		this.graph = graph;
 		this.restrictions = new GraphRestrictions(graph);
 		segments = new ArrayList<>();
@@ -37,9 +35,6 @@ public class SR {
 		visitedEdges = new ArrayList<>();
 		unvisitedEdges = new ArrayList<>(graph.getEdges());
 		bridges = new Bridge(graph).bridges();
-		RRIndex = new int[2];
-		RRIndex[0] = -1;
-		RRIndex[1] = -1;
 		subNet = 0;
 		maxSN = -1;
 		segmentForVertex = new HashMap<>();
@@ -87,7 +82,7 @@ public class SR {
 
 	private void computeSegmentsInExistingSubNets(Vertex sw) {
 		while (null != sw) {
-			this.resetRRIndex();
+			policy.resetRRIndex();
 			subNet = subnetForVertex.get(sw);
 			Segment seg = formSegmentFrom(sw);
 			if(segmentIsValid(seg))
@@ -178,7 +173,7 @@ public class SR {
 
 		ArrayList<Edge> links = suitableLinks(sw);
 		while (!links.isEmpty()) {
-			Edge ln = getNextLink(links);
+			Edge ln = policy.getNextLink(links);
 			links.remove(ln);
 			Edge nl = ln.destination().edge(ln.source());
 			if (debug) System.err.println("Link now: "+ln.source().name()+" <-> "+ln.destination().name());
@@ -258,53 +253,6 @@ public class SR {
 
 	private boolean hasSuitableLinks(Vertex sw) {
 		return !suitableLinks(sw).isEmpty();
-	}
-	/*
-	 * try to make a small segment by choosing a link for close a cycle making a
-	 * turn every time. RRIndex keeps track of the last turn
-	 */
-	private Edge getNextLink(ArrayList<Edge> links) {
-		Edge got = null;
-		int index;
-		if (RRIndex[0] == -1) {
-			if (RRIndex[1] == -1) { // first choice of this computation
-				index = 0;
-			} else { // second choice
-				index = (RRIndex[1] + 1) % 4;
-			}
-		} else { // others choices
-			index = (RRIndex[0] + 2) % 4;
-			if ((index + RRIndex[1]) % 2 == 0) {
-				index = (index + 1) % 4;
-			}
-		}
-		while (true) {
-			for (Edge ln : links) {
-				if (ln.color() == RoundRobin[index]) {
-					got = ln;
-					break;
-				}
-			}
-			if (got != null)
-				break;
-			else {
-				if (RRIndex[1] == ((RRIndex[0] + 1) % 4))
-					index = (index + 3) % 4;
-				else
-					index = (index + 1) % 4;
-			}
-		}
-		// updates the last turn
-		if (index != RRIndex[1]) {
-			RRIndex[0] = RRIndex[1];
-			RRIndex[1] = index;
-		}
-		return got;
-	}
-
-	private void resetRRIndex() {
-		RRIndex[0] = -1;
-		RRIndex[1] = -1;
 	}
 
 	public GraphRestrictions restrictions() {

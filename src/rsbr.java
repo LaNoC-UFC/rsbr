@@ -1,10 +1,9 @@
 import java.io.*;
 import java.util.*;
-
 import util.*;
 import rbr.*;
 import paths_gen.*;
-import sbr.SR;
+import sbr.*;
 
 public class rsbr {
 
@@ -65,7 +64,8 @@ public class rsbr {
 	}
 
 	private static GraphRestrictions SBRSection(Graph graph) {
-		SR sbr = new SR(graph);
+		BidimensionalSBRPolicy policy = new BidimensionalSBRPolicy();
+		SR sbr = new SR(graph,policy);
 		System.out.println("Compute the segments");
 		sbr.computeSegments();
 		System.out.println("Set the restrictions");
