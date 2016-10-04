@@ -50,18 +50,4 @@ public class Vertex {
 
 		return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
 	}
-
-	public void checkIsolation(ArrayList<Vertex> alc) {
-		if (!alc.contains(this))
-			alc.add(this); // Adiciona primeiro core analisado aos alcancaveis
-		for (Edge adj : this.adjuncts) {
-			// So adiciona aos alcancaveis cores que ainda nao foram adicionados
-			if (alc.contains(adj.destination()))
-				continue;
-			Vertex neigh = adj.destination();
-			alc.add(neigh);
-			// checa para vizinhos
-			neigh.checkIsolation(alc);
-		}
-	}
 }

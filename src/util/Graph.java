@@ -14,22 +14,26 @@ public class Graph {
 		dimX = columns;
 		dimY = rows;
 	}
-	
-	public boolean haveIsolatedCores() {
-		ArrayList<Vertex> alc = new ArrayList<Vertex>();
-		//Escolha do 0.0 para ser o core inicial. Garantido a existencia do primeiro nodo em todas as topologias
-		vertex("0.0").checkIsolation(alc);
-		
-		//Se lista de alcancaveis for igual ao total de cores nao existe isolamento
-		if(!(alc.size()==vertices.size())) return true;
-		
-    	return false;
+
+	public boolean hasIsolatedCores() {
+		Set<Vertex> reachedVertices = new HashSet<>();
+		reachAdjuncts(vertex("0.0"), reachedVertices);
+		return !(reachedVertices.size() == vertices.size());
+	}
+
+	private void reachAdjuncts(Vertex vertex, Set<Vertex> reachable) {
+		if (reachable.contains(vertex)){
+			return;
+		}
+		reachable.add(vertex);
+		for (Edge adj : vertex.adjuncts()){
+			Vertex neigh = adj.destination();
+			reachAdjuncts(neigh, reachable);
+		}
 	}
 
 	public ArrayList<Vertex> getVertices() {
-
 		return this.vertices;
-
 	}
 
 	public ArrayList<Edge> getEdges() {
