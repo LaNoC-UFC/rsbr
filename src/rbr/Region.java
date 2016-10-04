@@ -65,38 +65,14 @@ public class Region {
 		return this.box + " " + this.inputPortsSet + " " + this.outputPortsSet;
 	}
 
-	boolean contains(String vertex) {
-		String[] xy = vertex.split("\\.");
-		int x = Integer.parseInt(xy[0]);
-		int y = Integer.parseInt(xy[1]);
-
-		int minX = box().min(0);
-		int minY = box().min(1);
-		int maxX = box().max(0);
-		int maxY = box().max(1);
-		
-		return (minX <= x && x <= maxX && minY <= y && y <= maxY);
-	}
-
 	Region merge(Region that) {
 		String op = getOpMerged(this, that);
 		String ip = getIpMerged(this, that);
 		Region reg = new Region(ip, this.destinations(), op);
-		reg.box = mergedBox(this, that);
+		reg.box = reg.box().combination(that.box());
 		reg.destinations().addAll(that.destinations());
 		reg.updateBox();
 		return reg;
-	}
-
-	private static Range mergedBox(Region tic, Region tac) {
-		Range thisBox = tic.box();
-		Range thatBox = tac.box();
-		return Range.TwoDimensionalRange(
-				Math.min(thisBox.min(0), thatBox.min(0)),
-				Math.max(thisBox.max(0), thatBox.max(0)),
-				Math.min(thisBox.min(1), thatBox.min(1)),
-				Math.max(thisBox.max(1), thatBox.max(1))
-		);
 	}
 
 	private static String getOpMerged(Region r1, Region r2) {
@@ -134,49 +110,7 @@ public class Region {
 	}
 
 	boolean canBeMergedWith(Region that) {
-		return (this.isNeighborOf(that) && this.formBoxWith(that) && opIsSubset(this, that));
-	}
-
-	private boolean isNeighborOf(Region that) {
-		boolean areNeighbours = false;
-
-		int Xmax1 = this.box().max(0);
-		int Xmax2 = that.box().max(0);
-		int Ymax1 = this.box().max(1);
-		int Ymax2 = that.box().max(1);
-
-		int Xmin1 = this.box().min(0);
-		int Xmin2 = that.box().min(0);
-		int Ymin1 = this.box().min(1);
-		int Ymin2 = that.box().min(1);
-
-		if (Xmax1 > Xmax2) {
-			if (Xmin1 == Xmax2 + 1)
-				areNeighbours = true;
-		}
-
-		if (Xmax1 < Xmax2) {
-			if (Xmin2 == Xmax1 + 1)
-				areNeighbours = true;
-		}
-
-		if (Ymax1 > Ymax2) {
-			if (Ymax2 == Ymin1 - 1)
-				areNeighbours = true;
-		}
-
-		if (Ymax1 < Ymax2) {
-			if (Ymax1 == Ymin2 - 1)
-				areNeighbours = true;
-		}
-		return areNeighbours;
-	}
-
-	private boolean formBoxWith(Region that) {
-		return ((this.box().max(0) == that.box().max(0)
-				&& 	this.box().min(0) == that.box().min(0))
-				|| (this.box().max(1) == that.box().max(1)
-				&& this.box().min(1) == that.box().min(1)));
+		return (this.box().isContiguous(that.box()) && opIsSubset(this, that));
 	}
 
 	private static boolean opIsSubset(Region r1, Region r2) {
