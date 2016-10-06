@@ -27,7 +27,7 @@ public class Vertex {
 		return this.adjuncts;
 	}
 
-	public Edge adjunct(String color) {
+	public Edge adjunct(Character color) {
 		for (Edge a : this.adjuncts)
 			if (a.color().equals(color))
 				return a;

@@ -34,8 +34,9 @@ public class PathFinder {
         for (Vertex src : graph.getVertices()) {
             for (Edge e : src.adjuncts()) {
                 Vertex dst = e.destination();
-                if (restrictions.getRestriction(src, "I").contains(src.edge(dst).color()))
+                if (restrictions.getRestriction(src, 'I').contains(src.edge(dst).color())) {
                     continue;
+                }
                 Path p = new Path();
                 p.add(src);
                 p.add(dst);
@@ -48,12 +49,12 @@ public class PathFinder {
 
     private ArrayList<Path> advanceOneHop(ArrayList<Path> previouslyFoundPaths, Set<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<>();
-        for (Path p : previouslyFoundPaths)
+        for (Path p : previouslyFoundPaths) {
             result.addAll(advanceOneHop(p, alreadyFoundPairs));
-
-        for (Path p : result)
-                alreadyFoundPairs.add(pairDescriptor(p.src(), p.dst()));
-
+        }
+        for (Path p : result) {
+            alreadyFoundPairs.add(pairDescriptor(p.src(), p.dst()));
+        }
         return result;
     }
 
@@ -61,7 +62,7 @@ public class PathFinder {
         ArrayList<Path> result = new ArrayList<>();
         Vertex currentSrc = p.dst();
         Vertex predecessor = p.get(p.size() - 2);
-        String inputPort = currentSrc.edge(predecessor).color();
+        Character inputPort = currentSrc.edge(predecessor).color();
         for (Edge e : currentSrc.adjuncts()) {
             Vertex dst = e.destination();
             // going back

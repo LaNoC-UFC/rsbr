@@ -4,17 +4,15 @@ import java.util.*;
 import util.*;
 
 public class Region {
-	// @ToDo inputPortsSet and outputPortsSet could actually be Sets. This would ease many operations on them:
-	// @ToDo isSubset, getOpMerged (intersection), getIpMerged (union) and so on.
-	private String inputPortsSet;
-	private String outputPortsSet;
+	private Set<Character> inputPorts;
+	private Set<Character> outputPorts;
 	private Range box;
 	private Set<Vertex> destinations;
 
-	public Region(String ip, Set<Vertex> destinations, String op) {
+	public Region(Set<Character> ip, Set<Vertex> destinations, Set<Character> op) {
 		this.destinations = new HashSet<>(destinations);
-		this.inputPortsSet = ip;
-		this.outputPortsSet = op;
+		this.inputPorts = new HashSet<>(ip);
+		this.outputPorts = new HashSet<>(op);
 		this.updateBox();
 	}
 
@@ -34,12 +32,12 @@ public class Region {
 		this.box = Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
 	}
 
-	String inputPorts() {
-		return inputPortsSet;
+	Set<Character> inputPorts() {
+		return inputPorts;
 	}
 
-	String outputPorts() {
-		return outputPortsSet;
+	Set<Character> outputPorts() {
+		return outputPorts;
 	}
 
 	Set<Vertex> destinations() {
@@ -61,38 +59,19 @@ public class Region {
 	}
 
 	public String toString() {
-		return this.box + " " + this.inputPortsSet + " " + this.outputPortsSet;
+		return this.box + " " + this.inputPorts + " " + this.outputPorts;
 	}
 
 	Region merge(Region that) {
-		String op = getOpMerged(this, that);
-		String ip = getIpMerged(this, that);
+		Set<Character> op = this.outputPorts();
+		op.retainAll(that.outputPorts());
+		Set<Character> ip = that.inputPorts();
+		ip.addAll(this.inputPorts());
 		Region reg = new Region(ip, this.destinations(), op);
 		reg.box = reg.box().combination(that.box());
 		reg.destinations().addAll(that.destinations());
 		reg.updateBox();
 		return reg;
-	}
-
-	private static String getOpMerged(Region r1, Region r2) {
-		String op;
-
-		if (r1.outputPorts().contains(r2.outputPorts())) {
-			op = r2.outputPorts();
-		} else {
-			op = r1.outputPorts();
-		}
-
-		return op;
-	}
-
-	private static String getIpMerged(Region r1, Region r2) {
-		String ip = r2.inputPorts();
-		for (int i = 0; i < r1.inputPorts().length(); i++) {
-			if (!ip.contains(r1.inputPorts().substring(i, i + 1)))
-				ip += r1.inputPorts().substring(i, i + 1);
-		}
-		return ip;
 	}
 
 	Set<Vertex> outsiders() {
@@ -109,18 +88,10 @@ public class Region {
 	}
 
 	boolean canBeMergedWith(Region that) {
-		return (this.box().isContiguous(that.box()) && opIsSubset(this, that));
+		return (this.box().isContiguous(that.box()) && OutputPortIsSubSet(this.outputPorts(), that.outputPorts()));
 	}
 
-	private static boolean opIsSubset(Region r1, Region r2) {
-		String r1Op = sortStrAlf(r1.outputPorts());
-		String r2Op = sortStrAlf(r2.outputPorts());
-		return (r1Op.contains(r2Op) || r2Op.contains(r1Op));
-	}
-
-	private static String sortStrAlf(String input) {
-		char[] ip1 = input.toCharArray();
-		Arrays.sort(ip1);
-		return String.valueOf(ip1);
+	private boolean OutputPortIsSubSet(Set<Character> outputPort1, Set<Character> outputPort2) {
+		return (outputPort1.containsAll(outputPort2) || outputPort2.containsAll(outputPort1));
 	}
 }

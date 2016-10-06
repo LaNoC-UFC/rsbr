@@ -3,17 +3,17 @@ package util;
 public class Edge {
 	private Vertex source;
 	private Vertex destination;
-	private String color;
+	private Character color;
 	private double weight;
 
-	Edge(Vertex src, Vertex dst, String color) {
+	Edge(Vertex src, Vertex dst, Character color) {
 		this.color = color;
 		this.source = src;
 		this.destination = dst;
 		this.weight = 0.0;
 	}
 
-	public String color() {
+	public Character color() {
 		return this.color;
 	}
 

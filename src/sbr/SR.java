@@ -7,7 +7,7 @@ import java.util.*;
 public class SR {
 
 	private final boolean debug = false;
-	private final static String[] RoundRobin = { "N", "E", "S", "W" };
+	private final static char[] RoundRobin = { 'N', 'E', 'S', 'W' };
 	private static int RRIndex[];
 	private Range currentWindow;
 
@@ -314,54 +314,41 @@ public class SR {
 
 	public void setrestrictions() {
 		for (Segment segment : segments) {
-			if (segment.getLinks().isEmpty())
+			if (segment.getLinks().isEmpty()) {
 				continue;
-
+			}
 			if (segment.isUnitary()) {
 				// No traffic allowed at link
 				Vertex Starting = segment.getLinks().get(0).source();
 				Vertex Ending = segment.getLinks().get(0).destination();
-				//System.err.println("Start: " + Starting.name() + " Ending: "+ Ending.name());
-				// Restricted link
-				String opStarting = Starting.edge(Ending).color();
-				String opEnding = Ending.edge(Starting).color();
 				// Restrictions at Starting core
-				for (Edge link : Starting.adjuncts())
-					if (link.color() != opStarting) {
-						restrictions.addRestriction(Starting, link.color(), opStarting);
-					}
+				for (Edge link : Starting.adjuncts()) {
+						restrictions.addRestriction(Starting, link.color(), Starting.edge(Ending).color());
+				}
 				// Restrictions at Ending core
-				for (Edge link : Ending.adjuncts())
-					if (link.color() != opEnding) {
-						restrictions.addRestriction(Ending, link.color(), opEnding);
-					}
+				for (Edge link : Ending.adjuncts()) {
+						restrictions.addRestriction(Ending, link.color(), Ending.edge(Starting).color());
+				}
 				continue;
 			}
 			// Put it at first or second link
 			if (segment.getSwitchs().size() == 1) {
 				Vertex sw = segment.getSwitchs().get(0);
-
-				restrictions.addRestriction(sw, EdgeColor.getInvColor(segment.getLinks().get(0).color()),
-						segment.getLinks().get(1).color());
-				restrictions.addRestriction(sw, segment.getLinks().get(1).color(),
-						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
+				restrictions.addRestriction(sw,EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
+				restrictions.addRestriction(sw, segment.getLinks().get(1).color(), EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 				continue;
 			}
 			// At this point we have or starting or regular segment
 			if (segment.isRegular()) {
 				Vertex restrict = segment.getSwitchs().get(1);
-				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment
-						.getLinks().get(2).color());
-				restrictions.addRestriction(restrict, segment.getLinks().get(2).color(),
-						EdgeColor.getInvColor(segment.getLinks().get(1).color()));
+				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment.getLinks().get(2).color());
+				restrictions.addRestriction(restrict, segment.getLinks().get(2).color(), EdgeColor.getInvColor(segment.getLinks().get(1).color()));
 				continue;
 			}
 			if (segment.isStarting()) {
 				Vertex restrict = segment.getSwitchs().get(1);
-				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment
-						.getLinks().get(1).color());
-				restrictions.addRestriction(restrict, segment.getLinks().get(1).color(),
-						EdgeColor.getInvColor(segment.getLinks().get(0).color()));
+				restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
+				restrictions.addRestriction(restrict, segment.getLinks().get(1).color(), EdgeColor.getInvColor(segment.getLinks().get(0).color()));
 			}
 		}
 	}

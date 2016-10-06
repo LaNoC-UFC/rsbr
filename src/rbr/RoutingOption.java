@@ -1,19 +1,20 @@
 package rbr;
 
 import util.Vertex;
+import java.util.*;
 
 class RoutingOption {
-	private String ip;
+	private Set<Character> ip;
+	private Set<Character> op;
 	private Vertex dst;
-	private String op;
 
-	RoutingOption(String ip, Vertex dst, String op) {
+	RoutingOption(Set<Character> ip, Vertex dst, Set<Character> op) {
 		this.dst = dst;
 		this.ip = ip;
 		this.op = op;
 	}
 
-	public String getIp() {
+	public Set<Character> getIp() {
 		return ip;
 	}
 
@@ -21,7 +22,7 @@ class RoutingOption {
 		return dst;
 	}
 
-	public String getOp() {
+	public Set<Character> getOp() {
 		return op;
 	}
 

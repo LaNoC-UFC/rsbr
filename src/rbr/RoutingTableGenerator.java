@@ -1,14 +1,8 @@
 package rbr;
 
-import util.Graph;
-import util.Vertex;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import util.*;
+import java.io.*;
+import java.util.*;
 
 public class RoutingTableGenerator {
 
@@ -145,11 +139,10 @@ public class RoutingTableGenerator {
         return out;
     }
 
-    private String opToBinary(String ports) {
+    private String opToBinary(Set<Character> ports) {
         char[] outOp = { '0', '0', '0', '0', '0' };
-        char[] port = ports.toCharArray();
 
-        for (char pt : port) {
+        for (char pt : ports) {
             switch (pt) {
                 case 'E':
                     outOp[4] = '1';
