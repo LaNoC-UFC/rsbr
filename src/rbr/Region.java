@@ -17,13 +17,13 @@ public class Region {
 	}
 
 	private void updateBox() {
-		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE; 
+		int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
 		int xMax = 0, yMax = 0;
 		for (Vertex vertex : this.destinations) {
 			String[] xy = vertex.name().split("\\.");
 			int x = Integer.valueOf(xy[0]);
 			int y = Integer.valueOf(xy[1]);
-			
+
 			xMin = Math.min(xMin, x);
 			yMin = Math.min(yMin, y);
 			xMax = Math.max(xMax, x);

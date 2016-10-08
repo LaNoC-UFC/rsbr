@@ -19,7 +19,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 			return 0;
 		}
 	}
-	
+
 	public static class SrcDstComparator implements Comparator<Path> {
 
 		@Override
@@ -29,7 +29,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 			return (src != 0) ? src : dst;
 		}
 	}
-	
+
 	public static class MaxWeightComparator implements Comparator<Path> {
 		private LinkWeightTracker lwTracker;
 
@@ -43,7 +43,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 			return 0;
 		}
 	}
-	
+
 	public Path() {
 		super();
 	}
@@ -63,7 +63,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 	public Vertex src() {
 		return (this.size() != 0) ? this.get(0) : null;
 	}
-	
+
 	Collection<Edge> edges() {
 		List<Edge> edges = new ArrayList<>();
 		for (int i = 0; i < edgesCount(); i++)
