@@ -1,5 +1,5 @@
 import org.junit.*;
-import java.util.Collection;
+import java.util.*;
 
 import util.*;
 import sbr.*;
@@ -50,8 +50,9 @@ public class FaultyGraphSegmentationTest {
         return count == 1;
     }
 
-    private boolean isBridge(Graph g, Edge candidate) {
-        return g.bridges().contains(candidate) || g.bridges().contains(sibling(candidate));
+    private boolean isBridge(Graph graph, Edge candidate) {
+        List<Edge> bridges = new Bridge(graph).bridges();
+        return bridges.contains(candidate) || bridges.contains(sibling(candidate));
     }
 
     private Edge sibling(Edge one) {
