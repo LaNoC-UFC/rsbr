@@ -11,13 +11,13 @@ public class RegularGraphSegmentationTest {
         sr.setrestrictions();
         Assert.assertEquals(0, sr.segments().size());
         Assert.assertEquals(0, sr.restrictions().size());
-        //Assert.assertEquals(1, sr.startVertices().size());
-        //Assert.assertEquals(1, sr.terminalVertices().size());
+        Assert.assertEquals(1, sr.startVertices().size());
+        Assert.assertEquals(1, sr.terminalVertices().size());
     }
 
     @Test
     public void horizontalLinearGraph() throws Exception {
-        for (int numberOfVertices = 0; numberOfVertices < 10; numberOfVertices++) {
+        for (int numberOfVertices = 1; numberOfVertices < 10; numberOfVertices++) {
             testHorizontalGraph(numberOfVertices);
         }
 

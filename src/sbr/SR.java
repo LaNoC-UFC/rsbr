@@ -48,9 +48,8 @@ public class SR {
 
 	public void computeSegments() {
 		int maxX = graph.dimX()-1;
-
 		int maxY = graph.dimY()-1;
-		for (int currentY = maxY - 1; currentY >= 0; currentY--) {
+		for (int currentY = maxY; currentY >= 0; currentY--) {
 			currentWindow = Range.TwoDimensionalRange(0, maxX, currentY, maxY);
 			computeSegmentsInRange();
 			for (Segment seg : segments)
@@ -109,33 +108,33 @@ public class SR {
 
 		boolean isFirstTurn = (yMin + 1 == yMax);
 		Vertex sw;
-		Vertex left = graph.vertex(xMin + "." + (yMin + 1));
-		Vertex right = graph.vertex(xMax + "." + (yMin + 1));
+		Vertex left = graph.vertex(xMin + "." + yMin);
+		Vertex right = graph.vertex(xMax + "." + yMin);
 		boolean pair = ((yMin + 1) % 2 == 0);
 
-		if(isFirstTurn) {
+		if (isFirstTurn) {
 			sw = (pair) ? left : right;
 			setStart(sw);
-			subnetForVertex.put(sw,  ++maxSN);
+			subnetForVertex.put(sw, ++maxSN);
 			return sw;
 		}
 
-		if(isVisited(left) || isVisited(right)){
+		if (isVisited(left) || isVisited(right)) {
 			sw = (isVisited(left)) ? left : right;
 			return sw;
 		}
 
 		sw = nextVisited();
-		if(null != sw) {
+		if (null != sw) {
 			return sw;
 		}
 
 		sw = nextBridgeLinkedStartVertex();
-		if(sw == null) {
+		if (sw == null) {
 			sw = (pair) ? left : right;
 		}
 		setStart(sw);
-		subnetForVertex.put(sw,  ++maxSN);
+		subnetForVertex.put(sw, ++maxSN);
 		return sw;
 	}
 
