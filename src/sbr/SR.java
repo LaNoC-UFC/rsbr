@@ -36,7 +36,7 @@ public class SR {
 		terminal = new ArrayList<>();
 		visitedEdges = new ArrayList<>();
 		unvisitedEdges = new ArrayList<>(graph.getEdges());
-		bridges = graph.bridges();
+		bridges = new Bridge(graph).bridges();
 		RRIndex = new int[2];
 		RRIndex[0] = -1;
 		RRIndex[1] = -1;
