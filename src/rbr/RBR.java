@@ -62,7 +62,7 @@ public class RBR {
 		for(Vertex v : graph.getVertices())
 			routingPathForVertex.put(v, new ArrayList<>());
 
-		for(ArrayList<Path> alp : paths) {			
+		for(ArrayList<Path> alp : paths) {
 			for (Path path : alp) {
 				for (Vertex sw : path) {
 					if (path.indexOf(sw) != path.size() - 1) {
@@ -103,7 +103,7 @@ public class RBR {
 		}
 		return oPComb;
 	}
-	
+
 	// Compute the regions
 	public void regionsComputation() {
 		List<Set<Character>> opComb = getOutputCombinations();

@@ -25,7 +25,7 @@ public class SR {
 	private HashMap<Vertex, Segment> segmentForVertex;
 	private HashMap<Vertex, Integer> subnetForVertex;
 
-	public SR(Graph graph) 
+	public SR(Graph graph)
 	{
 		this.graph = graph;
 		this.restrictions = new GraphRestrictions(graph);
@@ -176,7 +176,7 @@ public class SR {
 			setTVisited(sw);
 		} else if (subnetForVertex.get(sw) != subNet && !(isStart(sw) && isTerminal(sw)))
 			return false;
-			
+
 		ArrayList<Edge> links = suitableLinks(sw);
 		while (!links.isEmpty()) {
 			Edge ln = getNextLink(links);
@@ -352,7 +352,7 @@ public class SR {
 			}
 		}
 	}
-	
+
 	private boolean isVisited(Vertex v) {
 		return visitedVertices.contains(v);
 	}
@@ -360,7 +360,7 @@ public class SR {
 	private void visit(Vertex v) {
 		assert !visitedVertices.contains(v) : "Vertex jah visitado?";
 		//assert unvisitedVertices.contains(v) : "Vertex (t)visitado?";
-		
+
 		visitedVertices.add(v);
 		unvisitedVertices.remove(v);
 	}
@@ -372,7 +372,7 @@ public class SR {
 	private void visit(Edge a) {
 		assert !visitedEdges.contains(a) : "Edge jah visitada?";
 		//assert unvisitedEdges.contains(a) : "Edge (t)visitada?";
-		
+
 		visitedEdges.add(a);
 		unvisitedEdges.remove(a);
 	}
@@ -384,7 +384,7 @@ public class SR {
 	private void setTVisited(Vertex v) {
 		assert !visitedVertices.contains(v) : "Vertex jah visitado?";
 		assert unvisitedVertices.contains(v) : "Vertex jah tvisitado?";
-		
+
 		unvisitedVertices.remove(v);
 	}
 
@@ -394,19 +394,19 @@ public class SR {
 
 	private void setTVisited(Edge a) {
 		assert unvisitedEdges.contains(a) : "Edge jah tvisitada?";
-		
+
 		unvisitedEdges.remove(a);
 	}
 
 	private void unsetTVisited(Edge a) {
 		assert !unvisitedEdges.contains(a) : "Edge nao tvisitada?";
-		
+
 		unvisitedEdges.add(a);
 	}
 
 	private void unsetTVisited(Vertex v) {
 		assert !unvisitedVertices.contains(v) : "Vertex nao tvisitado?";
-		
+
 		unvisitedVertices.add(v);
 	}
 
@@ -416,13 +416,13 @@ public class SR {
 
 	private void setStart(Vertex v) {
 		assert !start.contains(v) : "Vertex jah start?";
-		
+
 		start.add(v);
 	}
 
 	private void unsetStart(Vertex v) {
 		assert start.contains(v) : "Vertex nao start?";
-		
+
 		start.remove(v);
 	}
 
@@ -439,7 +439,7 @@ public class SR {
 
 	private void unsetTerminal(Vertex v) {
 		assert terminal.contains(v) : "Vertex nao terminal?";
-		
+
 		terminal.remove(v);
 	}
 

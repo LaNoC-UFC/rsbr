@@ -60,18 +60,18 @@ public class Graph {
 		Vertex v = new Vertex(nome);
 		vertices.add(v);
 	}
-	
+
 	void addEdge(Vertex origem, Vertex destino, Character cor) {
 		Edge e = new Edge(origem, destino, cor);
 		origem.addAdjunct(e);
 		edges.add(e);
 	}
-	
+
 	void addEdge(Edge toAdd) {
 		toAdd.source().adjuncts().add(toAdd);
 		edges.add(toAdd);
 	}
-	
+
 	void removeEdge(Edge toRemove) {
 		toRemove.source().adjuncts().remove(toRemove);
 		edges.remove(toRemove);
@@ -90,7 +90,7 @@ public class Graph {
 		}
 		return r;
 	}
-	
+
 	public int dimX() {
 		return dimX;
 	}
