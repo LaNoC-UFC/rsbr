@@ -34,7 +34,7 @@ public class Bridge {
         }
 
         low[graph.indexOf(v)] = pre[graph.indexOf(v)] = count++;
-        for(Edge e : v.adjuncts()) {
+        for(Edge e : graph.adjunctsOf(v)) {
             Vertex w = e.destination();
             if (pre[graph.indexOf(w)] == -1) {
                 dfs(graph, v, w);

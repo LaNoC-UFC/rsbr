@@ -17,7 +17,7 @@ public class RandomFaultyGraphBuilder {
             int edgeIndex = (int)(Math.random()*((double) graph.getEdges().size()));
             // deal with sibling edges
             Edge tic = graph.getEdges().get(edgeIndex);
-            Edge tac = tic.destination().edge(tic.source());
+            Edge tac = graph.adjunct(tic.destination(), tic.source());
             success = removeEdgesOrFail(graph, tic, tac);
         }
     }

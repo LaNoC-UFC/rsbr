@@ -32,9 +32,9 @@ public class PathFinder {
     private ArrayList<Path> computeOneHopPaths(Set<String> alreadyFoundPairs) {
         ArrayList<Path> result = new ArrayList<>();
         for (Vertex src : graph.getVertices()) {
-            for (Edge e : src.adjuncts()) {
+            for (Edge e : graph.adjunctsOf(src)) {
                 Vertex dst = e.destination();
-                if (restrictions.getRestriction(src, 'I').contains(src.edge(dst).color())) {
+                if (restrictions.getRestriction(src, 'I').contains(graph.adjunct(src, dst).color())) {
                     continue;
                 }
                 Path p = new Path();
@@ -62,14 +62,14 @@ public class PathFinder {
         ArrayList<Path> result = new ArrayList<>();
         Vertex currentSrc = p.dst();
         Vertex predecessor = p.get(p.size() - 2);
-        Character inputPort = currentSrc.edge(predecessor).color();
-        for (Edge e : currentSrc.adjuncts()) {
+        Character inputPort = graph.adjunct(currentSrc, predecessor).color();
+        for (Edge e : graph.adjunctsOf(currentSrc)) {
             Vertex dst = e.destination();
             // going back
             if (dst == predecessor)
                 continue;
             // going to forbidden direction
-            if ( restrictions.getRestriction(currentSrc, inputPort).contains(currentSrc.edge(dst).color()))
+            if ( restrictions.getRestriction(currentSrc, inputPort).contains(graph.adjunct(currentSrc, dst).color()))
                 continue;
             // no mininal path
             if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))

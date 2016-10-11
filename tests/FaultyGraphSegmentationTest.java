@@ -35,27 +35,27 @@ public class FaultyGraphSegmentationTest {
     private void validateEdges(Graph noc, Collection<Segment> segments) {
         for (Edge candidate : noc.getEdges()) {
             if (isBridge(noc, candidate))
-                Assert.assertFalse(isInASegment(segments, candidate));
+                Assert.assertFalse(isInASegment(noc, segments, candidate));
             else
-                Assert.assertTrue(isInASegment(segments, candidate));
+                Assert.assertTrue(isInASegment(noc, segments, candidate));
         }
     }
 
-    private boolean isInASegment(Collection<Segment> segments, Edge candidate) {
+    private boolean isInASegment(Graph noc, Collection<Segment> segments, Edge candidate) {
         int count = 0;
         for (Segment seg : segments)
-            if (seg.getLinks().contains(candidate) || seg.getLinks().contains(sibling(candidate)))
+            if (seg.getLinks().contains(candidate) || seg.getLinks().contains(sibling(noc, candidate)))
                 count++;
         return count == 1;
     }
 
     private boolean isBridge(Graph graph, Edge candidate) {
         List<Edge> bridges = new Bridge(graph).bridges();
-        return bridges.contains(candidate) || bridges.contains(sibling(candidate));
+        return bridges.contains(candidate) || bridges.contains(sibling(graph, candidate));
     }
 
-    private Edge sibling(Edge one) {
-        return one.destination().edge(one.source());
+    private Edge sibling(Graph graph, Edge one) {
+        return graph.adjunct(one.destination(), one.source());
     }
 
     private int maxOfFaultyLinks(int x, int y) {
