@@ -1,6 +1,5 @@
 import org.junit.*;
 import java.util.*;
-
 import util.*;
 import sbr.*;
 
@@ -10,7 +9,7 @@ public class FaultyGraphSegmentationTest {
         for (int numberOfFaults = 0; numberOfFaults <= maxOfFaultyLinks(3, 3); numberOfFaults++) {
             for (int i = 0; i < 1000; i++) {
                 Graph noc = RandomFaultyGraphBuilder.generateGraph(3, 3, numberOfFaults);
-                SR sr = new SR(noc);
+                SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
                 sr.computeSegments();
                 sr.setrestrictions();
                 validateEdges(noc, sr.segments());
@@ -24,7 +23,7 @@ public class FaultyGraphSegmentationTest {
             for (int y = 2; y < 8; y++) {
                 for (int numberOfFaults = 0; numberOfFaults <= maxOfFaultyLinks(x, y); numberOfFaults++) {
                     Graph noc = RandomFaultyGraphBuilder.generateGraph(x, y, numberOfFaults);
-                    SR sr = new SR(noc);
+                    SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
                     sr.computeSegments();
                     sr.setrestrictions();
                     validateEdges(noc, sr.segments());
