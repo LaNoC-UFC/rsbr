@@ -25,7 +25,6 @@ public class FromFileGraphBuilder {
             addVertices(result);
             addHorizontalLinks(result, lines, columns);
             addVerticalLinks(result, columns);
-
             sc.close();
 
         } catch (Exception ex) {

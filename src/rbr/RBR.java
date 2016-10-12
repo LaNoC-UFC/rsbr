@@ -69,12 +69,12 @@ public class RBR {
 						Set<Character> op = new HashSet<>();
 						Set<Character> ip = new HashSet<>();
 
-						op.add(sw.edge(path.get(path.indexOf(sw) + 1)).color());
+						op.add(graph.adjunct(sw, path.get(path.indexOf(sw) + 1)).color());
 						if(path.indexOf(sw) == 0) {
 							ip.add('I');
 						}
 						else {
-							ip.add(sw.edge(path.get(path.indexOf(sw) - 1)).color());
+							ip.add(graph.adjunct(sw, path.get(path.indexOf(sw) - 1) ).color());
 						}
 						addRoutingPath(sw, ip, path.dst(), op);
 					}
@@ -285,7 +285,8 @@ public class RBR {
 		if (opColor == null) {
 			return false;
 		}
-		return reaches(src.adjunct(opColor).destination(), dest, EdgeColor.getInvColor(src.adjunct(opColor).color()));
+		return reaches(graph.adjunctOf(src, opColor).destination(), dest,
+				EdgeColor.getInvColor(graph.adjunctOf(src, opColor).color()));
 	}
 
 	private Character getOpColor(Vertex src, Vertex dest, Character ipColor) {

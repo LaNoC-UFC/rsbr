@@ -175,7 +175,7 @@ public class SR {
 		while (!links.isEmpty()) {
 			Edge ln = policy.getNextLink(links);
 			links.remove(ln);
-			Edge nl = ln.destination().edge(ln.source());
+            Edge nl = graph.adjunct(ln.destination(), ln.source());
 			if (debug) System.err.println("Link now: "+ln.source().name()+" <-> "+ln.destination().name());
 			setTVisited(ln);
 			setTVisited(nl);
@@ -269,12 +269,12 @@ public class SR {
 				Vertex Starting = segment.getLinks().get(0).source();
 				Vertex Ending = segment.getLinks().get(0).destination();
 				// Restrictions at Starting core
-				for (Edge link : Starting.adjuncts()) {
-						restrictions.addRestriction(Starting, link.color(), Starting.edge(Ending).color());
+				for (Edge link : graph.adjunctsOf(Starting)) {
+						restrictions.addRestriction(Starting, link.color(), graph.adjunct(Starting, Ending).color());
 				}
 				// Restrictions at Ending core
-				for (Edge link : Ending.adjuncts()) {
-						restrictions.addRestriction(Ending, link.color(), Ending.edge(Starting).color());
+				for (Edge link : graph.adjunctsOf(Ending)) {
+						restrictions.addRestriction(Ending, link.color(),  graph.adjunct(Ending, Starting).color());
 				}
 				continue;
 			}
@@ -392,10 +392,10 @@ public class SR {
 
 	private ArrayList<Edge> suitableLinks(Vertex v) {
 		ArrayList<Edge> result = new ArrayList<>();
-		for(Edge ln : v.adjuncts()) {
+		for(Edge ln : graph.adjunctsOf(v)) {
 			Vertex dst = ln.destination();
 			boolean cruza = isTVisited(dst) && !isStart(dst);
-			boolean isBridge = bridges.contains(ln) || bridges.contains(dst.edge(ln.source()));
+			boolean isBridge = bridges.contains(ln) || bridges.contains(graph.adjunct(dst, ln.source()));
 			if(!isVisited(ln) && !isTVisited(ln) && dst.isIn(currentWindow) && !cruza && !isBridge)
 				result.add(ln);
 		}

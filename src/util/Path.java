@@ -52,7 +52,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 		super(p);
 	}
 
-	private int edgesCount() {
+	public int edgesCount() {
 		return this.size() - 1;
 	}
 
@@ -62,13 +62,6 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
 
 	public Vertex src() {
 		return (this.size() != 0) ? this.get(0) : null;
-	}
-
-	Collection<Edge> edges() {
-		List<Edge> edges = new ArrayList<>();
-		for (int i = 0; i < edgesCount(); i++)
-			edges.add(this.get(i).edge(this.get(i + 1)));
-		return edges;
 	}
 
 	public int compareTo(Path other) {

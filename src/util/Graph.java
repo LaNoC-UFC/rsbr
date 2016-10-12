@@ -5,12 +5,14 @@ import java.util.*;
 public class Graph {
 	private ArrayList<Vertex> vertices;
 	private ArrayList<Edge> edges;
+    private Map<Vertex, Collection<Edge>> adjuncts;
 	private int dimX;
 	private int dimY;
 
 	public Graph(int rows, int columns) {
 		vertices = new ArrayList<>();
 		edges = new ArrayList<>();
+        adjuncts = new HashMap<>();
 		dimX = columns;
 		dimY = rows;
 	}
@@ -26,7 +28,7 @@ public class Graph {
 			return;
 		}
 		reachable.add(vertex);
-		for (Edge adj : vertex.adjuncts()){
+		for (Edge adj : adjunctsOf(vertex)){
 			Vertex neigh = adj.destination();
 			reachAdjuncts(neigh, reachable);
 		}
@@ -40,12 +42,37 @@ public class Graph {
 		return this.edges;
 	}
 
+    public Collection<Edge> adjunctsOf(Vertex v) {
+        return this.adjuncts.get(v);
+    }
+
+    public Edge adjunct(Vertex src, Vertex dst){
+        for(Edge edge : adjunctsOf(src)){
+            if (edge.destination().name().equals(dst.name())) {
+                return edge;
+            }
+        }
+        System.out.println("ERROR : There isn't adjunct between " + src.name() + "and" + dst.name());
+        return null;
+    }
+
+    public Edge adjunctOf(Vertex v, Character color){
+        for(Edge edge : adjunctsOf(v)){
+            if(edge.color().equals(color)){
+                return edge;
+            }
+        }
+        System.out.println("ERROR : There isn't a Op " + color + "?");
+        return null;
+    }
+
 	public Vertex vertex(String name) {
 		Vertex vertex = null;
 
 		for (Vertex v : this.vertices) {
-			if (v.name().equals(name))
-				vertex = v;
+			if (v.name().equals(name)) {
+                vertex = v;
+            }
 		}
 
 		if (vertex == null) {
@@ -59,21 +86,20 @@ public class Graph {
 	void addVertex(String nome) {
 		Vertex v = new Vertex(nome);
 		vertices.add(v);
+        adjuncts.put(v, new ArrayList<>());
 	}
 
-	void addEdge(Vertex origem, Vertex destino, Character cor) {
-		Edge e = new Edge(origem, destino, cor);
-		origem.addAdjunct(e);
-		edges.add(e);
+	void addEdge(Vertex src, Vertex dst, Character cor) {
+		addEdge(new Edge(src, dst, cor));
 	}
 
 	void addEdge(Edge toAdd) {
-		toAdd.source().adjuncts().add(toAdd);
+        adjuncts.get(toAdd.source()).add(toAdd);
 		edges.add(toAdd);
 	}
 
 	void removeEdge(Edge toRemove) {
-		toRemove.source().adjuncts().remove(toRemove);
+        adjuncts.get(toRemove.source()).remove(toRemove);
 		edges.remove(toRemove);
 	}
 
@@ -82,7 +108,7 @@ public class Graph {
 		System.out.println("Graph:");
 		for (Vertex u : vertices) {
 			r += u.name() + " -> ";
-			for (Edge e : u.adjuncts()) {
+			for (Edge e : adjunctsOf(u)) {
 				Vertex v = e.destination();
 				r += v.name() + e.color() + ", ";
 			}
