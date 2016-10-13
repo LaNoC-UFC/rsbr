@@ -41,4 +41,12 @@ class RoutingOption {
 			return false;
 		return true;
 	}
+	
+	@Override
+	public int hashCode(){
+		int result = ip.hashCode();
+		result = 37 * result + op.hashCode();
+		result = 37 * result + dst.hashCode();
+		return result;
+	}
 }

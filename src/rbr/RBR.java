@@ -6,7 +6,7 @@ import java.util.*;
 
 public class RBR {
 	private Graph graph;
-	private HashMap<Vertex, ArrayList<RoutingOption>> routingPathForVertex;
+	private HashMap<Vertex, Set<RoutingOption>> routingPathForVertex;
 	private HashMap<Vertex, ArrayList<Region>> regionsForVertex;
 
 	public RBR(Graph g) {
@@ -22,8 +22,8 @@ public class RBR {
 	// Pack routing options if they have the same input port and the same
 	// destination
 	private void packOutputPort(Vertex atual) {
-		ArrayList<RoutingOption> actRP = routingPathForVertex.get(atual);
-		routingPathForVertex.put(atual, new ArrayList<>());
+		Set<RoutingOption> actRP = routingPathForVertex.get(atual);
+		routingPathForVertex.put(atual, new HashSet<>());
 		for (RoutingOption a : actRP) {
 			Set<Character> op = a.getOp();
 			Set<Character> ip = a.getIp();
@@ -34,15 +34,15 @@ public class RBR {
 						op.addAll(b.getOp());
 				}
 			}
-			addRoutingPath(atual, ip, dst, op);
+			routingPathForVertex.get(atual).add(new RoutingOption(ip, dst, op));
 		}
 	}
 
 	// Pack routing options if they have the same output port and the same
 	// destination
 	public void packInputPort(Vertex atual) {
-		ArrayList<RoutingOption> actRP = routingPathForVertex.get(atual);
-		routingPathForVertex.put(atual, new ArrayList<>());
+		Set<RoutingOption> actRP = routingPathForVertex.get(atual);
+		routingPathForVertex.put(atual, new HashSet<>());
 		for (RoutingOption a : actRP) {
 			Set<Character> op = a.getOp();
 			Set<Character> ip = a.getIp();
@@ -53,14 +53,14 @@ public class RBR {
 						ip.addAll(b.getIp());
 				}
 			}
-			addRoutingPath(atual, ip, dst, op);
+			routingPathForVertex.get(atual).add(new RoutingOption(ip, dst, op));
 		}
 	}
 
 	public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
 
 		for(Vertex v : graph.getVertices())
-			routingPathForVertex.put(v, new ArrayList<>());
+			routingPathForVertex.put(v, new HashSet<>());
 
 		for(ArrayList<Path> alp : paths) {
 			for (Path path : alp) {
@@ -76,7 +76,7 @@ public class RBR {
 						else {
 							ip.add(graph.adjunct(sw, path.get(path.indexOf(sw) - 1) ).color());
 						}
-						addRoutingPath(sw, ip, path.dst(), op);
+						routingPathForVertex.get(sw).add(new RoutingOption(ip, path.dst(), op));
 					}
 				}
 			}
@@ -340,12 +340,5 @@ public class RBR {
 			}
 		}
 		return false;
-	}
-
-	private void addRoutingPath(Vertex v, Set<Character> ip, Vertex dst, Set<Character> op) {
-		RoutingOption rp = new RoutingOption(ip, dst, op);
-		// @Todo replace this by a Set to not worry with duplication
-		if(!routingPathForVertex.get(v).contains(rp))
-			routingPathForVertex.get(v).add(rp);
 	}
 }
