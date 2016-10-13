@@ -34,7 +34,7 @@ public class RBR {
 						op.addAll(b.getOp());
 				}
 			}
-			addRoutingPath(atual, ip, dst, op);
+			routingPathForVertex.get(atual).add(new RoutingOption(ip, dst, op));
 		}
 	}
 
@@ -53,7 +53,7 @@ public class RBR {
 						ip.addAll(b.getIp());
 				}
 			}
-			addRoutingPath(atual, ip, dst, op);
+			routingPathForVertex.get(atual).add(new RoutingOption(ip, dst, op));
 		}
 	}
 
@@ -76,7 +76,7 @@ public class RBR {
 						else {
 							ip.add(graph.adjunct(sw, path.get(path.indexOf(sw) - 1) ).color());
 						}
-						addRoutingPath(sw, ip, path.dst(), op);
+						routingPathForVertex.get(sw).add(new RoutingOption(ip, path.dst(), op));
 					}
 				}
 			}
@@ -340,11 +340,5 @@ public class RBR {
 			}
 		}
 		return false;
-	}
-
-	private void addRoutingPath(Vertex v, Set<Character> ip, Vertex dst, Set<Character> op) {
-		RoutingOption rp = new RoutingOption(ip, dst, op);
-		
-		routingPathForVertex.get(v).add(rp);
 	}
 }
