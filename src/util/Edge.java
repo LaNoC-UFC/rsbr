@@ -1,10 +1,10 @@
 package util;
 
-public class Edge {
-    private Vertex source;
-    private Vertex destination;
-    private Character color;
-    private double weight;
+public final class Edge {
+    private final Vertex source;
+    private final Vertex destination;
+    private final Character color;
+    private final double weight;
 
     Edge(Vertex src, Vertex dst, Character color) {
         this.color = color;
