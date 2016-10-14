@@ -19,8 +19,7 @@ public class Segment {
         if (links.size() == 1)
             return false;
 
-        if (links.get(links.size() - 1).destination().name()
-                .equals(switches.get(0).name()))
+        if (links.get(links.size() - 1).destination().equals(switches.get(0)))
             return true;
 
         return false;
