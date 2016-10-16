@@ -23,4 +23,9 @@ public final class Vertex {
 
         return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return ((obj instanceof Vertex) && (((Vertex) obj).name().equals(this.name)));
+    }
 }

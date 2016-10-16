@@ -24,11 +24,11 @@ public class Graph {
     }
 
     private void reachAdjuncts(Vertex vertex, Set<Vertex> reachable) {
-        if (reachable.contains(vertex)){
+        if (reachable.contains(vertex)) {
             return;
         }
         reachable.add(vertex);
-        for (Edge adj : adjunctsOf(vertex)){
+        for (Edge adj : adjunctsOf(vertex)) {
             Vertex neigh = adj.destination();
             reachAdjuncts(neigh, reachable);
         }
@@ -46,9 +46,9 @@ public class Graph {
         return this.adjuncts.get(v);
     }
 
-    public Edge adjunct(Vertex src, Vertex dst){
-        for(Edge edge : adjunctsOf(src)){
-            if (edge.destination().name().equals(dst.name())) {
+    public Edge adjunct(Vertex src, Vertex dst) {
+        for (Edge edge : adjunctsOf(src)) {
+            if (edge.destination().equals(dst)) {
                 return edge;
             }
         }
@@ -56,9 +56,9 @@ public class Graph {
         return null;
     }
 
-    public Edge adjunctOf(Vertex v, Character color){
-        for(Edge edge : adjunctsOf(v)){
-            if(edge.color().equals(color)){
+    public Edge adjunctOf(Vertex v, Character color) {
+        for (Edge edge : adjunctsOf(v)) {
+            if (edge.color().equals(color)) {
                 return edge;
             }
         }
@@ -68,7 +68,6 @@ public class Graph {
 
     public Vertex vertex(String name) {
         Vertex vertex = null;
-
         for (Vertex v : this.vertices) {
             if (v.name().equals(name)) {
                 vertex = v;
@@ -76,21 +75,20 @@ public class Graph {
         }
 
         if (vertex == null) {
-            System.out.println("Vertex: " + name + " nao encontrado");
+            System.out.println("Vertex: " + name + " was not found");
             return null;
         }
-
         return vertex;
     }
 
-    void addVertex(String nome) {
-        Vertex v = new Vertex(nome);
+    void addVertex(String name) {
+        Vertex v = new Vertex(name);
         vertices.add(v);
         adjuncts.put(v, new ArrayList<>());
     }
 
-    void addEdge(Vertex src, Vertex dst, Character cor) {
-        addEdge(new Edge(src, dst, cor));
+    void addEdge(Vertex src, Vertex dst, Character color) {
+        addEdge(new Edge(src, dst, color));
     }
 
     void addEdge(Edge toAdd) {
@@ -132,6 +130,6 @@ public class Graph {
     private int indexOf(String xy) {
         int x = Integer.parseInt(xy.split("\\.")[0]);
         int y = Integer.parseInt(xy.split("\\.")[1]);
-        return x + y*this.dimX();
+        return x + y * this.dimX();
     }
 }
