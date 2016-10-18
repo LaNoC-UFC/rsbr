@@ -86,27 +86,30 @@ public class RBR {
             // packInputPort(atual);
         }
     }
-
-    // Do output combinations
-    private static List<Set<Character>> getOutputCombinations() {
-        List<Set<Character>> oPComb = new ArrayList<>();
-        char[] op = "ENSW".toCharArray();
-
-        for (int m = 1; m != 1 << op.length; m++) {
-            Set<Character> a = new HashSet<>();
-            for (int i = 0; i != op.length; i++) {
+    
+    private static List<Set> allCombinationsOf(Set objects) {
+        List<Set> result = new ArrayList<>();
+        Object[] arrayObjects = objects.toArray();
+        for (int m = 1; m != 1 << arrayObjects.length; m++) {
+            Set<Object> aCombination = new HashSet<>();
+            for (int i = 0; i != arrayObjects.length; i++) {
                 if ((m & (1 << i)) != 0) {
-                    a.add(op[i]);
+                    aCombination.add(arrayObjects[i]);
                 }
             }
-            oPComb.add(a);
+            result.add(aCombination);
         }
-        return oPComb;
+        return result;
     }
 
     // Compute the regions
     public void regionsComputation() {
-        List<Set<Character>> opComb = getOutputCombinations();
+        Set<Character> opt = new HashSet<>();
+        opt.add('E');
+        opt.add('N');
+        opt.add('S');
+        opt.add('W');
+        List<Set> opComb = allCombinationsOf(opt);
         for (Vertex sw : graph.getVertices()) {
             regionsForVertex.put(sw, new ArrayList<>());
             for (Set<Character> op : opComb) {
