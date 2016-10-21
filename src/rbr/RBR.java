@@ -66,15 +66,14 @@ public class RBR {
             for (Path path : alp) {
                 for (Vertex sw : path) {
                     if (path.indexOf(sw) != path.size() - 1) {
-                        Set<Character> op = new HashSet<>();
-                        Set<Character> ip = new HashSet<>();
+                        Character op = graph.adjunct(sw, path.get(path.indexOf(sw) + 1)).color();
+                        Character ip;
 
-                        op.add(graph.adjunct(sw, path.get(path.indexOf(sw) + 1)).color());
                         if(path.indexOf(sw) == 0) {
-                            ip.add('I');
+                            ip = 'I';
                         }
                         else {
-                            ip.add(graph.adjunct(sw, path.get(path.indexOf(sw) - 1) ).color());
+                            ip = graph.adjunct(sw, path.get(path.indexOf(sw) - 1) ).color();
                         }
                         routingPathForVertex.get(sw).add(new RoutingOption(ip, path.dst(), op));
                     }
