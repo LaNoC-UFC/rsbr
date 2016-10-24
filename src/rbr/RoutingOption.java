@@ -14,6 +14,14 @@ class RoutingOption {
         this.op = op;
     }
 
+    RoutingOption(Character ip, Vertex dst, Character op) {
+        this.dst = dst;
+        this.ip = new HashSet<>();
+        this.op = new HashSet<>();
+        this.ip.add(ip);
+        this.op.add(op);
+    }
+
     public Set<Character> getIp() {
         return ip;
     }
