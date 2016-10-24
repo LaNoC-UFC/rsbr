@@ -3,15 +3,15 @@ package rbr;
 import util.Vertex;
 import java.util.*;
 
-class RoutingOption {
-    private Set<Character> ip;
-    private Set<Character> op;
-    private Vertex dst;
+final class RoutingOption {
+    private final Set<Character> ip;
+    private final Set<Character> op;
+    private final Vertex dst;
 
     RoutingOption(Set<Character> ip, Vertex dst, Set<Character> op) {
         this.dst = dst;
-        this.ip = ip;
-        this.op = op;
+        this.ip = new HashSet<>(ip);
+        this.op = new HashSet<>(op);
     }
 
     RoutingOption(Character ip, Vertex dst, Character op) {
@@ -23,7 +23,7 @@ class RoutingOption {
     }
 
     public Set<Character> getIp() {
-        return ip;
+        return new HashSet<>(ip);
     }
 
     Vertex destination() {
@@ -31,7 +31,7 @@ class RoutingOption {
     }
 
     public Set<Character> getOp() {
-        return op;
+        return new HashSet<>(op);
     }
 
     @Override
