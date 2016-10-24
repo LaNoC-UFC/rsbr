@@ -3,20 +3,20 @@ package rbr;
 import java.util.*;
 import util.*;
 
-public class Region {
-    private Set<Character> inputPorts;
-    private Set<Character> outputPorts;
-    private Range box;
-    private Set<Vertex> destinations;
+public final class Region {
+    private final Set<Character> inputPorts;
+    private final Set<Character> outputPorts;
+    private final Range box;
+    private final Set<Vertex> destinations;
 
     public Region(Set<Character> ip, Set<Vertex> destinations, Set<Character> op) {
         this.destinations = new HashSet<>(destinations);
         this.inputPorts = new HashSet<>(ip);
         this.outputPorts = new HashSet<>(op);
-        this.updateBox();
+        this.box = createBox();
     }
 
-    private void updateBox() {
+    private Range createBox() {
         int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
         int xMax = 0, yMax = 0;
         for (Vertex vertex : this.destinations) {
@@ -29,19 +29,19 @@ public class Region {
             xMax = Math.max(xMax, x);
             yMax = Math.max(yMax, y);
         }
-        this.box = Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
+        return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
     }
 
     Set<Character> inputPorts() {
-        return inputPorts;
+        return new HashSet<>(inputPorts);
     }
 
     Set<Character> outputPorts() {
-        return outputPorts;
+        return new HashSet<>(outputPorts);
     }
 
     Set<Vertex> destinations() {
-        return destinations;
+        return new HashSet<>(destinations);
     }
 
     Set<Vertex> destinationsIn(Range box) {
@@ -67,11 +67,9 @@ public class Region {
         op.retainAll(that.outputPorts());
         Set<Character> ip = that.inputPorts();
         ip.addAll(this.inputPorts());
-        Region reg = new Region(ip, this.destinations(), op);
-        reg.box = reg.box().combination(that.box());
-        reg.destinations().addAll(that.destinations());
-        reg.updateBox();
-        return reg;
+        Set<Vertex> destinations = this.destinations();
+        destinations.addAll(that.destinations());
+        return new Region(ip, destinations, op);
     }
 
     Set<Vertex> outsiders() {
