@@ -137,7 +137,7 @@ public class RBR {
             Set<Vertex> outsiders = currentRegion.outsiders();
             if(outsiders.isEmpty())
                 continue;
-            Range outsidersBox = box(outsiders);
+            Range outsidersBox = TopologyKnowledge.box(outsiders);
             Set<Vertex> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
 
             regionsToBeRemoved.add(currentRegion);
@@ -179,27 +179,10 @@ public class RBR {
         return result;
     }
 
-    private static Range box(Set<Vertex> dsts) {
-        int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
-        int xMax = 0, yMax = 0;
-
-        for (Vertex vertex : dsts) {
-            String[] xy = vertex.name().split("\\.");
-            int x = Integer.valueOf(xy[0]);
-            int y = Integer.valueOf(xy[1]);
-
-            xMin = (xMin < x) ? xMin : x;
-            yMin = (yMin < y) ? yMin : y;
-            xMax = (xMax > x) ? xMax : x;
-            yMax = (yMax > y) ? yMax : y;
-        }
-        return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
-    }
-
     // Make regions only with correct destinations
     private ArrayList<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
         ArrayList<Region> result = new ArrayList<>();
-        Range box = box(dsts);
+        Range box = TopologyKnowledge.box(dsts);
 
         while (!dsts.isEmpty()) {
             int Lmin = box.min(1), Cmax = box.max(0);
@@ -288,7 +271,7 @@ public class RBR {
             return false;
         }
         return reaches(graph.adjunctOf(src, opColor).destination(), dest,
-                EdgeColor.getInvColor(graph.adjunctOf(src, opColor).color()));
+                TopologyKnowledge.getInvColor(graph.adjunctOf(src, opColor).color()));
     }
 
     private Character getOpColor(Vertex src, Vertex dest, Character ipColor) {

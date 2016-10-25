@@ -281,21 +281,21 @@ public class SR {
             // Put it at first or second link
             if (segment.getSwitchs().size() == 1) {
                 Vertex sw = segment.getSwitchs().get(0);
-                restrictions.addRestriction(sw,EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
-                restrictions.addRestriction(sw, segment.getLinks().get(1).color(), EdgeColor.getInvColor(segment.getLinks().get(0).color()));
+                restrictions.addRestriction(sw, TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
+                restrictions.addRestriction(sw, segment.getLinks().get(1).color(), TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()));
                 continue;
             }
             // At this point we have or starting or regular segment
             if (segment.isRegular()) {
                 Vertex restrict = segment.getSwitchs().get(1);
-                restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(1).color()), segment.getLinks().get(2).color());
-                restrictions.addRestriction(restrict, segment.getLinks().get(2).color(), EdgeColor.getInvColor(segment.getLinks().get(1).color()));
+                restrictions.addRestriction(restrict, TopologyKnowledge.getInvColor(segment.getLinks().get(1).color()), segment.getLinks().get(2).color());
+                restrictions.addRestriction(restrict, segment.getLinks().get(2).color(), TopologyKnowledge.getInvColor(segment.getLinks().get(1).color()));
                 continue;
             }
             if (segment.isStarting()) {
                 Vertex restrict = segment.getSwitchs().get(1);
-                restrictions.addRestriction(restrict, EdgeColor.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
-                restrictions.addRestriction(restrict, segment.getLinks().get(1).color(), EdgeColor.getInvColor(segment.getLinks().get(0).color()));
+                restrictions.addRestriction(restrict, TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
+                restrictions.addRestriction(restrict, segment.getLinks().get(1).color(), TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()));
             }
         }
     }

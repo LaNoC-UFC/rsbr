@@ -49,8 +49,8 @@ public class FromFileGraphBuilder {
                 if (!linkIsFaulty(line[j])) {
                     Vertex starting = graph.vertex(j + "." + (columns.length - i));
                     Vertex ending = graph.vertex((j + 1) + "." + (columns.length - i));
-                    graph.addEdge(starting, ending, EdgeColor.colorFromTo(starting.name(), ending.name()));
-                    graph.addEdge(ending, starting, EdgeColor.colorFromTo(ending.name(), starting.name()));
+                    graph.addEdge(starting, ending, TopologyKnowledge.colorFromTo(starting.name(), ending.name()));
+                    graph.addEdge(ending, starting, TopologyKnowledge.colorFromTo(ending.name(), starting.name()));
                 }
             }
         }
@@ -63,8 +63,8 @@ public class FromFileGraphBuilder {
                 if (!linkIsFaulty(column[j])) {
                     Vertex starting = graph.vertex(j + "." + (columns.length - i));
                     Vertex ending = graph.vertex(j + "." + (columns.length - 1 - i));
-                    graph.addEdge(starting, ending, EdgeColor.colorFromTo(starting.name(), ending.name()));
-                    graph.addEdge(ending, starting, EdgeColor.colorFromTo(ending.name(), starting.name()));
+                    graph.addEdge(starting, ending, TopologyKnowledge.colorFromTo(starting.name(), ending.name()));
+                    graph.addEdge(ending, starting, TopologyKnowledge.colorFromTo(ending.name(), starting.name()));
                 }
             }
         }
