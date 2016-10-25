@@ -13,23 +13,7 @@ public final class Region {
         this.destinations = new HashSet<>(destinations);
         this.inputPorts = new HashSet<>(ip);
         this.outputPorts = new HashSet<>(op);
-        this.box = createBox();
-    }
-
-    private Range createBox() {
-        int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
-        int xMax = 0, yMax = 0;
-        for (Vertex vertex : this.destinations) {
-            String[] xy = vertex.name().split("\\.");
-            int x = Integer.valueOf(xy[0]);
-            int y = Integer.valueOf(xy[1]);
-
-            xMin = Math.min(xMin, x);
-            yMin = Math.min(yMin, y);
-            xMax = Math.max(xMax, x);
-            yMax = Math.max(yMax, y);
-        }
-        return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
+        this.box = TopologyKnowledge.box(destinations);
     }
 
     Set<Character> inputPorts() {

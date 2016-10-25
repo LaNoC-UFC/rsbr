@@ -1,6 +1,8 @@
 package util;
 
-public class EdgeColor {
+import java.util.Set;
+
+public class TopologyKnowledge {
     static Character[] ports = { 'N', 'S', 'E', 'W' };
 
     public static Character getInvColor(Character color) {
@@ -39,5 +41,21 @@ public class EdgeColor {
             return 'N';
         }
         return 'I';
+    }
+
+    public static Range box(Set<Vertex> destinations) {
+        int xMin = Integer.MAX_VALUE, yMin = Integer.MAX_VALUE;
+        int xMax = 0, yMax = 0;
+        for (Vertex vertex : destinations) {
+            String[] xy = vertex.name().split("\\.");
+            int x = Integer.valueOf(xy[0]);
+            int y = Integer.valueOf(xy[1]);
+
+            xMin = Math.min(xMin, x);
+            yMin = Math.min(yMin, y);
+            xMax = Math.max(xMax, x);
+            yMax = Math.max(yMax, y);
+        }
+        return Range.TwoDimensionalRange(xMin, xMax, yMin, yMax);
     }
 }
