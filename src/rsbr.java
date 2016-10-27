@@ -13,24 +13,24 @@ public class rsbr {
         String volumePath = null;
         boolean shouldMerge = true;
         int dim = 4;
-        int dimX = dim;
-        int dimY = dim;
+        int rows = dim;
+        int columns = dim;
         double[] faultyPercentages = { 0.0, 0.05, 0.1, 0.15, 0.2, 0, 25, 0.30 };
 
         if (args.length == 4) {
-            dimX = Integer.parseInt(args[0]);
-            dimY = Integer.parseInt(args[1]);
+            rows = Integer.parseInt(args[0]);
+            columns = Integer.parseInt(args[1]);
         }
 
         for (double faultyPercentage : faultyPercentages) {
 
-            if (!hasEnoughEdges(dimX, dimY, faultyPercentage))
+            if (!hasEnoughEdges(rows, columns, faultyPercentage))
                 break;
 
             System.out.println("Generating graph");
             Graph graph = (topologyFile != null) ?
                     FromFileGraphBuilder.generateGraph(topologyFile) :
-                    RandomFaultyGraphBuilder.generateGraph(dimX, dimY, (int)Math.ceil(faultyPercentage*numberOfEdges(dimX, dimY)));
+                    RandomFaultyGraphBuilder.generateGraph(rows, columns, (int)Math.ceil(faultyPercentage*numberOfEdges(rows, columns)));
 
             System.out.println("Isolated?: " + graph.hasIsolatedCores());
 
@@ -88,8 +88,8 @@ public class rsbr {
         new RoutingTableGenerator(graph, rbr.regions()).doRoutingTable(fileSuffix);
     }
 
-    private static int numberOfEdges(int dimX, int dimY) {
-        return (dimX - 1)*dimY + (dimY - 1)*dimX;
+    private static int numberOfEdges(int rows, int columns) {
+        return (columns - 1)*rows + (rows - 1)*columns;
     }
 
     private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, Graph g, Map<Path, Double> volumes) {
@@ -114,10 +114,10 @@ public class rsbr {
         return chosenPaths;
     }
 
-    private static boolean hasEnoughEdges(int dimX, int dimY, double percentage) {
-        int numberOfFaultyEdges = (int) Math.ceil((double) numberOfEdges(dimX, dimY) * percentage);
-        int numberOfGoodEdges = numberOfEdges(dimX, dimY) - numberOfFaultyEdges;
-        int numberOfVertices = dimX * dimY;
+    private static boolean hasEnoughEdges(int rows, int columns, double percentage) {
+        int numberOfFaultyEdges = (int) Math.ceil((double) numberOfEdges(rows, columns) * percentage);
+        int numberOfGoodEdges = numberOfEdges(rows, columns) - numberOfFaultyEdges;
+        int numberOfVertices = rows * columns;
 
         return (numberOfGoodEdges >= numberOfVertices - 1);
     }
@@ -138,7 +138,7 @@ public class rsbr {
 
     private static Map<Path, Double> communicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
 
-        int N = graph.dimX()*graph.dimY();
+        int N = graph.columns()*graph.rows();
         double[][] vol = new double[N][N];
         double maxVol = 0;
         Map<Path, Double> pathsVolume = new HashMap<>();

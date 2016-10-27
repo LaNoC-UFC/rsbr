@@ -15,16 +15,16 @@ public class FromFileGraphBuilder {
         try {
             Scanner sc = new Scanner(new FileReader(topology));
 
-            String[] lines = sc.nextLine().split("; ");
-            String[] columns = sc.nextLine().split("; ");
+            String[] strLines = sc.nextLine().split("; ");
+            String[] strColumns = sc.nextLine().split("; ");
 
-            int dimX = lines[0].split(" ").length + 1;
-            int dimY = lines.length;
+            int columns = strLines[0].split(" ").length + 1;
+            int rows = strLines.length;
 
-            result = new Graph(dimX, dimY);
+            result = new Graph(rows, columns);
             addVertices(result);
-            addHorizontalLinks(result, lines, columns);
-            addVerticalLinks(result, columns);
+            addHorizontalLinks(result, strLines, strColumns);
+            addVerticalLinks(result, strColumns);
             sc.close();
 
         } catch (Exception ex) {
@@ -34,8 +34,8 @@ public class FromFileGraphBuilder {
     }
 
     static private void addVertices(Graph graph) {
-        for (int i = 0; i < graph.dimX(); i++) {
-            for (int j = 0; j < graph.dimY(); j++) {
+        for (int i = 0; i < graph.columns(); i++) {
+            for (int j = 0; j < graph.rows(); j++) {
                 String vertex = i + "." + j;
                 graph.addVertex(vertex);
             }
