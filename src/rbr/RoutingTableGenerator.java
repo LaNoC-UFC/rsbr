@@ -107,7 +107,7 @@ public class RoutingTableGenerator {
                     + "\")";
 
             bw.append(region);
-            if (regionIndex < maxOfRegions)
+            if(regionIndex < maxOfRegions - 1)
                 bw.append(",");
             bw.newLine();
         }
