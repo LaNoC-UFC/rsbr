@@ -70,7 +70,10 @@ public final class Region {
     }
 
     boolean canBeMergedWith(Region that) {
-        return (this.box().isContiguous(that.box()) && OutputPortIsSubSet(this.outputPorts(), that.outputPorts()));
+        boolean anyBoxIsEmpty = this.box().equals(Range.EMPTY) || that.box().equals(Range.EMPTY);
+        boolean boxesCanBeMerged = this.box().isContiguous(that.box()) || this.box().equals(that.box()) || anyBoxIsEmpty;
+        boolean outputPortsCanBeMerged = OutputPortIsSubSet(this.outputPorts(), that.outputPorts());
+        return boxesCanBeMerged && outputPortsCanBeMerged;
     }
 
     private boolean OutputPortIsSubSet(Set<Character> outputPort1, Set<Character> outputPort2) {
