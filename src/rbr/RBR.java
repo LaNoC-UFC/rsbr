@@ -1,8 +1,7 @@
 package rbr;
 
-import util.*;
-
 import java.util.*;
+import util.*;
 
 public class RBR {
     private Graph graph;
@@ -237,25 +236,56 @@ public class RBR {
     }
 
     public boolean reachabilityIsOk() {
-        for (Vertex dest : graph.getVertices()) {
-            if(reachability(dest) < 1) {
+        for (Vertex src : graph.getVertices()) {
+            if(!reachesAllDestinations(src)) {
                 return false;
             }
         }
         return true;
     }
 
-    // Calculates reachability
-    private double reachability(Vertex orig) {
-        double reaches = 0, total = graph.getVertices().size() - 1;
-        for (Vertex dest : graph.getVertices()) {
-            if (orig != dest) {
-                if (reaches(orig, dest)) {
-                    reaches++;
+    public void merge() {
+        for (Vertex vertex : graph.getVertices()) {
+            merge(vertex);
+        }
+    }
+
+    private void merge(Vertex router) {
+        List<Region> bkpListRegion = null;
+        boolean wasPossible = true;
+        while (reachesAllDestinations(router) && wasPossible) {
+            bkpListRegion = new ArrayList<>(regionsForVertex.get(router));
+            wasPossible = mergeUnitary(regionsForVertex.get(router));
+        }
+        if (bkpListRegion != null) {
+            regionsForVertex.put(router, bkpListRegion);
+        }
+    }
+
+    static boolean mergeUnitary(List<Region> regions) {
+        for (int a = 0; a < regions.size(); a++) {
+            Region ra = regions.get(a);
+            for (int b = a + 1; b < regions.size(); b++) {
+                Region rb = regions.get(b);
+                if (ra.canBeMergedWith(rb)) {
+                    Region reg = ra.merge(rb);
+                    regions.add(reg);
+                    regions.remove(ra);
+                    regions.remove(rb);
+                    return true;
                 }
             }
         }
-        return (reaches / total);
+        return false;
+    }
+
+    private boolean reachesAllDestinations(Vertex orig) {
+        for (Vertex dst : graph.getVertices()) {
+            if (!orig.equals(dst) && !reaches(orig, dst)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean reaches(Vertex src, Vertex dest) {
@@ -284,42 +314,5 @@ public class RBR {
         }
         System.err.println("ERROR : There isn't Op on " + src.name() + "("  + ipColor + ") going to " + dest.name());
         return null;
-    }
-
-    public void merge() {
-        for (Vertex vertex : graph.getVertices())
-            merge(vertex);
-    }
-
-    // Merge the regions of a router
-    private void merge(Vertex router) {
-        List<Region> bkpListRegion = null;
-        boolean wasPossible = true;
-
-        while (reachability(router) == 1 && wasPossible) {
-            bkpListRegion = new ArrayList<>(regionsForVertex.get(router));
-            wasPossible = mergeUnitary(regionsForVertex.get(router));
-        }
-        if (bkpListRegion != null) {
-            regionsForVertex.put(router, bkpListRegion);
-        }
-
-    }
-
-    static boolean mergeUnitary(List<Region> regions) {
-        for (int a = 0; a < regions.size(); a++) {
-            Region ra = regions.get(a);
-            for (int b = a + 1; b < regions.size(); b++) {
-                Region rb = regions.get(b);
-                if (ra.canBeMergedWith(rb)) {
-                    Region reg = ra.merge(rb);
-                    regions.add(reg);
-                    regions.remove(ra);
-                    regions.remove(rb);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }
