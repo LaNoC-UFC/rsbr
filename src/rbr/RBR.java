@@ -7,7 +7,7 @@ import java.util.*;
 public class RBR {
     private Graph graph;
     private HashMap<Vertex, Set<RoutingOption>> routingPathForVertex;
-    private HashMap<Vertex, ArrayList<Region>> regionsForVertex;
+    private HashMap<Vertex, List<Region>> regionsForVertex;
 
     public RBR(Graph g) {
         graph = g;
@@ -15,7 +15,7 @@ public class RBR {
         regionsForVertex = new HashMap<>();
     }
 
-    public HashMap<Vertex, ArrayList<Region>> regions() {
+    public HashMap<Vertex, List<Region>> regions() {
         return this.regionsForVertex;
     }
 
@@ -131,8 +131,8 @@ public class RBR {
     }
 
     private void adjustRegions(Vertex sw) {
-        ArrayList<Region> newRegions = new ArrayList<>();
-        ArrayList<Region> regionsToBeRemoved = new ArrayList<>();
+        List<Region> newRegions = new ArrayList<>();
+        List<Region> regionsToBeRemoved = new ArrayList<>();
         for (Region currentRegion : regionsForVertex.get(sw)) {
             Set<Vertex> outsiders = currentRegion.outsiders();
             if(outsiders.isEmpty())
@@ -141,7 +141,7 @@ public class RBR {
             Set<Vertex> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
 
             regionsToBeRemoved.add(currentRegion);
-            ArrayList<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
+            List<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
             newRegions.addAll(regionsToAdd);
             // use others routers to make others regions
             newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.inputPorts(), currentRegion.outputPorts()));
@@ -150,7 +150,7 @@ public class RBR {
         regionsForVertex.get(sw).addAll(newRegions);
     }
 
-    private static ArrayList<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
+    private static List<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
         Set<Set<Vertex>> dsts = new HashSet<>();
         // up
         Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
@@ -169,7 +169,7 @@ public class RBR {
         Set<Vertex> rightDestinations = region.destinationsIn(rightBox);
         dsts.add(rightDestinations);
 
-        ArrayList<Region> result = new ArrayList<>();
+        List<Region> result = new ArrayList<>();
         for (Set<Vertex> dst : dsts) {
             if(dst.isEmpty())
                 continue;
@@ -180,8 +180,8 @@ public class RBR {
     }
 
     // Make regions only with correct destinations
-    private ArrayList<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
-        ArrayList<Region> result = new ArrayList<>();
+    private List<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
+        List<Region> result = new ArrayList<>();
         Range box = TopologyKnowledge.box(dsts);
 
         while (!dsts.isEmpty()) {
@@ -293,12 +293,12 @@ public class RBR {
 
     // Merge the regions of a router
     private void merge(Vertex router) {
-        ArrayList<Region> bkpListRegion = null;
+        List<Region> bkpListRegion = null;
         boolean wasPossible = true;
 
         while (reachability(router) == 1 && wasPossible) {
             bkpListRegion = new ArrayList<>(regionsForVertex.get(router));
-            wasPossible = mergeUnitary(router);
+            wasPossible = mergeUnitary(regionsForVertex.get(router));
         }
         if (bkpListRegion != null) {
             regionsForVertex.put(router, bkpListRegion);
@@ -306,20 +306,16 @@ public class RBR {
 
     }
 
-    /*
-     * Tries to make one (and only one) merge and returns true in case of
-     * success
-     */
-    private boolean mergeUnitary(Vertex router) {
-        for (int a = 0; a < regionsForVertex.get(router).size(); a++) {
-            Region ra = regionsForVertex.get(router).get(a);
-            for (int b = a + 1; b < regionsForVertex.get(router).size(); b++) {
-                Region rb = regionsForVertex.get(router).get(b);
+    static boolean mergeUnitary(List<Region> regions) {
+        for (int a = 0; a < regions.size(); a++) {
+            Region ra = regions.get(a);
+            for (int b = a + 1; b < regions.size(); b++) {
+                Region rb = regions.get(b);
                 if (ra.canBeMergedWith(rb)) {
                     Region reg = ra.merge(rb);
-                    regionsForVertex.get(router).add(reg);
-                    regionsForVertex.get(router).remove(ra);
-                    regionsForVertex.get(router).remove(rb);
+                    regions.add(reg);
+                    regions.remove(ra);
+                    regions.remove(rb);
                     return true;
                 }
             }

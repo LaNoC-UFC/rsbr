@@ -5,10 +5,10 @@ import java.util.*;
 public class StatisticalAnalyser {
 
     private Graph graph;
-    private Map<Vertex, ArrayList<Region>> regionsForVertex;
+    private Map<Vertex, List<Region>> regionsForVertex;
     private Map<Path, Double> pathsWeight;
 
-    public StatisticalAnalyser(Graph graph, Map<Vertex, ArrayList<Region>> regionsForVertex, Map<Path, Double> volume) {
+    public StatisticalAnalyser(Graph graph, Map<Vertex, List<Region>> regionsForVertex, Map<Path, Double> volume) {
         this.graph = graph;
         this.regionsForVertex = regionsForVertex;
         pathsWeight = volume;
