@@ -14,7 +14,7 @@ public class RoutingTableGenerator {
     public RoutingTableGenerator(Graph graph, HashMap<Vertex, ArrayList<Region>> regionsForVertex) {
         this.graph = graph;
         this.regionsForVertex = regionsForVertex;
-        int size = Math.max(graph.dimX(), graph.dimY());
+        int size = Math.max(graph.columns(), graph.rows());
         this.bitPerCoordinate = (int) Math.ceil(Math.log(size) / Math.log(2));
         this.maxOfRegions = maxOfRegions();
     }

@@ -19,10 +19,10 @@ public class FaultyGraphSegmentationTest {
 
     @Test
     public void faultyGraph() throws Exception {
-        for (int x = 2; x < 8; x++) {
-            for (int y = 2; y < 8; y++) {
-                for (int numberOfFaults = 0; numberOfFaults <= maxOfFaultyLinks(x, y); numberOfFaults++) {
-                    Graph noc = RandomFaultyGraphBuilder.generateGraph(x, y, numberOfFaults);
+        for (int numberOfRows = 2; numberOfRows < 8; numberOfRows++) {
+            for (int numberOfColumns = 2; numberOfColumns < 8; numberOfColumns++) {
+                for (int numberOfFaults = 0; numberOfFaults <= maxOfFaultyLinks(numberOfRows, numberOfColumns); numberOfFaults++) {
+                    Graph noc = RandomFaultyGraphBuilder.generateGraph(numberOfRows, numberOfColumns, numberOfFaults);
                     SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
                     sr.computeSegments();
                     sr.setrestrictions();

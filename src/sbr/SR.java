@@ -42,8 +42,8 @@ public class SR {
     }
 
     public void computeSegments() {
-        int maxX = graph.dimX()-1;
-        int maxY = graph.dimY()-1;
+        int maxX = graph.columns()-1;
+        int maxY = graph.rows()-1;
         for (int currentY = maxY; currentY >= 0; currentY--) {
             currentWindow = Range.TwoDimensionalRange(0, maxX, currentY, maxY);
             computeSegmentsInRange();

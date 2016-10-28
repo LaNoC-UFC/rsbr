@@ -6,15 +6,15 @@ public class Graph {
     private ArrayList<Vertex> vertices;
     private ArrayList<Edge> edges;
     private Map<Vertex, Collection<Edge>> adjuncts;
-    private int dimX;
-    private int dimY;
+    private int columns;
+    private int rows;
 
     public Graph(int rows, int columns) {
         vertices = new ArrayList<>();
         edges = new ArrayList<>();
         adjuncts = new HashMap<>();
-        dimX = columns;
-        dimY = rows;
+        this.columns = columns;
+        this.rows = rows;
     }
 
     public boolean hasIsolatedCores() {
@@ -115,12 +115,12 @@ public class Graph {
         return r;
     }
 
-    public int dimX() {
-        return dimX;
+    public int columns() {
+        return columns;
     }
 
-    public int dimY() {
-        return dimY;
+    public int rows() {
+        return rows;
     }
 
     public int indexOf(Vertex v) {
@@ -130,6 +130,6 @@ public class Graph {
     private int indexOf(String xy) {
         int x = Integer.parseInt(xy.split("\\.")[0]);
         int y = Integer.parseInt(xy.split("\\.")[1]);
-        return x + y * this.dimX();
+        return x + y * this.columns();
     }
 }
