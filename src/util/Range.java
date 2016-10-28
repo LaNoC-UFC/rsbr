@@ -6,14 +6,15 @@ public class Range {
     private int[] min;
     private int[] max;
 
-    public static  Range EMPTY = OneDimensionalRange(0,0);
+    public static  Range EMPTY = new Range(0, null, null);
 
     public static Range OneDimensionalRange(int min, int max) {
-        assert min <= max;
-        return new Range(1, new int[]{min}, new int[]{max});
+        return (min <= max) ? new Range(1, new int[]{min}, new int[]{max}) : EMPTY;
     }
 
     public static Range TwoDimensionalRange(int xMin, int xMax, int yMin, int yMax) {
+        if (xMax < xMin || yMax < yMin)
+            return EMPTY;
         return new Range(2, new int[]{xMin, yMin}, new int[]{xMax, yMax});
     }
 

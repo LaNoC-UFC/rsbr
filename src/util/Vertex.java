@@ -13,15 +13,9 @@ public final class Vertex {
     }
 
     public boolean isIn(Range box) {
-        int xMin = box.min(0);
-        int yMin = box.min(1);
-        int xMax = box.max(0);
-        int yMax = box.max(1);
-
         int x = Integer.valueOf(name.split("\\.")[0]);
         int y = Integer.valueOf(name.split("\\.")[1]);
-
-        return (x <= xMax && x >= xMin && y <= yMax && y >= yMin);
+        return box.contains(x, y);
     }
 
     @Override
