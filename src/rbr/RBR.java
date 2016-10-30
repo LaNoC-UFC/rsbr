@@ -131,22 +131,26 @@ public class RBR {
 
     private void adjustRegions(Vertex sw) {
         List<Region> newRegions = new ArrayList<>();
-        List<Region> regionsToBeRemoved = new ArrayList<>();
         for (Region currentRegion : regionsForVertex.get(sw)) {
-            Set<Vertex> outsiders = currentRegion.outsiders();
-            if(outsiders.isEmpty())
-                continue;
-            Range outsidersBox = TopologyKnowledge.box(outsiders);
-            Set<Vertex> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
-
-            regionsToBeRemoved.add(currentRegion);
-            List<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
-            newRegions.addAll(regionsToAdd);
-            // use others routers to make others regions
-            newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.inputPorts(), currentRegion.outputPorts()));
+            newRegions.addAll(adjustedRegionsFrom(currentRegion));
         }
-        regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
-        regionsForVertex.get(sw).addAll(newRegions);
+        regionsForVertex.put(sw, newRegions);
+    }
+
+    private ArrayList<Region> adjustedRegionsFrom(Region r) {
+        ArrayList<Region> adjustedRegions = new ArrayList<>();
+        Set<Vertex> outsiders = r.outsiders();
+        if(outsiders.isEmpty()){
+            adjustedRegions.add(r);
+        } else {
+            Range outsidersBox = TopologyKnowledge.box(outsiders);
+            Set<Vertex> trulyDestinationsInOutsidersRange = r.destinationsIn(outsidersBox);
+
+            List<Region> regionsToAdd = splitRegionExcludingOutsiders(r, outsidersBox);
+            adjustedRegions.addAll(regionsToAdd);
+            adjustedRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, r.inputPorts(), r.outputPorts()));
+        }
+        return adjustedRegions;
     }
 
     private static List<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
