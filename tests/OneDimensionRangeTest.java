@@ -110,4 +110,9 @@ public class OneDimensionRangeTest {
         Assert.assertEquals(combination, range3);
     }
 
+    @Test
+    public void MinGreaterThanMaxIsEmpty() throws Exception {
+        Range range = Range.OneDimensionalRange(1, 0);
+        Assert.assertEquals(Range.EMPTY, range);
+    }
 }

@@ -142,4 +142,12 @@ public class TwoDimensionRangeTest {
         Range combination = range1.combination(range2);
         Assert.assertEquals(combination, Range.EMPTY);
     }
+
+    @Test
+    public void MinGreaterThanMaxIsEmpty() throws Exception {
+        Range emptyX = Range.TwoDimensionalRange(1, 0, 0, 0);
+        Range emptyY = Range.TwoDimensionalRange(0, 0, 1, 0);
+        Assert.assertEquals(Range.EMPTY, emptyX);
+        Assert.assertEquals(Range.EMPTY, emptyY);
+    }
 }

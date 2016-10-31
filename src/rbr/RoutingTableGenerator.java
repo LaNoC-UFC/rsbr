@@ -7,11 +7,11 @@ import java.util.*;
 public class RoutingTableGenerator {
 
     private Graph graph;
-    private HashMap<Vertex, ArrayList<Region>> regionsForVertex;
+    private HashMap<Vertex, List<Region>> regionsForVertex;
     private int bitPerCoordinate = 0;
     private int maxOfRegions = 0;
 
-    public RoutingTableGenerator(Graph graph, HashMap<Vertex, ArrayList<Region>> regionsForVertex) {
+    public RoutingTableGenerator(Graph graph, HashMap<Vertex, List<Region>> regionsForVertex) {
         this.graph = graph;
         this.regionsForVertex = regionsForVertex;
         int size = Math.max(graph.columns(), graph.rows());
