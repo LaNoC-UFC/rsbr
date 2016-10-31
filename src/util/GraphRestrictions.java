@@ -9,17 +9,25 @@ public class GraphRestrictions {
         restrictions = new HashMap<>();
     }
 
-    public void addRestriction(Vertex v, Character op, Character rest) {
+    public void addRestriction(Vertex v, Character inputPort, Character outputPort) {
         Map<Character, Set<Character>> vertexRestrictions = getOrInit(v);
-        vertexRestrictions.get(op).add(rest);
+        vertexRestrictions.get(inputPort).add(outputPort);
     }
 
-    public Set<Character> getRestriction(Vertex v, Character op) {
+    public boolean turnIsForbidden(Vertex v, Character inputPort, Character outputPort) {
+        return restrictions(v, inputPort).contains(outputPort);
+    }
+
+    public int size() {
+        return restrictions.size();
+    }
+
+    private Set<Character> restrictions(Vertex v, Character inputPort) {
         if(!restrictions.containsKey(v)) {
             return new HashSet<>();
         }
         Map<Character, Set<Character>> vertexRestrictions = restrictions.get(v);
-        return vertexRestrictions.get(op);
+        return vertexRestrictions.get(inputPort);
     }
 
     private Map<Character, Set<Character>> getOrInit(Vertex v) {
@@ -33,8 +41,5 @@ public class GraphRestrictions {
             restrictions.put(v, rest);
         }
         return restrictions.get(v);
-    }
-    public int size() {
-        return restrictions.size();
     }
 }

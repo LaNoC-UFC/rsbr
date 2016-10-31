@@ -34,7 +34,7 @@ public class PathFinder {
         for (Vertex src : graph.getVertices()) {
             for (Edge e : graph.adjunctsOf(src)) {
                 Vertex dst = e.destination();
-                if (restrictions.getRestriction(src, 'I').contains(graph.adjunct(src, dst).color())) {
+                if (restrictions.turnIsForbidden(src, 'I', graph.adjunct(src, dst).color())) {
                     continue;
                 }
                 Path p = new Path();
@@ -68,8 +68,7 @@ public class PathFinder {
             // going back
             if (dst == predecessor)
                 continue;
-            // going to forbidden direction
-            if ( restrictions.getRestriction(currentSrc, inputPort).contains(graph.adjunct(currentSrc, dst).color()))
+            if (restrictions.turnIsForbidden(currentSrc, inputPort, graph.adjunct(currentSrc, dst).color()))
                 continue;
             // no mininal path
             if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))
