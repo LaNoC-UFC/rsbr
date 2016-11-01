@@ -247,7 +247,7 @@ public class SR {
     }
 
     private boolean canBeStart(Vertex sw) {
-        return (!isVisited(sw) && sw.isIn(currentWindow) && hasSuitableLinks(sw));
+        return (!isVisited(sw) && sw.isIn(currentWindow));
     }
 
     private boolean hasSuitableLinks(Vertex sw) {

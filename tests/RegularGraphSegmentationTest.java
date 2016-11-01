@@ -6,58 +6,37 @@ public class RegularGraphSegmentationTest {
     @Test
     public void unityGraph() throws Exception {
         Graph noc = RegularGraphBuilder.generateGraph(1, 1);
-        SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
-        sr.computeSegments();
-        sr.setrestrictions();
-        Assert.assertEquals(0, sr.segments().size());
-        Assert.assertEquals(0, sr.restrictions().size());
-        Assert.assertEquals(1, sr.startVertices().size());
-        Assert.assertEquals(1, sr.terminalVertices().size());
+        testLinearGraph(noc);
     }
 
     @Test
-    public void horizontalLinearGraph() throws Exception {
+    public void testLinearGraphs() throws Exception {
         for (int numberOfVertices = 1; numberOfVertices < 10; numberOfVertices++) {
             testHorizontalGraph(numberOfVertices);
+            testVerticalGraph(numberOfVertices);
         }
-
     }
 
     private void testHorizontalGraph(int numberOfVertices) {
         Graph noc = RegularGraphBuilder.generateGraph(1, numberOfVertices);
+        testLinearGraph(noc);
+    }
+
+    private void testVerticalGraph(int numberOfVertices) {
+        Graph noc = RegularGraphBuilder.generateGraph(numberOfVertices, 1);
+        testLinearGraph(noc);
+    }
+
+    private void testLinearGraph(Graph noc) {
+        int numberOfVertices = noc.getVertices().size();
         SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
         sr.computeSegments();
         sr.setrestrictions();
         Assert.assertEquals(0, sr.segments().size());
         Assert.assertEquals(0, sr.restrictions().size());
-        //Assert.assertEquals(numberOfVertices, sr.startVertices().size());
-        //Assert.assertEquals(numberOfVertices, sr.terminalVertices().size());
+        Assert.assertEquals(numberOfVertices, sr.startVertices().size());
+        Assert.assertEquals(numberOfVertices, sr.terminalVertices().size());
     }
-
-    @Test
-    public void horizontalBinaryGraph() throws Exception {
-        Graph noc = RegularGraphBuilder.generateGraph(1, 2);
-        SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
-        sr.computeSegments();
-        sr.setrestrictions();
-        Assert.assertEquals(0, sr.segments().size());
-        Assert.assertEquals(0, sr.restrictions().size());
-        //Assert.assertEquals(2, sr.startVertices().size());
-        //Assert.assertEquals(2, sr.terminalVertices().size());
-    }
-
-    @Test
-    public void verticalBinaryGraph() throws Exception {
-        Graph noc = RegularGraphBuilder.generateGraph(2, 1);
-        SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
-        sr.computeSegments();
-        sr.setrestrictions();
-        Assert.assertEquals(0, sr.segments().size());
-        Assert.assertEquals(0, sr.restrictions().size());
-        //Assert.assertEquals(2, sr.startVertices().size());
-        //Assert.assertEquals(2, sr.terminalVertices().size());
-    }
-
 
     @Test
     public void regular2x2Graph() throws Exception {
