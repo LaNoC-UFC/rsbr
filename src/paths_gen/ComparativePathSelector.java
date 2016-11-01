@@ -43,12 +43,11 @@ public class ComparativePathSelector {
     }
 
     private void reselectPaths(ArrayList<ArrayList<Path>> selectedPaths) {
-        for(int j = 0; j < paths.size(); j++) {
-            ArrayList<Path> samePairPaths = paths.get(j);
+        for(ArrayList<Path> samePairPaths : paths) {
             if(samePairPaths.size() == 1)
                 continue;
-            unselectPaths(selectedPaths, j);
-            selectedPaths.add(j, selectPath(samePairPaths));
+            unselectPaths(selectedPaths, paths.indexOf(samePairPaths));
+            selectedPaths.add(paths.indexOf(samePairPaths), selectPath(samePairPaths));
         }
     }
 

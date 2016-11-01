@@ -210,11 +210,10 @@ public class SR {
     private Vertex nextVisited() {
         List<Vertex> suitables = suitableVisitedVertices();
         Collections.reverse(suitables);
-        for (int i = 0; i < suitables.size(); i++) {
-            Vertex tic = suitables.get(i);
+        for (Vertex tic : suitables) {
             if (suitableLinks(tic).size() > 1)
                 return tic;
-            for (int j = i + 1; j < suitables.size(); j++) {
+            for (int j = suitables.indexOf(tic) + 1; j < suitables.size(); j++) {
                 Vertex tac = suitables.get(j);
                 if (subnetForVertex.get(tic).equals(subnetForVertex.get(tac))) {
                     return tic;

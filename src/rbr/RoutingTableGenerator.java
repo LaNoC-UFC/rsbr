@@ -89,7 +89,6 @@ public class RoutingTableGenerator {
     private void PrintRegions(Vertex router, BufferedWriter bw) throws IOException {
         bw.append("\n -- Router " + router.name() + "\n");
         bw.append("(");
-
         for (int regionIndex = 0; regionIndex < regionsForVertex.get(router).size(); regionIndex++) {
             Region currentRegion = regionsForVertex.get(router).get(regionIndex);
             int Xmin = currentRegion.box().min(0);
