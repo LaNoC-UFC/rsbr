@@ -97,18 +97,16 @@ public class rsbr {
         LinkWeightTracker lwTracker = new LinkWeightTracker(g, volumes);
         int choice = 5;
         switch (choice) {
-            case 0: // Sem seleção
+            case 0: // No selection (all paths)
                 chosenPaths = paths;
                 break;
-            case 1: // Selecao aleatoria
+            case 1: // Random selection
                 chosenPaths = new RandomPathSelector(paths, lwTracker).selection();
-                System.out.println("Random");
                 break;
-            case 2: // Peso mínimo
+            case 2: // Minimal weight
                 chosenPaths = new ComparativePathSelector(paths, new Path.MinWeightComparator(lwTracker), 10, lwTracker).selection();
-                System.out.println("Peso Minimo");
                 break;
-            case 5: // Peso máximo
+            case 5: // Maximal weight
                 chosenPaths = new ComparativePathSelector(paths, new Path.MaxWeightComparator(lwTracker), 2, lwTracker).selection();
         }
         return chosenPaths;

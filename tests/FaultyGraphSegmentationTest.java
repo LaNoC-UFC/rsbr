@@ -16,6 +16,7 @@ public class FaultyGraphSegmentationTest {
             }
         }
     }
+
     @Test
     public void faultyGraph() throws Exception {
         for (int numberOfRows = 2; numberOfRows < 8; numberOfRows++) {
