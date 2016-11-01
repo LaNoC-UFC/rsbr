@@ -12,7 +12,7 @@ public class FaultyGraphSegmentationTest {
                 SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
                 sr.computeSegments();
                 sr.setrestrictions();
-                validateEdges(noc, sr.segments());
+                edgesAreEitherInASegmentOrAreBridges(noc, sr.segments());
             }
         }
     }
@@ -26,19 +26,45 @@ public class FaultyGraphSegmentationTest {
                     SR sr = new SR(noc, new BidimensionalSBRPolicy(noc));
                     sr.computeSegments();
                     sr.setrestrictions();
-                    validateEdges(noc, sr.segments());
+                    edgesAreEitherInASegmentOrAreBridges(noc, sr.segments());
+                    verticesAreEitherInASegmentOrAreAloneInASubnet(noc, sr);
                 }
             }
         }
     }
 
-    private void validateEdges(Graph noc, Collection<Segment> segments) {
+    private void verticesAreEitherInASegmentOrAreAloneInASubnet(Graph noc, SR sr) {
+        for (Vertex candidate : noc.getVertices()) {
+            if (isInASegment(sr.segments(), candidate)) {
+                Assert.assertFalse(isSubNet(candidate, sr));
+            }
+            else {
+                Assert.assertTrue(isSubNet(candidate, sr));
+            }
+        }
+    }
+
+    private boolean isSubNet(Vertex candidate, SR sr) {
+        return sr.startVertices().contains(candidate) && sr.terminalVertices().contains(candidate);
+    }
+
+    private void edgesAreEitherInASegmentOrAreBridges(Graph noc, Collection<Segment> segments) {
         for (Edge candidate : noc.getEdges()) {
             if (isBridge(noc, candidate))
                 Assert.assertFalse(isInASegment(noc, segments, candidate));
             else
                 Assert.assertTrue(isInASegment(noc, segments, candidate));
         }
+    }
+
+    private boolean isInASegment(Collection<Segment> segments, Vertex candidate) {
+        int count = 0;
+        for (Segment seg : segments) {
+            if (seg.getSwitchs().contains(candidate)) {
+                count++;
+            }
+        }
+        return count == 1;
     }
 
     private boolean isInASegment(Graph noc, Collection<Segment> segments, Edge candidate) {
@@ -58,9 +84,9 @@ public class FaultyGraphSegmentationTest {
         return graph.adjunct(one.destination(), one.source());
     }
 
-    private int maxOfFaultyLinks(int x, int y) {
-        int minOfLinks = x*y - 1;
-        int totalOfLinks = (x - 1)*y + (y - 1)*x;
+    private int maxOfFaultyLinks(int rows, int columns) {
+        int minOfLinks = rows*columns - 1;
+        int totalOfLinks = (rows - 1)*columns + (columns - 1)*rows;
         return totalOfLinks - minOfLinks;
     }
 }
