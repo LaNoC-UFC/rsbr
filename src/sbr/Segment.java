@@ -58,7 +58,7 @@ public class Segment {
         // switches.remove(sw);
 
     }
-
+    @Override
     public String toString() {
         String r = "";
         int sw = 0, ln = 0;

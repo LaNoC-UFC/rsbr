@@ -21,7 +21,7 @@ public class BidimensionalSBRPolicy implements SBRPolicy {
         RRIndex[0] = -1;
         RRIndex[1] = -1;
     }
-
+    @Override
     public Edge getNextLink(ArrayList<Edge> links) {
         Edge got = null;
         int index;
@@ -61,7 +61,7 @@ public class BidimensionalSBRPolicy implements SBRPolicy {
         }
         return got;
     }
-
+    @Override
     public void resetRRIndex() {
         RRIndex[0] = -1;
         RRIndex[1] = -1;
