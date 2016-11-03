@@ -63,7 +63,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
     public Vertex src() {
         return (this.size() != 0) ? this.get(0) : null;
     }
-
+    @Override
     public int compareTo(Path other) {
         if (this.edgesCount() < other.edgesCount())
             return -1;
@@ -72,7 +72,7 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
             return 1;
         return 0;
     }
-
+    @Override
     public String toString() {
         String pathLine = "";
         for(Vertex v : this)

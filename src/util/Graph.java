@@ -100,7 +100,7 @@ public class Graph {
         adjuncts.get(toRemove.source()).remove(toRemove);
         edges.remove(toRemove);
     }
-
+    @Override
     public String toString() {
         String r = "";
         System.out.println("Graph:");
