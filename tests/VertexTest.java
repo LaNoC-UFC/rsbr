@@ -23,4 +23,11 @@ public class VertexTest {
         // test with different Vertex
         Assert.assertFalse(a.equals(d));
     }
+
+    @Test
+    public void SameVerticesHaveSameHashCode() throws Exception {
+        Vertex oneVertex = new Vertex("5.3");
+        Vertex theSameVertex = new Vertex("5.3");
+        Assert.assertEquals(oneVertex.hashCode(), theSameVertex.hashCode());
+    }
 }
