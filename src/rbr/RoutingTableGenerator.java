@@ -42,7 +42,7 @@ public class RoutingTableGenerator {
         bw.append("library IEEE;\n"
                 + "use ieee.std_logic_1164.all;\n"
                 + "use ieee.numeric_std.all;\n"
-                + "use work.HermesPackage.all;\n\n"
+                + "use work.NoCPackage.all;\n\n"
                 + "package TablePackage is\n\n"
                 + "constant NREG : integer := "
                 + maxOfRegions
