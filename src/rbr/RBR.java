@@ -129,7 +129,7 @@ public class RBR {
         assert reachabilityIsOk();
     }
 
-    private void adjustRegions(Vertex sw) {
+    void adjustRegions(Vertex sw) {
         List<Region> newRegions = new ArrayList<>();
         for (Region currentRegion : regionsForVertex.get(sw)) {
             newRegions.addAll(adjustedRegionsFrom(currentRegion));
@@ -137,18 +137,13 @@ public class RBR {
         regionsForVertex.put(sw, newRegions);
     }
 
-    private ArrayList<Region> adjustedRegionsFrom(Region r) {
+    ArrayList<Region> adjustedRegionsFrom(Region r) {
         ArrayList<Region> adjustedRegions = new ArrayList<>();
         Set<Vertex> outsiders = r.outsiders();
         if(outsiders.isEmpty()){
             adjustedRegions.add(r);
         } else {
-            Range outsidersBox = TopologyKnowledge.box(outsiders);
-            Set<Vertex> trulyDestinationsInOutsidersRange = r.destinationsIn(outsidersBox);
-
-            List<Region> regionsToAdd = splitRegionExcludingOutsiders(r, outsidersBox);
-            adjustedRegions.addAll(regionsToAdd);
-            adjustedRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, r.inputPorts(), r.outputPorts()));
+            adjustedRegions.addAll(makeRegions(r.destinations(), r.inputPorts(), r.outputPorts()));
         }
         return adjustedRegions;
     }
