@@ -148,35 +148,6 @@ public class RBR {
         return adjustedRegions;
     }
 
-    private static List<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
-        Set<Set<Vertex>> dsts = new HashSet<>();
-        // up
-        Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
-        Set<Vertex> upDestinations = region.destinationsIn(upBox);
-        dsts.add(upDestinations);
-        // down
-        Range downBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), outsidersBox.max(1) + 1, region.box().max(1));
-        Set<Vertex> downDestinations = region.destinationsIn(downBox);
-        dsts.add(downDestinations);
-        // left
-        Range leftBox = Range.TwoDimensionalRange(outsidersBox.max(0) + 1, region.box().max(0), region.box().min(1), region.box().max(1));
-        Set<Vertex> leftDestinations = region.destinationsIn(leftBox);
-        dsts.add(leftDestinations);
-        // right
-        Range rightBox = Range.TwoDimensionalRange(region.box().min(0), outsidersBox.min(0) - 1, region.box().min(1), region.box().max(1));
-        Set<Vertex> rightDestinations = region.destinationsIn(rightBox);
-        dsts.add(rightDestinations);
-
-        List<Region> result = new ArrayList<>();
-        for (Set<Vertex> dst : dsts) {
-            if(dst.isEmpty())
-                continue;
-            Region r = new Region(region.inputPorts(), dst, region.outputPorts());
-            result.add(r);
-        }
-        return result;
-    }
-
     // Make regions only with correct destinations
     private List<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
         List<Region> result = new ArrayList<>();
