@@ -129,53 +129,23 @@ public class RBR {
         assert reachabilityIsOk();
     }
 
-    private void adjustRegions(Vertex sw) {
+    void adjustRegions(Vertex sw) {
         List<Region> newRegions = new ArrayList<>();
-        List<Region> regionsToBeRemoved = new ArrayList<>();
         for (Region currentRegion : regionsForVertex.get(sw)) {
-            Set<Vertex> outsiders = currentRegion.outsiders();
-            if(outsiders.isEmpty())
-                continue;
-            Range outsidersBox = TopologyKnowledge.box(outsiders);
-            Set<Vertex> trulyDestinationsInOutsidersRange = currentRegion.destinationsIn(outsidersBox);
-
-            regionsToBeRemoved.add(currentRegion);
-            List<Region> regionsToAdd = splitRegionExcludingOutsiders(currentRegion, outsidersBox);
-            newRegions.addAll(regionsToAdd);
-            // use others routers to make others regions
-            newRegions.addAll(makeRegions(trulyDestinationsInOutsidersRange, currentRegion.inputPorts(), currentRegion.outputPorts()));
+            newRegions.addAll(adjustedRegionsFrom(currentRegion));
         }
-        regionsForVertex.get(sw).removeAll(regionsToBeRemoved);
-        regionsForVertex.get(sw).addAll(newRegions);
+        regionsForVertex.put(sw, newRegions);
     }
 
-    private static List<Region> splitRegionExcludingOutsiders(Region region, Range outsidersBox) {
-        Set<Set<Vertex>> dsts = new HashSet<>();
-        // up
-        Range upBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), region.box().min(1), outsidersBox.min(1) - 1);
-        Set<Vertex> upDestinations = region.destinationsIn(upBox);
-        dsts.add(upDestinations);
-        // down
-        Range downBox = Range.TwoDimensionalRange(region.box().min(0), region.box().max(0), outsidersBox.max(1) + 1, region.box().max(1));
-        Set<Vertex> downDestinations = region.destinationsIn(downBox);
-        dsts.add(downDestinations);
-        // left
-        Range leftBox = Range.TwoDimensionalRange(outsidersBox.max(0) + 1, region.box().max(0), region.box().min(1), region.box().max(1));
-        Set<Vertex> leftDestinations = region.destinationsIn(leftBox);
-        dsts.add(leftDestinations);
-        // right
-        Range rightBox = Range.TwoDimensionalRange(region.box().min(0), outsidersBox.min(0) - 1, region.box().min(1), region.box().max(1));
-        Set<Vertex> rightDestinations = region.destinationsIn(rightBox);
-        dsts.add(rightDestinations);
-
-        List<Region> result = new ArrayList<>();
-        for (Set<Vertex> dst : dsts) {
-            if(dst.isEmpty())
-                continue;
-            Region r = new Region(region.inputPorts(), dst, region.outputPorts());
-            result.add(r);
+    ArrayList<Region> adjustedRegionsFrom(Region r) {
+        ArrayList<Region> adjustedRegions = new ArrayList<>();
+        Set<Vertex> outsiders = r.outsiders();
+        if(outsiders.isEmpty()){
+            adjustedRegions.add(r);
+        } else {
+            adjustedRegions.addAll(makeRegions(r.destinations(), r.inputPorts(), r.outputPorts()));
         }
-        return result;
+        return adjustedRegions;
     }
 
     // Make regions only with correct destinations

@@ -28,16 +28,6 @@ public final class Region {
         return new HashSet<>(destinations);
     }
 
-    Set<Vertex> destinationsIn(Range box) {
-        Set<Vertex> result = new HashSet<>();
-        for(Vertex vertex : destinations){
-            if(vertex.isIn(box)) {
-                result.add(vertex);
-            }
-        }
-        return result;
-    }
-
     Range box() {
         return box;
     }
