@@ -48,8 +48,8 @@ public final class Region {
 
     Set<Vertex> outsiders() {
         Set<Vertex> result = new HashSet<>();
-        for (int x = this.box().min(0); x <= this.box().max(0); x++) {
-            for (int y = this.box().min(1); y <= this.box().max(1); y++) {
+        for (int x = this.box().min(0); x < this.box().max(0); x++) {
+            for (int y = this.box().min(1); y < this.box().max(1); y++) {
                 Vertex vertex = new Vertex(x + "." + y);
                 if(!destinations().contains(vertex)) {
                     result.add(vertex);
@@ -60,7 +60,7 @@ public final class Region {
     }
 
     boolean canBeMergedWith(Region that) {
-        boolean anyBoxIsEmpty = this.box().equals(Range.EMPTY) || that.box().equals(Range.EMPTY);
+        boolean anyBoxIsEmpty = this.box().equals(Range.TWODIMENSIONEMPTY) || that.box().equals(Range.TWODIMENSIONEMPTY);
         boolean boxesCanBeMerged = this.box().isContiguous(that.box()) || this.box().equals(that.box()) || anyBoxIsEmpty;
         boolean outputPortsCanBeMerged = OutputPortIsSubSet(this.outputPorts(), that.outputPorts());
         return boxesCanBeMerged && outputPortsCanBeMerged;

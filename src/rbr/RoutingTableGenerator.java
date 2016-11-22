@@ -93,8 +93,8 @@ public class RoutingTableGenerator {
             Region currentRegion = regionsForVertex.get(router).get(regionIndex);
             int Xmin = currentRegion.box().min(0);
             int Ymin = currentRegion.box().min(1);
-            int Xmax = currentRegion.box().max(0);
-            int Ymax = currentRegion.box().max(1);
+            int Xmax = currentRegion.box().max(0)-1;
+            int Ymax = currentRegion.box().max(1)-1;
 
             String region = "(\""
                     + opToBinary(regionsForVertex.get(router).get(regionIndex).inputPorts())
