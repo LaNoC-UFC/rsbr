@@ -40,7 +40,7 @@ public class AdjustRegionsTest {
         Assert.assertEquals(adjustedRegionWithoutOutsiders, arrayRegionWithoutOutsiders);
     }
 
-    @Ignore @Test
+    @Test
     public void regionWithoutDestinationsIsntAdjusted() throws Exception {
         Set<Vertex> dstRegionWithoutDestinations = new HashSet<>();
         Region regionWithoutDestinations = new Region(ip, dstRegionWithoutDestinations, op);
