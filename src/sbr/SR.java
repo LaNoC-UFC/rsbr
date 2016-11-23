@@ -98,8 +98,8 @@ public class SR {
     private Vertex pickFirstVertex() {
         int xMin = currentWindow.min(0);
         int yMin = currentWindow.min(1);
-        int xMax = currentWindow.max(0);
-        int yMax = currentWindow.max(1);
+        int xMax = currentWindow.max(0)-1;
+        int yMax = currentWindow.max(1)-1;
 
         boolean isFirstTurn = (yMin + 1 == yMax);
         Vertex sw;

@@ -113,6 +113,6 @@ public class OneDimensionRangeTest {
     @Test
     public void MinGreaterThanMaxIsEmpty() throws Exception {
         Range range = Range.OneDimensionalRange(1, 0);
-        Assert.assertEquals(Range.EMPTY, range);
+        Assert.assertEquals(Range.ONEDIMENSIONEMPTY, range);
     }
 }

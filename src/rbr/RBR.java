@@ -154,8 +154,8 @@ public class RBR {
         Range box = TopologyKnowledge.box(dsts);
 
         while (!dsts.isEmpty()) {
-            int Lmin = box.min(1), Cmax = box.max(0);
-            int Cmin = box.min(0), Lmax = box.max(1);
+            int Lmin = box.min(1), Cmax = box.max(0)-1;
+            int Cmin = box.min(0), Lmax = box.max(1)-1;
 
             boolean first = true;
             for (int line = Lmax; line >= Lmin; line--) {

@@ -6,16 +6,18 @@ public class Range {
     private int[] min;
     private int[] max;
 
-    public static  Range EMPTY = new Range(0, null, null);
+    public static  Range ONEDIMENSIONEMPTY = new Range(1, new int[]{0}, new int[]{0});
+    public static  Range TWODIMENSIONEMPTY = new Range(2, new int[]{0, 0}, new int[]{0, 0});
 
     public static Range OneDimensionalRange(int min, int max) {
-        return (min <= max) ? new Range(1, new int[]{min}, new int[]{max}) : EMPTY;
+        return (min <= max) ? new Range(1, new int[]{min}, new int[]{max+1}) : ONEDIMENSIONEMPTY;
     }
 
     public static Range TwoDimensionalRange(int xMin, int xMax, int yMin, int yMax) {
-        if (xMax < xMin || yMax < yMin)
-            return EMPTY;
-        return new Range(2, new int[]{xMin, yMin}, new int[]{xMax, yMax});
+        if (xMax < xMin || yMax < yMin){
+            return TWODIMENSIONEMPTY;
+        }
+        return new Range(2, new int[]{xMin, yMin}, new int[]{xMax+1, yMax+1});
     }
 
     private Range(int dimensions, int[] min, int[] max) {
@@ -42,14 +44,14 @@ public class Range {
         if(numberOfDimensions != 1) {
             return false;
         }
-        return (min[0] <= x && x <= max[0]);
+        return (min[0] <= x && x < max[0]);
     }
 
     public boolean contains(int x, int y) {
         if (numberOfDimensions != 2) {
             return false;
         }
-        return (x >= min[0] && x <= max[0] &&y >= min[1] && y <= max[1]);
+        return (x >= min[0] && x < max[0] && y >= min[1] && y < max[1]);
     }
 
     @Override
@@ -70,6 +72,8 @@ public class Range {
     }
 
     public boolean includes(Range that) {
+        assert this.dimensions() == that.dimensions();
+
         if(that.dimensions() != this.dimensions()) {
             return false;
         }
@@ -82,11 +86,13 @@ public class Range {
     }
 
     public boolean overlaps(Range that) {
+        assert this.dimensions() == that.dimensions();
+
         if(that.dimensions() != this.dimensions()) {
             return false;
         }
         for(int i = 0; i < numberOfDimensions; i++) {
-            if(that.max(i) < this.min(i) || that.min(i) > this.max(i)) {
+            if(that.max(i)-1 < this.min(i) || that.min(i) > this.max(i)-1) {
                 return false;
             }
         }
@@ -94,6 +100,8 @@ public class Range {
     }
 
     public boolean abuts(Range that) {
+        assert this.dimensions() == that.dimensions();
+
         if(that.dimensions() != this.dimensions()) {
             return false;
         }
@@ -101,7 +109,7 @@ public class Range {
             return false;
         }
         for(int i = 0; i < numberOfDimensions; i++) {
-            if(that.min(i) > this.max(i)+1) {
+            if(that.min(i) > this.max(i)) {
                 return false;
             }
         }
@@ -109,6 +117,8 @@ public class Range {
     }
 
     public boolean isContiguous(Range that) {
+        assert this.dimensions() == that.dimensions();
+
         if(this.dimensions() == 1) {
             return this.abuts(that);
         }
@@ -124,8 +134,10 @@ public class Range {
     }
 
     public Range combination(Range that) {
-        if(!this.isContiguous(that))
-            return Range.EMPTY;
+        assert this.dimensions() == that.dimensions();
+        if(!this.isContiguous(that)) {
+            return (this.dimensions() == 2) ? TWODIMENSIONEMPTY : ONEDIMENSIONEMPTY;
+        }
 
         int[] rangeMin = new int[numberOfDimensions];
         int[] rangeMax = new int[numberOfDimensions];
