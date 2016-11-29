@@ -109,7 +109,7 @@ public class Range {
             return false;
         }
         for(int i = 0; i < numberOfDimensions; i++) {
-            if(that.min(i) > this.max(i)) {
+            if(that.min(i) > this.max(i) || that.max(i) < this.min(i)) {
                 return false;
             }
         }
