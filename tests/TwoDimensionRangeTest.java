@@ -76,38 +76,48 @@ public class TwoDimensionRangeTest {
     }
 
     @Test
-    public void AbutsRight() throws Exception {
-        Range range1 = Range.TwoDimensionalRange(50, 80, 50, 80);
-        Range range2 = Range.TwoDimensionalRange(81, 150, 50 , 80);
-        Assert.assertTrue(range1.abuts(range2));
+    public void SideBySideRangesDoAbut() throws Exception {
+        Range subject = Range.TwoDimensionalRange(10, 20, 0, 10);
+        Range left = Range.TwoDimensionalRange(21, 30, 0, 10);
+        Range up = Range.TwoDimensionalRange(10, 20, 11, 20);
+        Assert.assertTrue(subject.abuts(left));
+        Assert.assertTrue(left.abuts(subject));
+        Assert.assertTrue(subject.abuts(up));
+        Assert.assertTrue(up.abuts(subject));
     }
 
     @Test
-    public void AbutsUp() throws Exception {
-        Range range1 = Range.TwoDimensionalRange(50, 80, 50, 80);
-        Range range2 = Range.TwoDimensionalRange(50, 80, 20 , 49);
-        Assert.assertTrue(range1.abuts(range2));
+    public void OverlappedRangesDoNotAbut() throws Exception {
+        Range subject = Range.TwoDimensionalRange(10, 20, 0, 10);
+        Range left = Range.TwoDimensionalRange(20, 30, 0, 10);
+        Range up = Range.TwoDimensionalRange(10, 20, 10, 20);
+        Assert.assertFalse(subject.abuts(left));
+        Assert.assertFalse(left.abuts(subject));
+        Assert.assertFalse(subject.abuts(up));
+        Assert.assertFalse(up.abuts(subject));
+    }
+
+    // Reproduces bug #97
+    @Test
+    public void DistantRangesDoNotAbut() throws Exception {
+        Range subject = Range.TwoDimensionalRange(10, 20, 0, 10);
+        Range left = Range.TwoDimensionalRange(30, 40, 0, 10);
+        Range up = Range.TwoDimensionalRange(10, 20, 20, 30);
+        Range itsUpperLeft = Range.TwoDimensionalRange(21, 31, 11, 21);
+        Assert.assertFalse(subject.abuts(left));
+        Assert.assertFalse(left.abuts(subject));
+        Assert.assertFalse(subject.abuts(up));
+        Assert.assertFalse(up.abuts(subject));
+        Assert.assertFalse(subject.abuts(itsUpperLeft));
+        Assert.assertFalse(itsUpperLeft.abuts(subject));
     }
 
     @Test
-    public void AbutsLeft() throws Exception {
-        Range range1 = Range.TwoDimensionalRange(50, 80, 50, 80);
-        Range range2 = Range.TwoDimensionalRange(20, 49, 50 , 80);
-        Assert.assertTrue(range1.abuts(range2));
-    }
-
-    @Test
-    public void AbutsDown() throws Exception {
-        Range range1 = Range.TwoDimensionalRange(50, 80, 50, 80);
-        Range range2 = Range.TwoDimensionalRange(50, 80, 81 , 120);
-        Assert.assertTrue(range1.abuts(range2));
-    }
-
-    @Test
-    public void NotAbuts() throws Exception {
-        Range range1 = Range.TwoDimensionalRange(50, 80, 50, 80);
-        Range range2 = Range.TwoDimensionalRange(90, 120, 50 , 80);
-        Assert.assertFalse(range1.abuts(range2));
+    public void UnalignedTouchingRangesDoAbut() throws Exception {
+        Range subject = Range.TwoDimensionalRange(10, 20, 0, 10);
+        Range left = Range.TwoDimensionalRange(21, 30, 5, 15);
+        Assert.assertTrue(subject.abuts(left));
+        Assert.assertTrue(left.abuts(subject));
     }
 
     @Test
@@ -115,7 +125,6 @@ public class TwoDimensionRangeTest {
         Range range1 = Range.TwoDimensionalRange(0, 20, 10, 20);
         Range range2 = Range.TwoDimensionalRange(21, 40, 10, 20);
         Assert.assertTrue(range1.isContiguous(range2));
-
     }
 
     @Test
@@ -123,7 +132,6 @@ public class TwoDimensionRangeTest {
         Range range1 = Range.TwoDimensionalRange(0, 20, 10, 20);
         Range range2 = Range.TwoDimensionalRange(21, 40, 10, 20);
         Assert.assertTrue(range1.isContiguous(range2));
-
     }
 
     @Test

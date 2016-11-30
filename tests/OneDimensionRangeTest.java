@@ -81,17 +81,28 @@ public class OneDimensionRangeTest {
     }
 
     @Test
-    public void Abuts() throws Exception {
-        Range range1 = Range.OneDimensionalRange(0,4);
-        Range range2 = Range.OneDimensionalRange(5,6);
-        Assert.assertTrue(range1.abuts(range2));
+    public void SideBySideRangesDoAbut() throws Exception {
+        Range left = Range.OneDimensionalRange(0, 4);
+        Range right = Range.OneDimensionalRange(5, 6);
+        Assert.assertTrue(left.abuts(right));
+        Assert.assertTrue(right.abuts(left));
     }
 
     @Test
-    public void NotAbuts() throws Exception {
-        Range range1 = Range.OneDimensionalRange(0,4);
-        Range range2 = Range.OneDimensionalRange(4,6);
-        Assert.assertFalse(range1.abuts(range2));
+    public void OverlappedRangesDoNotAbut() throws Exception {
+        Range left = Range.OneDimensionalRange(0, 4);
+        Range right = Range.OneDimensionalRange(4, 6);
+        Assert.assertFalse(left.abuts(right));
+        Assert.assertFalse(right.abuts(left));
+    }
+
+    // Reproduces bug #97
+    @Test
+    public void DistantRangesDoNotAbut() throws Exception {
+        Range left = Range.OneDimensionalRange(0, 4);
+        Range right = Range.OneDimensionalRange(6, 7);
+        Assert.assertFalse(left.abuts(right));
+        Assert.assertFalse(right.abuts(left));
     }
 
     @Test
