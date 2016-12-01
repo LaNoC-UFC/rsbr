@@ -108,12 +108,28 @@ public class Range {
         if (this.overlaps(that)) {
             return false;
         }
+        if (!anyDimensionOverlaps(that)) {
+            return false;
+        }
         for(int i = 0; i < numberOfDimensions; i++) {
-            if(that.min(i) > this.max(i)) {
-                return false;
+            if(this.max(i) == that.min(i) || this.min(i) == that.max(i)) {
+                return true;
             }
         }
-        return true;
+        return false;
+    }
+
+    private boolean anyDimensionOverlaps(Range that) {
+        if (this.numberOfDimensions == 1) {
+            return true;
+        }
+        for(int i = 0; i < numberOfDimensions; i++) {
+            if((this.min(i) <= that.min(i) && that.min(i) < this.max(i)) ||
+                    (this.min(i) <= that.max(i) - 1 && that.max(i) - 1 < this.max(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isContiguous(Range that) {
