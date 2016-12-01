@@ -1,6 +1,7 @@
 package rbr;
 
 import java.util.*;
+
 import util.*;
 
 public final class Region {
@@ -31,6 +32,7 @@ public final class Region {
     Range box() {
         return box;
     }
+
     @Override
     public String toString() {
         return this.box + " " + this.inputPorts + " " + this.outputPorts;
@@ -51,7 +53,7 @@ public final class Region {
         for (int x = this.box().min(0); x < this.box().max(0); x++) {
             for (int y = this.box().min(1); y < this.box().max(1); y++) {
                 Vertex vertex = new Vertex(x + "." + y);
-                if(!destinations().contains(vertex)) {
+                if (!destinations().contains(vertex)) {
                     result.add(vertex);
                 }
             }
@@ -68,5 +70,25 @@ public final class Region {
 
     private boolean OutputPortIsSubSet(Set<Character> outputPort1, Set<Character> outputPort2) {
         return (outputPort1.containsAll(outputPort2) || outputPort2.containsAll(outputPort1));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Region region = (Region) o;
+
+        if (!inputPorts.equals(region.inputPorts)) return false;
+        if (!outputPorts.equals(region.outputPorts)) return false;
+        return destinations.equals(region.destinations);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = inputPorts.hashCode();
+        result = 31 * result + outputPorts.hashCode();
+        result = 31 * result + destinations.hashCode();
+        return result;
     }
 }
