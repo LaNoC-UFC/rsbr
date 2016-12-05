@@ -148,8 +148,7 @@ public class RBR {
         return adjustedRegions;
     }
 
-    // Make regions only with correct destinations
-    private List<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
+    List<Region> makeRegions(Set<Vertex> dsts, Set<Character> ip, Set<Character> op) {
         List<Region> result = new ArrayList<>();
         Range box = TopologyKnowledge.box(dsts);
 
