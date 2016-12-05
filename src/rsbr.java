@@ -56,8 +56,8 @@ public class rsbr {
             ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, graph, volumes);
 
             System.out.println(" - RBR Section");
-            RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full");
-            RBRSection(shouldMerge, graph, chosenPaths, rbr, "custom");
+            RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full"+"_"+faultyPercentage);
+            RBRSection(shouldMerge, graph, chosenPaths, rbr, "custom"+"_"+faultyPercentage);
             StatisticalAnalyser statistics = new StatisticalAnalyser(graph, rbr.regions(), volumes);
             printResults(chosenPaths, statistics);
         }
