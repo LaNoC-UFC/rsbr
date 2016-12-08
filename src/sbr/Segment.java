@@ -12,6 +12,21 @@ public class Segment {
         switches = new ArrayList<>();
     }
 
+    public Segment(Segment that, Edge toAppend) {
+        this(that);
+        this.add(toAppend);
+    }
+
+    public Segment(Segment that, Vertex toAppend) {
+        this(that);
+        this.add(toAppend);
+    }
+
+    public Segment(Segment that) {
+        this.links = new ArrayList<>(that.links);
+        this.switches = new ArrayList<>(that.switches);
+    }
+
     public boolean isStarting() {
         // Checa se o destino do ultimo link eh o primeiro switch
 
