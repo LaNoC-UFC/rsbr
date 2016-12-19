@@ -13,6 +13,8 @@ public class FaultyGraphSegmentationTest {
                 sr.computeSegments();
                 sr.setrestrictions();
                 edgesAreEitherInASegmentOrAreBridges(noc, sr.segments());
+                verticesAreEitherInASegmentOrAreAloneInASubnet(noc, sr);
+                //onlyTerminalVerticesAreLinkedToBridges(noc, sr);
             }
         }
     }
@@ -28,6 +30,7 @@ public class FaultyGraphSegmentationTest {
                     sr.setrestrictions();
                     edgesAreEitherInASegmentOrAreBridges(noc, sr.segments());
                     verticesAreEitherInASegmentOrAreAloneInASubnet(noc, sr);
+                    //onlyTerminalVerticesAreLinkedToBridges(noc, sr);
                 }
             }
         }
@@ -42,6 +45,25 @@ public class FaultyGraphSegmentationTest {
                 Assert.assertTrue(isSubNet(candidate, sr));
             }
         }
+    }
+
+    private void onlyTerminalVerticesAreLinkedToBridges(Graph noc, SR sr) {
+        for (Vertex candidate : noc.getVertices()) {
+            if (sr.terminalVertices().contains(candidate)) {
+                Assert.assertTrue(isLinkedToBridge(candidate, noc));
+            } else {
+                Assert.assertFalse(isLinkedToBridge(candidate, noc));
+            }
+        }
+    }
+
+    private boolean isLinkedToBridge(Vertex candidate, Graph noc) {
+        for (Edge e : noc.adjunctsOf(candidate)) {
+            if (isBridge(noc, e)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isSubNet(Vertex candidate, SR sr) {
