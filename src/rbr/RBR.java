@@ -129,10 +129,19 @@ public class RBR {
         assert reachabilityIsOk();
     }
 
+    Region adjustRegionWithOwner(Region r, Vertex owner) {
+        Set<Vertex> destinations = r.destinations();
+        if(r.outsiders().contains(owner) && r.outsiders().size() == 1) {
+            destinations.add(owner);
+        }
+        return new Region(r.inputPorts(), destinations, r.outputPorts());
+    }
+
     void adjustRegions(Vertex sw) {
         List<Region> newRegions = new ArrayList<>();
         for (Region currentRegion : regionsForVertex.get(sw)) {
-            newRegions.addAll(adjustedRegionsFrom(currentRegion));
+            Region adjustedRegion = adjustRegionWithOwner(currentRegion, sw);
+            newRegions.addAll(adjustedRegionsFrom(adjustedRegion));
         }
         regionsForVertex.put(sw, newRegions);
     }
