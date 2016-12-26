@@ -7,7 +7,7 @@ public class BidimensionalSBRPolicy implements SBRPolicy {
 
     private final static char[] RoundRobin = { 'N', 'E', 'S', 'W' };
     private static int RRIndex[];
-    private ArrayList<Edge> edge;
+    private List<Edge> edge;
 
     public BidimensionalSBRPolicy(Graph graph){
         edge = graph.getEdges();
@@ -22,7 +22,7 @@ public class BidimensionalSBRPolicy implements SBRPolicy {
         RRIndex[1] = -1;
     }
     @Override
-    public Edge getNextLink(ArrayList<Edge> links) {
+    public Edge getNextLink(List<Edge> links) {
         Edge got = null;
         int index;
         if (RRIndex[0] == -1) {

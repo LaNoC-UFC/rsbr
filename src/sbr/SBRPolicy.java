@@ -4,6 +4,6 @@ import java.util.*;
 import util.Edge;
 
 public interface SBRPolicy {
-     public  Edge getNextLink(ArrayList<Edge> links);
+     public  Edge getNextLink(List<Edge> links);
      public void resetRRIndex();
 }

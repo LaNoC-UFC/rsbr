@@ -38,7 +38,7 @@ public class rsbr {
             GraphRestrictions restrictions = SBRSection(graph);
 
             System.out.println("Paths Computation");
-            ArrayList<ArrayList<Path>> allMinimalPaths = new PathFinder(graph, restrictions).pathsComputation();
+            List<List<Path>> allMinimalPaths = new PathFinder(graph, restrictions).pathsComputation();
 
             System.out.println(" - Paths Selection Section");
             RBR rbr = new RBR(graph);
@@ -53,7 +53,7 @@ public class rsbr {
                 }
             }
 
-            ArrayList<ArrayList<Path>> chosenPaths = selectPaths(allMinimalPaths, graph, volumes);
+            List<List<Path>> chosenPaths = selectPaths(allMinimalPaths, graph, volumes);
 
             System.out.println(" - RBR Section");
             RBRSection(shouldMerge, graph, allMinimalPaths, rbr, "full"+"_"+faultyPercentage);
@@ -73,7 +73,7 @@ public class rsbr {
         return sbr.restrictions();
     }
 
-    private static void RBRSection(boolean shouldMerge, Graph graph, ArrayList<ArrayList<Path>> allMinimalPaths, RBR rbr, String fileSuffix) {
+    private static void RBRSection(boolean shouldMerge, Graph graph, List<List<Path>> allMinimalPaths, RBR rbr, String fileSuffix) {
         System.out.println("Regions Computation");
         rbr.addRoutingOptions(allMinimalPaths);
         rbr.regionsComputation();
@@ -92,8 +92,8 @@ public class rsbr {
         return (columns - 1)*rows + (rows - 1)*columns;
     }
 
-    private static ArrayList<ArrayList<Path>> selectPaths(ArrayList<ArrayList<Path>> paths, Graph g, Map<Path, Double> volumes) {
-        ArrayList<ArrayList<Path>> chosenPaths = null;
+    private static List<List<Path>> selectPaths(List<List<Path>> paths, Graph g, Map<Path, Double> volumes) {
+        List<List<Path>> chosenPaths = null;
         LinkWeightTracker lwTracker = new LinkWeightTracker(g, volumes);
         int choice = 5;
         switch (choice) {
@@ -120,7 +120,7 @@ public class rsbr {
         return (numberOfGoodEdges >= numberOfVertices - 1);
     }
 
-    private static void printResults(ArrayList<ArrayList<Path>> paths, StatisticalAnalyser statistics) {
+    private static void printResults(List<List<Path>> paths, StatisticalAnalyser statistics) {
         double lwAverage = statistics.averageLinkWeight(paths);
         double lwStdDeviation = statistics.standardDeviationLinkWeight(paths);
         double pwAverage = statistics.averagePathWeight(paths);
@@ -134,7 +134,7 @@ public class rsbr {
         System.out.println("ARD: " + ard);
     }
 
-    private static Map<Path, Double> communicationVolume(ArrayList<ArrayList<Path>> paths, File commvol, Graph graph) {
+    private static Map<Path, Double> communicationVolume(List<List<Path>> paths, File commvol, Graph graph) {
 
         int N = graph.columns()*graph.rows();
         double[][] vol = new double[N][N];
@@ -157,7 +157,7 @@ public class rsbr {
             e.printStackTrace();
         }
 
-        for(ArrayList<Path> alp : paths) {
+        for(List<Path> alp : paths) {
             int i = graph.indexOf(alp.get(0).src());
             int j = graph.indexOf(alp.get(0).dst());
             double volume = vol[i][j];

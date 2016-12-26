@@ -34,8 +34,8 @@ public class AdjustRegionsTest {
         Set<Vertex> dstRegionWithoutOutsiders = new HashSet<>();
         dstRegionWithoutOutsiders.add(new Vertex("1.1"));
         Region regionWithoutOutsiders = new Region(ip, dstRegionWithoutOutsiders, op);
-        ArrayList<Region> adjustedRegionWithoutOutsiders = rbr.adjustedRegionsFrom(regionWithoutOutsiders);
-        ArrayList<Region> arrayRegionWithoutOutsiders = new ArrayList<>();
+        List<Region> adjustedRegionWithoutOutsiders = rbr.adjustedRegionsFrom(regionWithoutOutsiders);
+        List<Region> arrayRegionWithoutOutsiders = new ArrayList<>();
         arrayRegionWithoutOutsiders.add(regionWithoutOutsiders);
         Assert.assertEquals(adjustedRegionWithoutOutsiders, arrayRegionWithoutOutsiders);
     }
@@ -44,8 +44,8 @@ public class AdjustRegionsTest {
     public void regionWithoutDestinationsIsntAdjusted() throws Exception {
         Set<Vertex> dstRegionWithoutDestinations = new HashSet<>();
         Region regionWithoutDestinations = new Region(ip, dstRegionWithoutDestinations, op);
-        ArrayList<Region> adjustedRegionWithoutDestinations = rbr.adjustedRegionsFrom(regionWithoutDestinations);
-        ArrayList<Region> arrayRegionWithoutDestinations = new ArrayList<>();
+        List<Region> adjustedRegionWithoutDestinations = rbr.adjustedRegionsFrom(regionWithoutDestinations);
+        List<Region> arrayRegionWithoutDestinations = new ArrayList<>();
         arrayRegionWithoutDestinations.add(regionWithoutDestinations);
         Assert.assertEquals(adjustedRegionWithoutDestinations, arrayRegionWithoutDestinations);
     }

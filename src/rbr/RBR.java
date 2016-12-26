@@ -5,8 +5,8 @@ import util.*;
 
 public class RBR {
     private Graph graph;
-    private HashMap<Vertex, Set<RoutingOption>> routingPathForVertex;
-    private HashMap<Vertex, List<Region>> regionsForVertex;
+    private Map<Vertex, Set<RoutingOption>> routingPathForVertex;
+    private Map<Vertex, List<Region>> regionsForVertex;
 
     public RBR(Graph g) {
         graph = g;
@@ -14,7 +14,7 @@ public class RBR {
         regionsForVertex = new HashMap<>();
     }
 
-    public HashMap<Vertex, List<Region>> regions() {
+    public Map<Vertex, List<Region>> regions() {
         return this.regionsForVertex;
     }
 
@@ -56,12 +56,12 @@ public class RBR {
         }
     }
 
-    public void addRoutingOptions(ArrayList<ArrayList<Path>> paths) {
+    public void addRoutingOptions(List<List<Path>> paths) {
 
         for(Vertex v : graph.getVertices())
             routingPathForVertex.put(v, new HashSet<>());
 
-        for(ArrayList<Path> alp : paths) {
+        for(List<Path> alp : paths) {
             for (Path path : alp) {
                 for (Vertex sw : path) {
                     if (path.indexOf(sw) != path.size() - 1) {
@@ -146,8 +146,8 @@ public class RBR {
         regionsForVertex.put(sw, newRegions);
     }
 
-    ArrayList<Region> adjustedRegionsFrom(Region r) {
-        ArrayList<Region> adjustedRegions = new ArrayList<>();
+    List<Region> adjustedRegionsFrom(Region r) {
+        List<Region> adjustedRegions = new ArrayList<>();
         Set<Vertex> outsiders = r.outsiders();
         if(outsiders.isEmpty()){
             adjustedRegions.add(r);

@@ -12,14 +12,14 @@ public class SR {
     private GraphRestrictions restrictions;
 
     private int subNet, maxSN;
-    private ArrayList<Segment> segments;
+    private List<Segment> segments;
     private Segment currentSegment;
     private List<Edge> bridges;
 
     private List<Vertex> visitedVertices, unvisitedVertices;
     private List<Vertex> startVertices, terminalVertices;
     private List<Edge> visitedEdges, unvisitedEdges;
-    private HashMap<Vertex, Integer> subnetForVertex;
+    private Map<Vertex, Integer> subnetForVertex;
     private SBRPolicy policy;
 
     public SR(Graph graph, SBRPolicy policy) {
@@ -243,7 +243,7 @@ public class SR {
     }
 
     private List<Vertex> suitableVisitedVertices() {
-        ArrayList<Vertex> result = new ArrayList<>();
+        List<Vertex> result = new ArrayList<>();
         for (Vertex sw : visitedVertices) {
             if (!isTerminal(sw) && sw.isIn(currentWindow) && hasSuitableLinks(sw))
                 result.add(sw);
@@ -260,7 +260,7 @@ public class SR {
     }
 
     private Segment extendedSegment(Segment base, Vertex from) {
-        ArrayList<Edge> links = suitableLinks(from, base);
+        List<Edge> links = suitableLinks(from, base);
         Segment extendedSegment = null;
         while (!links.isEmpty() && !segmentIsValid(extendedSegment)) {
             Edge currentLink = policy.getNextLink(links);
@@ -281,8 +281,8 @@ public class SR {
         return extendedSegment(new Segment(edgeEndedSegment, nextVertex), nextVertex);
     }
 
-    private ArrayList<Edge> suitableLinks(Vertex v) {
-        ArrayList<Edge> result = new ArrayList<>();
+    private List<Edge> suitableLinks(Vertex v) {
+        List<Edge> result = new ArrayList<>();
         for (Edge ln : graph.adjunctsOf(v)) {
             Vertex dst = ln.destination();
             boolean isBridge = bridges.contains(ln) || bridges.contains(graph.adjunct(dst, ln.source()));
@@ -292,9 +292,9 @@ public class SR {
         return result;
     }
 
-    private ArrayList<Edge> suitableLinks(Vertex v, Segment segment) {
+    private List<Edge> suitableLinks(Vertex v, Segment segment) {
         currentSegment = segment;
-        ArrayList<Edge> result = new ArrayList<>();
+        List<Edge> result = new ArrayList<>();
         for (Edge ln : graph.adjunctsOf(v)) {
             Vertex dst = ln.destination();
             boolean crosses = isTVisited(dst) && !isStart(dst);
