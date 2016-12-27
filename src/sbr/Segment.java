@@ -1,11 +1,11 @@
 package sbr;
 
 import util.*;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Segment {
-    private ArrayList<Edge> links;
-    private ArrayList<Vertex> switches;
+    private List<Edge> links;
+    private List<Vertex> switches;
 
     public Segment() {
         links = new ArrayList<>();
@@ -89,11 +89,11 @@ public class Segment {
         return r;
     }
 
-    public ArrayList<Vertex> getSwitchs() {
+    public List<Vertex> getSwitchs() {
         return this.switches;
     }
 
-    public ArrayList<Edge> getLinks() {
+    public List<Edge> getLinks() {
         return this.links;
     }
 

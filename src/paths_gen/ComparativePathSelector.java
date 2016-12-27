@@ -4,21 +4,21 @@ import java.util.*;
 import util.*;
 
 public class ComparativePathSelector {
-    private ArrayList<ArrayList<Path>> paths;
+    private List<List<Path>> paths;
     private Comparator<Path> comparator;
     private int iterationsCount = 0;
     private LinkWeightTracker linkWeightTracker;
 
-    private static class ByNumberOfPaths implements Comparator<ArrayList<Path>> {
+    private static class ByNumberOfPaths implements Comparator<List<Path>> {
         @Override
-        public int compare(ArrayList<Path> p0, ArrayList<Path> p1) {
+        public int compare(List<Path> p0, List<Path> p1) {
             if(p0.size() < p1.size()) return -1;
             if(p0.size() > p1.size()) return +1;
             return 0;
         }
     }
 
-    public ComparativePathSelector(ArrayList<ArrayList<Path>> paths,
+    public ComparativePathSelector(List<List<Path>> paths,
                                    Comparator<Path> comparator,
                                    int iterationsCount,
                                    LinkWeightTracker tracker) {
@@ -28,11 +28,11 @@ public class ComparativePathSelector {
         linkWeightTracker = tracker;
     }
 
-    public ArrayList<ArrayList<Path>> selection() {
+    public List<List<Path>> selection() {
         Collections.sort(paths, new ByNumberOfPaths());
 
-        ArrayList<ArrayList<Path>> result = new ArrayList<>();
-        for(ArrayList<Path> samePairPaths: paths) {
+        List<List<Path>> result = new ArrayList<>();
+        for(List<Path> samePairPaths: paths) {
             result.add(selectPath(samePairPaths));
         }
 
@@ -42,8 +42,8 @@ public class ComparativePathSelector {
         return result;
     }
 
-    private void reselectPaths(ArrayList<ArrayList<Path>> selectedPaths) {
-        for(ArrayList<Path> samePairPaths : paths) {
+    private void reselectPaths(List<List<Path>> selectedPaths) {
+        for(List<Path> samePairPaths : paths) {
             if(samePairPaths.size() == 1)
                 continue;
             unselectPaths(selectedPaths, paths.indexOf(samePairPaths));
@@ -51,16 +51,16 @@ public class ComparativePathSelector {
         }
     }
 
-    private void unselectPaths(ArrayList<ArrayList<Path>> selectedPaths, int index) {
-        ArrayList<Path> pair = selectedPaths.remove(index);
+    private void unselectPaths(List<List<Path>> selectedPaths, int index) {
+        List<Path> pair = selectedPaths.remove(index);
         linkWeightTracker.removeAll(pair);
     }
 
-    private ArrayList<Path> selectPath(ArrayList<Path> samePairPaths) {
+    private List<Path> selectPath(List<Path> samePairPaths) {
         Collections.sort(samePairPaths, comparator);
         Path selectedPath = samePairPaths.get(0);
         linkWeightTracker.add(selectedPath);
-        ArrayList<Path> result = new ArrayList<>();
+        List<Path> result = new ArrayList<>();
         result.add(selectedPath);
         return result;
     }

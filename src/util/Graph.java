@@ -3,8 +3,8 @@ package util;
 import java.util.*;
 
 public class Graph {
-    private ArrayList<Vertex> vertices;
-    private ArrayList<Edge> edges;
+    private List<Vertex> vertices;
+    private List<Edge> edges;
     private Map<Vertex, Collection<Edge>> adjuncts;
     private int columns;
     private int rows;
@@ -34,11 +34,11 @@ public class Graph {
         }
     }
 
-    public ArrayList<Vertex> getVertices() {
+    public List<Vertex> getVertices() {
         return this.vertices;
     }
 
-    public ArrayList<Edge> getEdges() {
+    public List<Edge> getEdges() {
         return this.edges;
     }
 
