@@ -82,7 +82,7 @@ public class FaultyGraphSegmentationTest {
     private boolean isInASegment(Collection<Segment> segments, Vertex candidate) {
         int count = 0;
         for (Segment seg : segments) {
-            if (seg.getSwitchs().contains(candidate)) {
+            if (seg.vertices().contains(candidate)) {
                 count++;
             }
         }
@@ -92,7 +92,7 @@ public class FaultyGraphSegmentationTest {
     private boolean isInASegment(Graph noc, Collection<Segment> segments, Edge candidate) {
         int count = 0;
         for (Segment seg : segments)
-            if (seg.getLinks().contains(candidate) || seg.getLinks().contains(sibling(noc, candidate)))
+            if (seg.edges().contains(candidate) || seg.edges().contains(sibling(noc, candidate)))
                 count++;
         return count == 1;
     }

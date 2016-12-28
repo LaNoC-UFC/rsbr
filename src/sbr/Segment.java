@@ -3,7 +3,7 @@ package sbr;
 import util.*;
 import java.util.*;
 
-public class Segment {
+public class Segment implements ISegment {
     private List<Edge> links;
     private List<Vertex> switches;
 
@@ -28,10 +28,7 @@ public class Segment {
     }
 
     public boolean isStarting() {
-        // Checa se o destino do ultimo link eh o primeiro switch
-
-        // TESTE PROVISORIO, SERA APAGADO
-        if (links.size() == 1)
+        if (links.size() <= 1)
             return false;
 
         if (links.get(links.size() - 1).destination().equals(switches.get(0)))
@@ -47,7 +44,7 @@ public class Segment {
 
     public boolean isRegular() {
 
-        return (!this.isUnitary() && !this.isStarting());
+        return (!this.isUnitary() && !this.isStarting() && links.size() > 0);
     }
 
     public void add(Edge ln) {
@@ -89,12 +86,26 @@ public class Segment {
         return r;
     }
 
-    public List<Vertex> getSwitchs() {
+    @Override
+    public List<Vertex> vertices() {
         return this.switches;
     }
 
-    public List<Edge> getLinks() {
+    @Override
+    public List<Edge> edges() {
         return this.links;
     }
 
+    @Override
+    public void accept(SegmentVisitor visitor) {
+        if (this.isUnitary()) {
+            visitor.visitUnitarySegment(this);
+        }
+        else if (this.isStarting()) {
+            visitor.visitStartSegment(this);
+        }
+        else if (this.isRegular()) {
+            visitor.visitRegularSegment(this);
+        }
+    }
 }

@@ -46,7 +46,7 @@ public class SR {
             currentWindow = Range.TwoDimensionalRange(0, maxX, currentY, maxY);
             computeSegmentsInRange();
             for (Segment seg : segments)
-                assert !seg.getLinks().isEmpty();
+                assert !seg.edges().isEmpty();
         }
     }
 
@@ -67,40 +67,9 @@ public class SR {
     }
 
     public void setrestrictions() {
+        SegmentVisitor visitor = new AddRestrictionsSegmentVisitor(restrictions, graph);
         for (Segment segment : segments) {
-            if (segment.isUnitary()) {
-                // No traffic allowed at link
-                Vertex Starting = segment.getLinks().get(0).source();
-                Vertex Ending = segment.getLinks().get(0).destination();
-                // Restrictions at Starting core
-                for (Edge link : graph.adjunctsOf(Starting)) {
-                    restrictions.addRestriction(Starting, link.color(), graph.adjunct(Starting, Ending).color());
-                }
-                // Restrictions at Ending core
-                for (Edge link : graph.adjunctsOf(Ending)) {
-                    restrictions.addRestriction(Ending, link.color(), graph.adjunct(Ending, Starting).color());
-                }
-                continue;
-            }
-            // Put it at first or second link
-            if (segment.getSwitchs().size() == 1) {
-                Vertex sw = segment.getSwitchs().get(0);
-                restrictions.addRestriction(sw, TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
-                restrictions.addRestriction(sw, segment.getLinks().get(1).color(), TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()));
-                continue;
-            }
-            // At this point we have or starting or regular segment
-            if (segment.isRegular()) {
-                Vertex restrict = segment.getSwitchs().get(1);
-                restrictions.addRestriction(restrict, TopologyKnowledge.getInvColor(segment.getLinks().get(1).color()), segment.getLinks().get(2).color());
-                restrictions.addRestriction(restrict, segment.getLinks().get(2).color(), TopologyKnowledge.getInvColor(segment.getLinks().get(1).color()));
-                continue;
-            }
-            if (segment.isStarting()) {
-                Vertex restrict = segment.getSwitchs().get(1);
-                restrictions.addRestriction(restrict, TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()), segment.getLinks().get(1).color());
-                restrictions.addRestriction(restrict, segment.getLinks().get(1).color(), TopologyKnowledge.getInvColor(segment.getLinks().get(0).color()));
-            }
+            segment.accept(visitor);
         }
     }
 
@@ -167,11 +136,11 @@ public class SR {
     }
 
     private void visit(Segment segment) {
-        for (Vertex v : segment.getSwitchs()) {
+        for (Vertex v : segment.vertices()) {
             visit(v);
             subnetForVertex.put(v, subNet);
         }
-        for (Edge e : segment.getLinks()) {
+        for (Edge e : segment.edges()) {
             visit(e);
         }
     }
@@ -235,7 +204,7 @@ public class SR {
     }
 
     private boolean segmentIsValid(Segment seg) {
-        return (null != seg && !seg.getLinks().isEmpty());
+        return (null != seg && !seg.edges().isEmpty());
     }
 
     private boolean isFinalTurn() {
@@ -271,7 +240,7 @@ public class SR {
     }
 
     private Segment extendedSegment(Segment edgeEndedSegment) {
-        Edge currentLink = edgeEndedSegment.getLinks().get(edgeEndedSegment.getLinks().size() - 1);
+        Edge currentLink = edgeEndedSegment.edges().get(edgeEndedSegment.edges().size() - 1);
         Vertex nextVertex = currentLink.destination();
         if (isVisited(nextVertex) && subnetForVertex.get(nextVertex) == subNet) {
             return edgeEndedSegment;
@@ -315,7 +284,7 @@ public class SR {
     }
 
     private boolean isTVisited(Vertex aVertex) {
-        return currentSegment.getSwitchs().contains(aVertex);
+        return currentSegment.vertices().contains(aVertex);
     }
 
     private boolean isVisited(Edge anEdge) {
@@ -332,7 +301,7 @@ public class SR {
 
     private boolean isTVisited(Edge anEdge) {
         Edge itsSibling = graph.adjunct(anEdge.destination(), anEdge.source());
-        return (currentSegment.getLinks().contains(anEdge) || currentSegment.getLinks().contains(itsSibling));
+        return (currentSegment.edges().contains(anEdge) || currentSegment.edges().contains(itsSibling));
     }
 
     private void setStart(Vertex aVertex) {
