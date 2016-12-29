@@ -64,7 +64,13 @@ public class RoutingTableGenerator {
                 + "function upper_right_x(region : cell) return natural;\n"
                 + "function upper_right_y(region : cell) return natural;\n"
                 + "function lower_left_x(region : cell) return natural;\n"
-                + "function lower_left_y(region : cell) return natural;\n\n"
+                + "function lower_left_y(region : cell) return natural;\n"
+                + "function formatted_region(\n"
+                + "\tinput_ports : ports;\n"
+                + "\tVertInf : regAddr;\n"
+                + "\tVertSup : regAddr;\n"
+                + "\toutput_ports : ports\n"
+                + ") return cell;\n\n"
         );
     }
 
@@ -114,6 +120,21 @@ public class RoutingTableGenerator {
                 + "begin\n"
                 + "\treturn TO_INTEGER(unsigned(region(CELL_SIZE-6-NBITS downto CELL_SIZE-5-2*NBITS)));\n"
                 + "end lower_left_y;\n"
+                + "\n"
+                + "function formatted_region(\n"
+                + "\tinput_ports : ports;\n"
+                + "\tVertInf : regAddr;\n"
+                + "\tVertSup : regAddr;\n"
+                + "\toutput_ports : ports\n"
+                + ") return cell is\n"
+                + "\tvariable region : cell;\n"
+                + "begin\n"
+                + "\tregion(CELL_SIZE-1 downto CELL_SIZE-5) := input_ports;\n"
+                + "\tregion(CELL_SIZE-6 downto CELL_SIZE-5-2*NBITS) := VertInf;\n"
+                + "\tregion(CELL_SIZE-6-2*NBITS downto NPORT) := VertSup;\n"
+                + "\tregion(NPORT-1 downto 0) := output_ports;\n"
+                + "\treturn region;\n"
+                + "end formatted_region;\n"
                 + "\n"
                 + "end TablePackage;\n");
     }
