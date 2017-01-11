@@ -33,4 +33,33 @@ public final class Edge {
     public double weight() {
         return this.weight;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Edge))
+            return false;
+
+        Edge that = (Edge) o;
+        if (Double.compare(that.weight, this.weight) != 0)
+            return false;
+        if (this.source != null ? !this.source.equals(that.source) : that.source != null)
+            return false;
+        if (this.destination != null ? !this.destination.equals(that.destination) : that.destination != null)
+            return false;
+        return this.color != null ? this.color.equals(that.color) : that.color == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = source != null ? source.hashCode() : 0;
+        result = 31 * result + (destination != null ? destination.hashCode() : 0);
+        result = 31 * result + (color != null ? color.hashCode() : 0);
+        temp = Double.doubleToLongBits(weight);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
 }
