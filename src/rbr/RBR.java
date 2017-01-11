@@ -85,21 +85,6 @@ public class RBR {
         }
     }
     
-    private static List<Set> allCombinationsOf(Set objects) {
-        List<Set> result = new ArrayList<>();
-        Object[] arrayObjects = objects.toArray();
-        for (int m = 1; m != 1 << arrayObjects.length; m++) {
-            Set<Object> aCombination = new HashSet<>();
-            for (int i = 0; i != arrayObjects.length; i++) {
-                if ((m & (1 << i)) != 0) {
-                    aCombination.add(arrayObjects[i]);
-                }
-            }
-            result.add(aCombination);
-        }
-        return result;
-    }
-
     // Compute the regions
     public void regionsComputation() {
         Set<Character> opt = new HashSet<>();
@@ -107,7 +92,7 @@ public class RBR {
         opt.add('N');
         opt.add('S');
         opt.add('W');
-        List<Set> opComb = allCombinationsOf(opt);
+        List<Set<Character>> opComb = Combinatorics.allCombinationsOf(opt);
         for (Vertex sw : graph.getVertices()) {
             regionsForVertex.put(sw, new ArrayList<>());
             for (Set<Character> op : opComb) {
