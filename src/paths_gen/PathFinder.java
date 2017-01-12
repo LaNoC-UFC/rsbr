@@ -125,21 +125,21 @@ public class PathFinder {
 
     public List<Path> allPathsBetweenVertices(Vertex src, Vertex dst) {
         List<Path> result = new ArrayList<>();
-
-        List<Path> oneHopPaths = computeOneHopPaths(src);
-        result.addAll(oneHopPaths);
-        List<Path> previouslyFoundPaths = oneHopPaths;
-        while (!previouslyFoundPaths.isEmpty()) {
-            List<Path> valid = advanceOneHopNoMinimal(previouslyFoundPaths);
-            for (Path path : valid) {
-                if (path.dst().equals(dst)) {
-                    result.add(path);
-                }
-            }
-            previouslyFoundPaths = valid;
-            previouslyFoundPaths.removeAll(result);
+        for (List<Path> foundPaths = computeOneHopPaths(src); !foundPaths.isEmpty(); foundPaths = advanceOneHopNoMinimal(foundPaths)) {
+            result.addAll(pathsWithDestination(foundPaths, dst));
+            foundPaths.removeAll(result);
         }
         Collections.sort(result);
+        return result;
+    }
+
+    private List<Path> pathsWithDestination(List<Path> paths, Vertex dst) {
+        List<Path> result = new ArrayList<>();
+        for (Path path : paths) {
+            if (path.dst().equals(dst)) {
+                result.add(path);
+            }
+        }
         return result;
     }
 
