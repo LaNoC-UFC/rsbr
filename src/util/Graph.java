@@ -39,7 +39,7 @@ public class Graph {
     }
 
     public List<Edge> getEdges() {
-        return this.edges;
+        return new ArrayList<>(this.edges);
     }
 
     public Collection<Edge> adjunctsOf(Vertex v) {
