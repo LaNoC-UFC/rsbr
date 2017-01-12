@@ -35,7 +35,7 @@ public class PathFinderTest {
     public void MinimalPathsHaveTheSameSize() throws Exception {
         Graph g = RegularGraphBuilder.generateGraph(5, 5);
         PathFinder finder = new PathFinder(g, new GraphRestrictions(g));
-        List<List<Path>> minimalPaths = finder.pathsComputation();
+        List<List<Path>> minimalPaths = finder.minimalPathsForAllPairs();
         for (List<Path> paths : minimalPaths) {
             int hopCount = paths.get(0).size();
             paths.forEach(p -> Assert.assertEquals(hopCount, p.size()));

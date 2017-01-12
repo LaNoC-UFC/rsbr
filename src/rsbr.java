@@ -38,7 +38,7 @@ public class rsbr {
             GraphRestrictions restrictions = SBRSection(graph);
 
             System.out.println("Paths Computation");
-            List<List<Path>> allMinimalPaths = new PathFinder(graph, restrictions).pathsComputation();
+            List<List<Path>> allMinimalPaths = new PathFinder(graph, restrictions).minimalPathsForAllPairs();
 
             System.out.println(" - Paths Selection Section");
             RBR rbr = new RBR(graph);

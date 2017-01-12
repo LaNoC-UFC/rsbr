@@ -13,72 +13,97 @@ public class PathFinder {
         this.restrictions = restrictions;
     }
 
-    public List<List<Path>> pathsComputation() {
+    public List<List<Path>> minimalPathsForAllPairs() {
         List<Path> result = new ArrayList<>();
         Set<String> alreadyFoundPairs = new HashSet<>();
-        // N = 1 hop
-        List<Path> oneHopPaths = computeOneHopPaths(alreadyFoundPairs);
-        result.addAll(oneHopPaths);
-        List<Path> previouslyFoundPaths = oneHopPaths;
-        // N > 1 hop
         int nPairs = graph.getVertices().size() * (graph.getVertices().size() - 1);
-        while (alreadyFoundPairs.size() < nPairs) {
-            List<Path> valid = advanceOneHop(previouslyFoundPaths, alreadyFoundPairs);
-            result.addAll(valid);
-            previouslyFoundPaths = valid;
+        for (List<Path> foundPaths = oneHopPaths(); alreadyFoundPairs.size() < nPairs; foundPaths = minimalPaths(advanceOneHop(foundPaths), alreadyFoundPairs)) {
+            updateFoundPairs(alreadyFoundPairs, foundPaths);
+            result.addAll(foundPaths);
         }
         return divideByPair(result);
     }
 
-    private List<Path> computeOneHopPaths(Set<String> alreadyFoundPairs) {
+    public List<Path> allPathsBetweenVertices(Vertex src, Vertex dst) {
         List<Path> result = new ArrayList<>();
-        for (Vertex src : graph.getVertices()) {
-            for (Edge e : graph.adjunctsOf(src)) {
-                Vertex dst = e.destination();
-                if (restrictions.turnIsForbidden(src, 'I', graph.adjunct(src, dst).color())) {
-                    continue;
-                }
-                Path p = new Path();
-                p.add(src);
-                p.add(dst);
-                result.add(p);
-                alreadyFoundPairs.add(pairDescriptor(src, dst));
+        for (List<Path> foundPaths = oneHopPathsFrom(src); !foundPaths.isEmpty(); foundPaths = advanceOneHop(foundPaths)) {
+            result.addAll(pathsWithDestination(foundPaths, dst));
+            foundPaths.removeAll(result);
+        }
+        Collections.sort(result);
+        return result;
+    }
+
+    private List<Path> oneHopPaths() {
+        List<Path> result = new ArrayList<>();
+        graph.getVertices().forEach(source -> result.addAll(oneHopPathsFrom(source)));
+        return result;
+    }
+
+    private List<Path> oneHopPathsFrom(Vertex src) {
+        List<Path> result = new ArrayList<>();
+        for (Edge e : graph.adjunctsOf(src)) {
+            Vertex dst = e.destination();
+            if (restrictions.turnIsForbidden(src, 'I', graph.adjunct(src, dst).color())) {
+                continue;
             }
+            Path p = new Path();
+            p.add(src);
+            p.add(dst);
+            result.add(p);
         }
         return result;
     }
 
-    private List<Path> advanceOneHop(List<Path> previouslyFoundPaths, Set<String> alreadyFoundPairs) {
+    private List<Path> advanceOneHop(List<Path> previouslyFoundPaths) {
         List<Path> result = new ArrayList<>();
-        for (Path p : previouslyFoundPaths) {
-            result.addAll(advanceOneHop(p, alreadyFoundPairs));
-        }
-        for (Path p : result) {
-            alreadyFoundPairs.add(pairDescriptor(p.src(), p.dst()));
-        }
+        previouslyFoundPaths.forEach(p -> result.addAll(oneHopMore(p)));
         return result;
     }
 
-    private List<Path> advanceOneHop(Path p, Set<String> alreadyFoundPairs) {
+    private List<Path> oneHopMore(Path p) {
         List<Path> result = new ArrayList<>();
         Vertex currentSrc = p.dst();
         Vertex predecessor = p.get(p.size() - 2);
         Character inputPort = graph.adjunct(currentSrc, predecessor).color();
         for (Edge e : graph.adjunctsOf(currentSrc)) {
             Vertex dst = e.destination();
-            // going back
-            if (dst == predecessor)
+            if (dst.equals(predecessor))
                 continue;
             if (restrictions.turnIsForbidden(currentSrc, inputPort, graph.adjunct(currentSrc, dst).color()))
                 continue;
-            // no mininal path
-            if (alreadyFoundPairs.contains(pairDescriptor(p.src(), dst)))
+            if (p.contains(dst)) {
                 continue;
+            }
             Path q = new Path(p);
             q.add(dst);
             result.add(q);
         }
         return result;
+    }
+
+    private List<Path> minimalPaths(List<Path> paths, Set<String> alreadyFoundPairs) {
+        List<Path> result = new ArrayList<>();
+        for (Path p : paths) {
+            if (!alreadyFoundPairs.contains(pairDescriptor(p.src(), p.dst()))) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    private List<Path> pathsWithDestination(List<Path> paths, Vertex dst) {
+        List<Path> result = new ArrayList<>();
+        for (Path path : paths) {
+            if (path.dst().equals(dst)) {
+                result.add(path);
+            }
+        }
+        return result;
+    }
+
+    private void updateFoundPairs(Set<String> alreadyFoundPairs, List<Path> newPaths) {
+        newPaths.forEach(p -> alreadyFoundPairs.add(pairDescriptor(p.src(), p.dst())));
     }
 
     private List<List<Path>> divideByPair(List<Path> paths) {
@@ -121,70 +146,5 @@ public class PathFinder {
 
     private String pairDescriptor(Vertex src, Vertex dst) {
         return src.name() + ":" + dst.name();
-    }
-
-    public List<Path> allPathsBetweenVertices(Vertex src, Vertex dst) {
-        List<Path> result = new ArrayList<>();
-        for (List<Path> foundPaths = computeOneHopPaths(src); !foundPaths.isEmpty(); foundPaths = advanceOneHopNoMinimal(foundPaths)) {
-            result.addAll(pathsWithDestination(foundPaths, dst));
-            foundPaths.removeAll(result);
-        }
-        Collections.sort(result);
-        return result;
-    }
-
-    private List<Path> pathsWithDestination(List<Path> paths, Vertex dst) {
-        List<Path> result = new ArrayList<>();
-        for (Path path : paths) {
-            if (path.dst().equals(dst)) {
-                result.add(path);
-            }
-        }
-        return result;
-    }
-
-    private List<Path> computeOneHopPaths(Vertex src) {
-        List<Path> result = new ArrayList<>();
-        for (Edge e : graph.adjunctsOf(src)) {
-            Vertex dst = e.destination();
-            if (restrictions.turnIsForbidden(src, 'I', graph.adjunct(src, dst).color())) {
-                continue;
-            }
-            Path p = new Path();
-            p.add(src);
-            p.add(dst);
-            result.add(p);
-        }
-        return result;
-    }
-
-    private List<Path> advanceOneHopNoMinimal(List<Path> previouslyFoundPaths) {
-        List<Path> result = new ArrayList<>();
-        for (Path p : previouslyFoundPaths) {
-            result.addAll(advanceOneHopNoMinimal(p));
-        }
-        return result;
-    }
-
-    private List<Path> advanceOneHopNoMinimal(Path p) {
-        List<Path> result = new ArrayList<>();
-        Vertex currentSrc = p.dst();
-        Vertex predecessor = p.get(p.size() - 2);
-        Character inputPort = graph.adjunct(currentSrc, predecessor).color();
-        for (Edge e : graph.adjunctsOf(currentSrc)) {
-            Vertex dst = e.destination();
-            // going back
-            if (dst == predecessor)
-                continue;
-            if (restrictions.turnIsForbidden(currentSrc, inputPort, graph.adjunct(currentSrc, dst).color()))
-                continue;
-            if (p.contains(dst)) {
-                continue;
-            }
-            Path q = new Path(p);
-            q.add(dst);
-            result.add(q);
-        }
-        return result;
     }
 }
