@@ -39,7 +39,7 @@ public class Graph {
     }
 
     public List<Edge> getEdges() {
-        return this.edges;
+        return new ArrayList<>(this.edges);
     }
 
     public Collection<Edge> adjunctsOf(Vertex v) {
@@ -100,6 +100,7 @@ public class Graph {
         adjuncts.get(toRemove.source()).remove(toRemove);
         edges.remove(toRemove);
     }
+
     @Override
     public String toString() {
         String r = "";
@@ -131,5 +132,25 @@ public class Graph {
         int x = Integer.parseInt(xy.split("\\.")[0]);
         int y = Integer.parseInt(xy.split("\\.")[1]);
         return x + y * this.columns();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Graph))
+            return false;
+
+        Graph that = (Graph) o;
+        if (!this.vertices.equals(that.vertices))
+            return false;
+        return this.edges.equals(that.edges);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = vertices.hashCode();
+        result = 31 * result + edges.hashCode();
+        return result;
     }
 }
