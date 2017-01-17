@@ -8,12 +8,12 @@ public class DeterministicFaultyGraphBuilder {
         Graph goldenGraph = RegularGraphBuilder.generateGraph(rows, columns);
         if (index == 0)
             return goldenGraph;
-        if (index > size(rows, columns))
+        if (index >= size(rows, columns))
             throw new IndexOutOfBoundsException("Index " + index + " is out of bounds!");
 
         List<Set<Edge>> edgesToRemove = Combinatorics.allCombinationsOf(edgesWithoutDuplicity(goldenGraph));
         sortListBySize(edgesToRemove);
-        removeEdges(goldenGraph, edgesToRemove.get(index));
+        removeEdges(goldenGraph, edgesToRemove.get(index - 1));
         return goldenGraph;
     }
 
