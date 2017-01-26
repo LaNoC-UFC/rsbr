@@ -1,24 +1,20 @@
 package util;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class DeterministicFaultyGraphBuilder {
 
-    static public Graph generateGraph(int rows, int columns, int index) {
+    static public Graph generateGraph(int rows, int columns, BigInteger index) {
         Graph goldenGraph = RegularGraphBuilder.generateGraph(rows, columns);
-        if (index == 0)
+        if (BigInteger.ZERO.equals(index))
             return goldenGraph;
-        if (index >= size(rows, columns))
+        if (index.compareTo(size(rows, columns)) >= 0)
             throw new IndexOutOfBoundsException("Index " + index + " is out of bounds!");
 
-        List<Set<Edge>> edgesToRemove = Combinatorics.allCombinationsOf(edgesWithoutDuplicity(goldenGraph));
-        sortListBySize(edgesToRemove);
-        removeEdges(goldenGraph, edgesToRemove.get(index - 1));
+        Set<Edge> edgesToRemove = Combinatorics.combinationOf(edgesWithoutDuplicity(goldenGraph), index.subtract(BigInteger.ONE));
+        removeEdges(goldenGraph, edgesToRemove);
         return goldenGraph;
-    }
-
-    private static void sortListBySize(List<Set<Edge>> graphsCombinations) {
-        graphsCombinations.sort(Comparator.comparingInt(Set::size));
     }
 
     private static void removeEdges(Graph graph, Set<Edge> edgesToBeRemoved) {
@@ -43,17 +39,17 @@ public class DeterministicFaultyGraphBuilder {
         return new HashSet<>(edgesOfGraph);
     }
 
-    public static int size(int rows, int columns) {
+    public static BigInteger size(int rows, int columns) {
         int maxFaultyOfGraph = maximumOfFaultyEdges(rows, columns);
-        int numberOfTopologies = 0;
+        BigInteger numberOfTopologies = BigInteger.ZERO;
         for (int i = 0; i <= maxFaultyOfGraph; i++) {
-            numberOfTopologies += numberOfGraphsForNumberFaulty(rows, columns, i);
+            numberOfTopologies = numberOfTopologies.add(numberOfGraphsForNumberFaulty(rows, columns, i));
         }
         return numberOfTopologies;
     }
 
-    private static int numberOfGraphsForNumberFaulty(int rows, int columns, int numberOfFaultyEdges) {
-        return (int) Combinatorics.binomialCoefficient(numberOfEdges(rows, columns), numberOfFaultyEdges);
+    private static BigInteger numberOfGraphsForNumberFaulty(int rows, int columns, int numberOfFaultyEdges) {
+        return Combinatorics.binomialCoefficient(numberOfEdges(rows, columns), numberOfFaultyEdges);
     }
 
     private static int maximumOfFaultyEdges(int rows, int columns) {

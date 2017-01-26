@@ -1,5 +1,6 @@
 package util;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class Combinatorics {
@@ -7,36 +8,46 @@ public class Combinatorics {
     private Combinatorics() {
     }
 
-    public static <T> List<Set<T>> allCombinationsOf(Set<T> c) {
+    public static <T> List<Set<T>> allCombinationsOf(Set<T> elements) {
         List<Set<T>> result = new ArrayList<>();
-        List<T> objects = new ArrayList<>(c);
-        for (int m = 1; m != 1 << objects.size(); m++) {
-            Set<T> aCombination = new HashSet<>();
-            for (int i = 0; i != objects.size(); i++) {
-                if ((m & (1 << i)) != 0) {
-                    aCombination.add(objects.get(i));
-                }
-            }
-            result.add(aCombination);
+        for (BigInteger combinationIndex = BigInteger.ONE; combinationIndex.compareTo(numberOfCombinations(elements.size())) < 0 ; combinationIndex = combinationIndex.add(BigInteger.ONE)) {
+            result.add(combinationOf(elements, combinationIndex));
         }
         return result;
     }
 
-    static long binomialCoefficient(int n, int k) throws RuntimeException {
+    static BigInteger binomialCoefficient(int n, int k) {
         checkBinomial(n, k);
-        if (n - k > k)
-            return integralProduct(n - k + 1, n) / factorial(k);
-        return integralProduct(k + 1, n) / factorial(n - k);
+        k = Math.min(k, n - k);
+        long initialN = n - k + 1;
+        return binomialReverseProduct(initialN, k + 1);
     }
 
-    private static long factorial(int n) {
-        return (n < 2) ? 1 : integralProduct(2, n);
+    static <T> Set<T> combinationOf(Set<T> elements, BigInteger combinationIndex) {
+        List<T> objects = new ArrayList<>(elements);
+        Set<T> result = new HashSet<>();
+        for (BigInteger i = BigInteger.ZERO; i.compareTo(BigInteger.valueOf(objects.size())) < 0; i = i.add(BigInteger.ONE)) {
+            if (pertainsToCombination(i, combinationIndex)) {
+                result.add(objects.get(i.intValue()));
+            }
+        }
+        return result;
     }
 
-    private static long integralProduct(int from, int to) {
-        long result = 1;
-        for (int i = from; i <= to; i++) {
-            result *= i;
+    private static BigInteger numberOfCombinations(int numberOfElements) {
+        return BigInteger.valueOf(2).pow(numberOfElements);
+    }
+
+    private static boolean pertainsToCombination(BigInteger subjectIndex, BigInteger combinationIndex) {
+        BigInteger two = BigInteger.valueOf(2);
+        return combinationIndex.divide(two.pow(subjectIndex.intValue())).remainder(two).equals(BigInteger.ONE);
+    }
+
+    private static BigInteger binomialReverseProduct(long n, long maxK) {
+        BigInteger result = BigInteger.ONE;
+        for (long k = 1; k < maxK; k++) {
+            result = result.multiply(BigInteger.valueOf(n)).divide(BigInteger.valueOf(k));
+            n++;
         }
         return result;
     }
