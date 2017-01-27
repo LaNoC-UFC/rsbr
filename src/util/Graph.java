@@ -52,8 +52,7 @@ public class Graph {
                 return edge;
             }
         }
-        System.out.println("ERROR : There isn't adjunct between " + src.name() + "and" + dst.name());
-        return null;
+        throw new RuntimeException("There isn't adjunct between " + src.name() + "and" + dst.name());
     }
 
     public Edge adjunctOf(Vertex v, Character color) {
@@ -62,23 +61,16 @@ public class Graph {
                 return edge;
             }
         }
-        System.out.println("ERROR : There isn't a Op " + color + "?");
-        return null;
+        throw new RuntimeException("Vertex " + v.name() + " has no " + color + "output port");
     }
 
     public Vertex vertex(String name) {
-        Vertex vertex = null;
         for (Vertex v : this.vertices) {
             if (v.name().equals(name)) {
-                vertex = v;
+                return v;
             }
         }
-
-        if (vertex == null) {
-            System.out.println("Vertex: " + name + " was not found");
-            return null;
-        }
-        return vertex;
+        throw new RuntimeException("Vertex: " + name + " was not found");
     }
 
     void addVertex(String name) {
