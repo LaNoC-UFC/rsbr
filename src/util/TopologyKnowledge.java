@@ -3,7 +3,7 @@ package util;
 import java.util.Set;
 
 public class TopologyKnowledge {
-    static Character[] ports = { 'N', 'S', 'E', 'W' };
+    static Character[] ports = {'N', 'S', 'E', 'W'};
 
     public static Character getInvColor(Character color) {
         switch (color) {
@@ -18,8 +18,7 @@ public class TopologyKnowledge {
             case 'I':
                 return 'I';
             default:
-                System.out.println("ERROR : Wrong port Color.");
-                return null;
+                throw new RuntimeException("Wrong port color " + color);
         }
     }
 
@@ -31,13 +30,13 @@ public class TopologyKnowledge {
         int deltaX = srcX - dstX;
         int deltaY = srcY - dstY;
         assert Math.abs(deltaX) + Math.abs(deltaY) == 1 : src + " and " + dst + " are not neighbors";
-        if(1 == deltaX) {
+        if (1 == deltaX) {
             return 'W';
-        } else if(-1 == deltaX) {
+        } else if (-1 == deltaX) {
             return 'E';
-        } else if(1 == deltaY) {
+        } else if (1 == deltaY) {
             return 'S';
-        } else if(-1 == deltaY) {
+        } else if (-1 == deltaY) {
             return 'N';
         }
         return 'I';

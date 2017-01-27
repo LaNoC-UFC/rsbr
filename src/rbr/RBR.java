@@ -1,6 +1,7 @@
 package rbr;
 
 import java.util.*;
+
 import util.*;
 
 public class RBR {
@@ -30,7 +31,7 @@ public class RBR {
 
             for (RoutingOption b : actRP) {
                 if (ip.equals(b.getIp()) && dst.equals(b.destination())) {
-                        op.addAll(b.getOp());
+                    op.addAll(b.getOp());
                 }
             }
             routingPathForVertex.get(atual).add(new RoutingOption(ip, dst, op));
@@ -49,7 +50,7 @@ public class RBR {
 
             for (RoutingOption b : actRP) {
                 if (op.equals(b.getOp()) && dst.equals(b.destination())) {
-                        ip.addAll(b.getIp());
+                    ip.addAll(b.getIp());
                 }
             }
             routingPathForVertex.get(atual).add(new RoutingOption(ip, dst, op));
@@ -58,21 +59,20 @@ public class RBR {
 
     public void addRoutingOptions(List<List<Path>> paths) {
 
-        for(Vertex v : graph.getVertices())
+        for (Vertex v : graph.getVertices())
             routingPathForVertex.put(v, new HashSet<>());
 
-        for(List<Path> alp : paths) {
+        for (List<Path> alp : paths) {
             for (Path path : alp) {
                 for (Vertex sw : path) {
                     if (path.indexOf(sw) != path.size() - 1) {
                         Character op = graph.adjunct(sw, path.get(path.indexOf(sw) + 1)).color();
                         Character ip;
 
-                        if(path.indexOf(sw) == 0) {
+                        if (path.indexOf(sw) == 0) {
                             ip = 'I';
-                        }
-                        else {
-                            ip = graph.adjunct(sw, path.get(path.indexOf(sw) - 1) ).color();
+                        } else {
+                            ip = graph.adjunct(sw, path.get(path.indexOf(sw) - 1)).color();
                         }
                         routingPathForVertex.get(sw).add(new RoutingOption(ip, path.dst(), op));
                     }
@@ -84,7 +84,7 @@ public class RBR {
             // packInputPort(atual);
         }
     }
-    
+
     // Compute the regions
     public void regionsComputation() {
         Set<Character> opt = new HashSet<>();
@@ -109,14 +109,14 @@ public class RBR {
                 }
             }
         }
-        for(Vertex v : graph.getVertices())
+        for (Vertex v : graph.getVertices())
             adjustRegions(v);
         assert reachabilityIsOk();
     }
 
     Region adjustRegionWithOwner(Region r, Vertex owner) {
         Set<Vertex> destinations = r.destinations();
-        if(r.outsiders().contains(owner) && r.outsiders().size() == 1) {
+        if (r.outsiders().contains(owner) && r.outsiders().size() == 1) {
             destinations.add(owner);
         }
         return new Region(r.inputPorts(), destinations, r.outputPorts());
@@ -134,7 +134,7 @@ public class RBR {
     List<Region> adjustedRegionsFrom(Region r) {
         List<Region> adjustedRegions = new ArrayList<>();
         Set<Vertex> outsiders = r.outsiders();
-        if(outsiders.isEmpty()){
+        if (outsiders.isEmpty()) {
             adjustedRegions.add(r);
         } else {
             adjustedRegions.addAll(makeRegions(r.destinations(), r.inputPorts(), r.outputPorts()));
@@ -147,8 +147,8 @@ public class RBR {
         Range box = TopologyKnowledge.box(dsts);
 
         while (!dsts.isEmpty()) {
-            int Lmin = box.min(1), Cmax = box.max(0)-1;
-            int Cmin = box.min(0), Lmax = box.max(1)-1;
+            int Lmin = box.min(1), Cmax = box.max(0) - 1;
+            int Cmin = box.min(0), Lmax = box.max(1) - 1;
 
             boolean first = true;
             for (int line = Lmax; line >= Lmin; line--) {
@@ -170,7 +170,7 @@ public class RBR {
                             }
 
                             if (line == Lmin) { // last line
-                                Region rg = makeRegion(Cmin, Lmin, Cmax, Lmax,ip, op);
+                                Region rg = makeRegion(Cmin, Lmin, Cmax, Lmax, ip, op);
                                 dsts.removeAll(rg.destinations());
                                 result.add(rg);
                             }
@@ -200,7 +200,7 @@ public class RBR {
 
     public boolean reachabilityIsOk() {
         for (Vertex src : graph.getVertices()) {
-            if(!reachesAllDestinations(src)) {
+            if (!reachesAllDestinations(src)) {
                 return false;
             }
         }
@@ -214,15 +214,13 @@ public class RBR {
     }
 
     private void merge(Vertex router) {
-        List<Region> bkpListRegion = null;
+        Optional<List<Region>> bkpListRegion = Optional.empty();
         boolean wasPossible = true;
         while (reachesAllDestinations(router) && wasPossible) {
-            bkpListRegion = new ArrayList<>(regionsForVertex.get(router));
+            bkpListRegion = Optional.of(new ArrayList<>(regionsForVertex.get(router)));
             wasPossible = mergeUnitary(regionsForVertex.get(router));
         }
-        if (bkpListRegion != null) {
-            regionsForVertex.put(router, bkpListRegion);
-        }
+        bkpListRegion.ifPresent(regions -> regionsForVertex.put(router, regions));
     }
 
     static boolean mergeUnitary(List<Region> regions) {
@@ -259,23 +257,22 @@ public class RBR {
         if (dest == src) {
             return true;
         }
-        Character opColor = getOpColor(src, dest, ipColor);
-        if (opColor == null) {
+        Optional<Character> opColor = getOpColor(src, dest, ipColor);
+        if (!opColor.isPresent()) {
             return false;
         }
-        return reaches(graph.adjunctOf(src, opColor).destination(), dest,
-                TopologyKnowledge.getInvColor(graph.adjunctOf(src, opColor).color()));
+        Edge adjunct = graph.adjunctOf(src, opColor.get());
+        return reaches(adjunct.destination(), dest, TopologyKnowledge.getInvColor(adjunct.color()));
     }
 
-    private Character getOpColor(Vertex src, Vertex dest, Character ipColor) {
+    private Optional<Character> getOpColor(Vertex src, Vertex dest, Character ipColor) {
         int destX = Integer.valueOf(dest.name().split("\\.")[0]);
         int destY = Integer.valueOf(dest.name().split("\\.")[1]);
         for (rbr.Region reg : regionsForVertex.get(src)) {
             if (reg.box().contains(destX, destY) && reg.inputPorts().contains(ipColor)) {
-                return (Character)reg.outputPorts().toArray()[0];
+                return Optional.of((Character) reg.outputPorts().toArray()[0]);
             }
         }
-        System.err.println("ERROR : There isn't Op on " + src.name() + "("  + ipColor + ") going to " + dest.name());
-        return null;
+        return Optional.empty();
     }
 }

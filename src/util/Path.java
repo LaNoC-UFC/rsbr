@@ -12,10 +12,11 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
         public MinWeightComparator(LinkWeightTracker tracker) {
             lwTracker = tracker;
         }
+
         @Override
         public int compare(Path p0, Path p1) {
-            if(lwTracker.weight(p0) < lwTracker.weight(p1)) return -1;
-            if(lwTracker.weight(p0) > lwTracker.weight(p1)) return +1;
+            if (lwTracker.weight(p0) < lwTracker.weight(p1)) return -1;
+            if (lwTracker.weight(p0) > lwTracker.weight(p1)) return +1;
             return 0;
         }
     }
@@ -36,10 +37,11 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
         public MaxWeightComparator(LinkWeightTracker tracker) {
             lwTracker = tracker;
         }
+
         @Override
         public int compare(Path p0, Path p1) {
-            if(lwTracker.weight(p0) < lwTracker.weight(p1)) return +1;
-            if(lwTracker.weight(p0) > lwTracker.weight(p1)) return -1;
+            if (lwTracker.weight(p0) < lwTracker.weight(p1)) return +1;
+            if (lwTracker.weight(p0) > lwTracker.weight(p1)) return -1;
             return 0;
         }
     }
@@ -57,12 +59,13 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
     }
 
     public Vertex dst() {
-        return (this.size() != 0) ? this.get(this.size() - 1) : null;
+        return this.get(this.size() - 1);
     }
 
     public Vertex src() {
-        return (this.size() != 0) ? this.get(0) : null;
+        return this.get(0);
     }
+
     @Override
     public int compareTo(Path other) {
         if (this.edgesCount() < other.edgesCount())
@@ -72,11 +75,11 @@ public class Path extends ArrayList<Vertex> implements Comparable<Path> {
             return 1;
         return 0;
     }
+
     @Override
     public String toString() {
         String pathLine = "";
-        for(Vertex v : this)
-        {
+        for (Vertex v : this) {
             pathLine += " " + v.name();
         }
         return pathLine;

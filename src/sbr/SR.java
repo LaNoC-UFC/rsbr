@@ -76,9 +76,9 @@ public class SR {
     private void computeSegmentsInRange() {
         terminalVertices = new ArrayList<>();
 
-        Vertex start = pickFirstVertex();
-        while (start != null) {
-            computeSegmentsInExistingSubNets(start);
+        Optional<Vertex> start = pickFirstVertex();
+        while (start.isPresent()) {
+            computeSegmentsInExistingSubNets(start.get());
             start = pickNextStartVertex();
             /* If no segment was created from the start vertex picked and the graph has no bridges
             (ideal places to pick starts) then we should try to pick any non-visited vertex to
@@ -89,7 +89,7 @@ public class SR {
         }
     }
 
-    private Vertex pickFirstVertex() {
+    private Optional<Vertex> pickFirstVertex() {
         int xMin = currentWindow.min(0);
         int yMin = currentWindow.min(1);
         int xMax = currentWindow.max(0) - 1;
@@ -105,33 +105,32 @@ public class SR {
             sw = (pair) ? left : right;
             setStart(sw);
             subnetForVertex.put(sw, ++maxSN);
-            return sw;
+            return Optional.ofNullable(sw);
         }
 
-        sw = nextVisited();
-        if (null != sw) {
-            return sw;
+        Optional<Vertex> nextVisited = nextVisited();
+        if (nextVisited.isPresent()) {
+            return nextVisited;
         }
 
-        sw = nextBridgeLinkedStartVertex();
-        if (sw == null) {
-            sw = (pair) ? left : right;
-        }
+        Optional<Vertex> nextBridgeLinkedStartVertex = nextBridgeLinkedStartVertex();
+        sw = nextBridgeLinkedStartVertex.orElse((pair) ? left : right);
         setStart(sw);
         subnetForVertex.put(sw, ++maxSN);
-        return sw;
+        return Optional.ofNullable(sw);
     }
 
     private void computeSegmentsInExistingSubNets(Vertex sw) {
-        while (null != sw) {
+        Optional<Vertex> vertex = Optional.of(sw);
+        while (vertex.isPresent()) {
             policy.resetRRIndex();
-            subNet = subnetForVertex.get(sw);
-            Segment seg = formSegmentFrom(sw);
+            subNet = subnetForVertex.get(vertex.get());
+            Segment seg = formSegmentFrom(vertex.get());
             if (segmentIsValid(seg)) {
                 segments.add(seg);
                 visit(seg);
             }
-            sw = nextVisited();
+            vertex = nextVisited();
         }
     }
 
@@ -145,43 +144,44 @@ public class SR {
         }
     }
 
-    private Vertex pickNextStartVertex() {
-        Vertex sw = null;
-        if (isFinalTurn() && (sw = nextBridgeLinkedStartVertex()) != null) {
-            setStart(sw);
-            subnetForVertex.put(sw, ++maxSN);
+    private Optional<Vertex> pickNextStartVertex() {
+        Optional<Vertex> sw = nextBridgeLinkedStartVertex();
+        if (isFinalTurn() && sw.isPresent()) {
+            setStart(sw.get());
+            subnetForVertex.put(sw.get(), ++maxSN);
+            return sw;
         }
-        return sw;
+        return Optional.empty();
     }
 
-    private Vertex nextVisited() {
+    private Optional<Vertex> nextVisited() {
         List<Vertex> suitables = suitableVisitedVertices();
         Collections.reverse(suitables);
         for (Vertex tic : suitables) {
             if (suitableLinks(tic).size() > 1)
-                return tic;
+                return Optional.of(tic);
             for (int j = suitables.indexOf(tic) + 1; j < suitables.size(); j++) {
                 Vertex tac = suitables.get(j);
                 if (subnetForVertex.get(tic).equals(subnetForVertex.get(tac))) {
-                    return tic;
+                    return Optional.of(tic);
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
-    private Vertex nextBridgeLinkedStartVertex() {
+    private Optional<Vertex> nextBridgeLinkedStartVertex() {
         for (Edge b : bridges) {
             Vertex dst = b.destination();
             if (canBeStart(dst)) {
-                return dst;
+                return Optional.ofNullable(dst);
             }
             Vertex src = b.source();
             if (canBeStart(src)) {
-                return src;
+                return Optional.ofNullable(src);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private Segment formSegmentFrom(Vertex sw) {
@@ -204,7 +204,7 @@ public class SR {
     }
 
     private boolean segmentIsValid(Segment seg) {
-        return (null != seg && !seg.edges().isEmpty());
+        return !seg.edges().isEmpty();
     }
 
     private boolean isFinalTurn() {
@@ -230,7 +230,7 @@ public class SR {
 
     private Segment extendedSegment(Segment base, Vertex from) {
         List<Edge> links = suitableLinks(from, base);
-        Segment extendedSegment = null;
+        Segment extendedSegment = new Segment();
         while (!links.isEmpty() && !segmentIsValid(extendedSegment)) {
             Edge currentLink = policy.getNextLink(links);
             links.remove(currentLink);
